@@ -69,17 +69,17 @@ struct TripListView: View {
             if settings.pairedVehicleID == nil && !settings.hasCompletedCarSetup {
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Aracınızı tanımlayın")
+                        Text(L10n.tripListSetupVehicleTitle)
                             .font(.headline)
-                        Text("Bluetooth veya CarPlay bağlandığında otomatik kayıt için aracınızı eşleştirin.")
+                        Text(L10n.tripListSetupVehicleMessage)
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                        Button("Aracımı tanımla") {
+                        Button(L10n.settingsDefineVehicle) {
                             showCarPairing = true
                         }
                         .buttonStyle(.borderedProminent)
 
-                        Button("Şimdilik atla") {
+                        Button(L10n.vehiclePairingSkip) {
                             settings.hasCompletedCarSetup = true
                         }
                         .font(.caption)
@@ -173,7 +173,6 @@ struct TripListView: View {
                 .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: completedTrips.count)
             }
         }
-        .animation(reduceMotion ? nil : CarinhoMotion.cardSpring, value: recordingService.state.isActiveSession)
         .searchable(text: $searchText, prompt: L10n.searchTrips)
         .sheet(isPresented: $showCarPairing) {
             CarPairingSheet()
@@ -189,7 +188,7 @@ struct TripListView: View {
             }
         }
         .navigationTitle("Carinho")
-        .onAppear {
+        .task {
             refreshOrphans()
             notificationStore.reload()
         }

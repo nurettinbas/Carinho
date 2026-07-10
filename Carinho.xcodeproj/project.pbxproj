@@ -9,11 +9,10 @@
 /* Begin PBXBuildFile section */
 		0B85812565284933BEBC7212 /* GeocodingRetryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82C9C269375F4C05AFEA8817 /* GeocodingRetryService.swift */; };
 		1498DD740E004FB9AC44D2F3 /* TripStop.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0E09B4CEDD485E9B744E57 /* TripStop.swift */; };
-		1A08A23DFE40417CBC1C5DAF /* WatchConnectivityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C824D91E2014613A14064D4 /* WatchConnectivityService.swift */; };
 		3B1BCB066B68458F963D7027 /* PlacePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89C5F75B18D74EB4B35E48C0 /* PlacePickerView.swift */; };
 		4ED9865E047546A39C7E466C /* AppLockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F8346A303B84C5089017287 /* AppLockView.swift */; };
 		55259EE2E03648A4B6AAC434 /* FuelCostCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E100D096E5B474C8C3CC6EB /* FuelCostCalculator.swift */; };
-		A2TRIPFETCH0000000000002 /* TripFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2TRIPFETCH0000000000001 /* TripFetch.swift */; };
+		A2TRIPSTORE000000000002 /* TripStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2TRIPSTORE000000000001 /* TripStore.swift */; };
 		A2TRIPDATEGROUP000000002 /* TripDateGrouping.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2TRIPDATEGROUP000000001 /* TripDateGrouping.swift */; };
 		A2TRIPMAPSNAP00000000002 /* TripMapSnapshotCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2TRIPMAPSNAP00000000001 /* TripMapSnapshotCache.swift */; };
 		6FD1FB9C54054D94B99EEDBC /* TripMergeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B6254BADAB2452485AC086C /* TripMergeService.swift */; };
@@ -41,7 +40,6 @@
 		A1CARINHOSOUNDS00000001 /* CarinhoSounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2CARINHOSOUNDS00000001 /* CarinhoSounds.swift */; };
 		A1TRIPSTARTCAF000000001 /* trip_start.caf in Resources */ = {isa = PBXBuildFile; fileRef = A2TRIPSTARTCAF000000001 /* trip_start.caf */; };
 		A1TRIPSTOPCAF0000000001 /* trip_stop.caf in Resources */ = {isa = PBXBuildFile; fileRef = A2TRIPSTOPCAF0000000001 /* trip_stop.caf */; };
-		A10000000000000000000019 /* DateFormatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* DateFormatters.swift */; };
 		A10000000000000000000020 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* AppSettings.swift */; };
 		A10000000000000000000021 /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* PreviewData.swift */; };
 		A1CARINHOICON000000001 /* Carinho.icon in Resources */ = {isa = PBXBuildFile; fileRef = A2CARINHOICON000000001 /* Carinho.icon */; };
@@ -66,6 +64,12 @@
 		A1NOTIFLISTVIEW00000001 /* NotificationsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2NOTIFLISTVIEW00000001 /* NotificationsListView.swift */; };
 		B10000000000000000000011 /* AppNotificationArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000011 /* AppNotificationArchive.swift */; };
 		B10000000000000000000012 /* AppNotificationArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000011 /* AppNotificationArchive.swift */; };
+		B10000000000000000000014 /* DateFormatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000020 /* DateFormatters.swift */; };
+		B10000000000000000000015 /* DateFormatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000020 /* DateFormatters.swift */; };
+		B10000000000000000000016 /* SharedL10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000021 /* SharedL10n.swift */; };
+		B10000000000000000000017 /* SharedL10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000021 /* SharedL10n.swift */; };
+		B10000000000000000000018 /* CarinhoBrandColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000022 /* CarinhoBrandColors.swift */; };
+		B10000000000000000000019 /* CarinhoBrandColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000022 /* CarinhoBrandColors.swift */; };
 		B10000000000000000000013 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A2LOCALIZABLE00000000001 /* Localizable.xcstrings */; };
 		A1RECCARDSTYLE00000001 /* RecordingCardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2RECCARDSTYLE00000001 /* RecordingCardStyle.swift */; };
 		B10000000000000000000005 /* CarinhoWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000005 /* CarinhoWidget.swift */; };
@@ -95,8 +99,6 @@
 		A1RECSTOPPOLICY00000001 /* RecordingStopPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2RECSTOPPOLICY00000001 /* RecordingStopPolicy.swift */; };
 		A1RECSYNCCOORD00000001 /* RecordingSyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2RECSYNCCOORD00000001 /* RecordingSyncCoordinator.swift */; };
 		A1APPERRORPRES0000001 /* AppErrorPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2APPERRORPRES0000001 /* AppErrorPresenter.swift */; };
-		A1LOCATIONPROV00000001 /* LocationProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2LOCATIONPROV00000001 /* LocationProviding.swift */; };
-		A1RECPERSIST0000000001 /* RecordingPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2RECPERSIST0000000001 /* RecordingPersistence.swift */; };
 		A1VEHICLEPROFILE00000001 /* VehicleProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2VEHICLEPROFILE00000001 /* VehicleProfile.swift */; };
 		A1FREQROUTES00000000001 /* FrequentRoutesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2FREQROUTES00000000001 /* FrequentRoutesService.swift */; };
 		A1ROUTEPRIVCLIP0000001 /* RoutePrivacyClipper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2ROUTEPRIVCLIP0000001 /* RoutePrivacyClipper.swift */; };
@@ -140,7 +142,6 @@
 		65E131E71820446C9E390421 /* TripEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripEnums.swift; sourceTree = "<group>"; };
 		6AD03A7086DB4AACB2377EDA /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		E1D0C9B8A7465091E2F3A456 /* KeyboardDismiss.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardDismiss.swift; sourceTree = "<group>"; };
-		6C824D91E2014613A14064D4 /* WatchConnectivityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnectivityService.swift; sourceTree = "<group>"; };
 		7E7218250D954707A753EAFC /* RecordingLiveActivityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingLiveActivityService.swift; sourceTree = "<group>"; };
 		809405DA3B0A4D33AFE11517 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 		82C9C269375F4C05AFEA8817 /* GeocodingRetryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeocodingRetryService.swift; sourceTree = "<group>"; };
@@ -171,7 +172,6 @@
 		A2CARINHOSOUNDS00000001 /* CarinhoSounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarinhoSounds.swift; sourceTree = "<group>"; };
 		A2TRIPSTARTCAF000000001 /* trip_start.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = trip_start.caf; sourceTree = "<group>"; };
 		A2TRIPSTOPCAF0000000001 /* trip_stop.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = trip_stop.caf; sourceTree = "<group>"; };
-		A20000000000000000000019 /* DateFormatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatters.swift; sourceTree = "<group>"; };
 		A20000000000000000000020 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		A20000000000000000000021 /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
 		A2CARINHOICON000000001 /* Carinho.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer; path = Carinho.icon; sourceTree = "<group>"; };
@@ -197,6 +197,9 @@
 		A2APPNOTIFSTORE00000001 /* AppNotificationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNotificationStore.swift; sourceTree = "<group>"; };
 		A2NOTIFLISTVIEW00000001 /* NotificationsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsListView.swift; sourceTree = "<group>"; };
 		B20000000000000000000011 /* AppNotificationArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNotificationArchive.swift; sourceTree = "<group>"; };
+		B20000000000000000000020 /* DateFormatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatters.swift; sourceTree = "<group>"; };
+		B20000000000000000000021 /* SharedL10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedL10n.swift; sourceTree = "<group>"; };
+		B20000000000000000000022 /* CarinhoBrandColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarinhoBrandColors.swift; sourceTree = "<group>"; };
 		B20000000000000000000009 /* RecordingControlBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingControlBridge.swift; sourceTree = "<group>"; };
 		A2REC0BSERVER00000000001 /* RecordingRequestObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingRequestObserver.swift; sourceTree = "<group>"; };
 		A2MATCHEDROUTE0000000001 /* MatchedRoutePoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchedRoutePoint.swift; sourceTree = "<group>"; };
@@ -205,8 +208,6 @@
 		A2RECSTOPPOLICY00000001 /* RecordingStopPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingStopPolicy.swift; sourceTree = "<group>"; };
 		A2RECSYNCCOORD00000001 /* RecordingSyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingSyncCoordinator.swift; sourceTree = "<group>"; };
 		A2APPERRORPRES0000001 /* AppErrorPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppErrorPresenter.swift; sourceTree = "<group>"; };
-		A2LOCATIONPROV00000001 /* LocationProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationProviding.swift; sourceTree = "<group>"; };
-		A2RECPERSIST0000000001 /* RecordingPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingPersistence.swift; sourceTree = "<group>"; };
 		B20000000000000000000005 /* CarinhoWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarinhoWidget.swift; sourceTree = "<group>"; };
 		B20000000000000000000006 /* WidgetRecordingIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetRecordingIntents.swift; sourceTree = "<group>"; };
 		B20000000000000000000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -215,7 +216,7 @@
 		C22C35A8C7504120981649DC /* SavedPlace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedPlace.swift; sourceTree = "<group>"; };
 		D171349C59CE45DEA7298678 /* StatsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsViewModel.swift; sourceTree = "<group>"; };
 		E915A26582304556AF11A8CC /* PlaceMatchingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceMatchingService.swift; sourceTree = "<group>"; };
-		A2TRIPFETCH0000000000001 /* TripFetch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripFetch.swift; sourceTree = "<group>"; };
+		A2TRIPSTORE000000000001 /* TripStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripStore.swift; sourceTree = "<group>"; };
 		A2TRIPDATEGROUP000000001 /* TripDateGrouping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripDateGrouping.swift; sourceTree = "<group>"; };
 		A2TRIPMAPSNAP00000000001 /* TripMapSnapshotCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripMapSnapshotCache.swift; sourceTree = "<group>"; };
 		F138262CDC1E4889B99374A4 /* TripRecordingIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripRecordingIntents.swift; sourceTree = "<group>"; };
@@ -355,7 +356,6 @@
 				F86B713FF186438EBC23FC3E /* BluetoothTriggerService.swift */,
 				A2VEHCOORD0000000001 /* VehicleConnectionCoordinator.swift */,
 				A2VEHPAIRING00000001 /* VehiclePairingService.swift */,
-				6C824D91E2014613A14064D4 /* WatchConnectivityService.swift */,
 				7E7218250D954707A753EAFC /* RecordingLiveActivityService.swift */,
 				A2REC0BSERVER00000000001 /* RecordingRequestObserver.swift */,
 				A2TRIPRECOVERY0000000001 /* TripRecoveryService.swift */,
@@ -375,8 +375,6 @@
 			children = (
 				A2RECSTOPPOLICY00000001 /* RecordingStopPolicy.swift */,
 				A2RECSYNCCOORD00000001 /* RecordingSyncCoordinator.swift */,
-				A2LOCATIONPROV00000001 /* LocationProviding.swift */,
-				A2RECPERSIST0000000001 /* RecordingPersistence.swift */,
 			);
 			path = Recording;
 			sourceTree = "<group>";
@@ -426,10 +424,9 @@
 				A20000000000000000000018 /* DistanceCalculator.swift */,
 				A2CARINHOMOTION00000001 /* CarinhoMotion.swift */,
 				A2CARINHOSOUNDS00000001 /* CarinhoSounds.swift */,
-				A20000000000000000000019 /* DateFormatters.swift */,
 				A20000000000000000000020 /* AppSettings.swift */,
 				A20000000000000000000021 /* PreviewData.swift */,
-				A2TRIPFETCH0000000000001 /* TripFetch.swift */,
+				A2TRIPSTORE000000000001 /* TripStore.swift */,
 				A2TRIPDATEGROUP000000001 /* TripDateGrouping.swift */,
 				A2TRIPMAPSNAP00000000001 /* TripMapSnapshotCache.swift */,
 				A2CATEGORYSEEDER00000001 /* CategorySeeder.swift */,
@@ -453,6 +450,9 @@
 		B50000000000000000000001 /* CarinhoShared */ = {
 			isa = PBXGroup;
 			children = (
+				B20000000000000000000020 /* DateFormatters.swift */,
+				B20000000000000000000021 /* SharedL10n.swift */,
+				B20000000000000000000022 /* CarinhoBrandColors.swift */,
 				B20000000000000000000004 /* TripRecordingAttributes.swift */,
 				B20000000000000000000003 /* RecordingCarAnimationView.swift */,
 				B20000000000000000000009 /* RecordingControlBridge.swift */,
@@ -630,12 +630,11 @@
 				A10000000000000000000018 /* DistanceCalculator.swift in Sources */,
 				A1CARINHOMOTION00000001 /* CarinhoMotion.swift in Sources */,
 				A1CARINHOSOUNDS00000001 /* CarinhoSounds.swift in Sources */,
-				A10000000000000000000019 /* DateFormatters.swift in Sources */,
 				A10000000000000000000020 /* AppSettings.swift in Sources */,
 				A10000000000000000000021 /* PreviewData.swift in Sources */,
 				A10000000000000000000023 /* AppDelegate.swift in Sources */,
 				A1APPSERVICES00000001 /* AppServices.swift in Sources */,
-				A2TRIPFETCH0000000000002 /* TripFetch.swift in Sources */,
+				A2TRIPSTORE000000000002 /* TripStore.swift in Sources */,
 				A2TRIPDATEGROUP000000002 /* TripDateGrouping.swift in Sources */,
 				A2TRIPMAPSNAP00000000002 /* TripMapSnapshotCache.swift in Sources */,
 				F7584F1172694F06905495CC /* TripEnums.swift in Sources */,
@@ -659,7 +658,6 @@
 				A1VEHCOORD0000000001 /* VehicleConnectionCoordinator.swift in Sources */,
 				A1VEHPAIRING00000001 /* VehiclePairingService.swift in Sources */,
 				A1VEHCONNKIND0000001 /* VehicleConnectionKind.swift in Sources */,
-				1A08A23DFE40417CBC1C5DAF /* WatchConnectivityService.swift in Sources */,
 				D10E4D3FDD254D86A5654E28 /* RecordingLiveActivityService.swift in Sources */,
 				A1REC0BSERVER00000000001 /* RecordingRequestObserver.swift in Sources */,
 				A1MATCHEDROUTE0000000001 /* MatchedRoutePoint.swift in Sources */,
@@ -668,8 +666,6 @@
 				A1RECSTOPPOLICY00000001 /* RecordingStopPolicy.swift in Sources */,
 				A1RECSYNCCOORD00000001 /* RecordingSyncCoordinator.swift in Sources */,
 				A1APPERRORPRES0000001 /* AppErrorPresenter.swift in Sources */,
-				A1LOCATIONPROV00000001 /* LocationProviding.swift in Sources */,
-				A1RECPERSIST0000000001 /* RecordingPersistence.swift in Sources */,
 				A1VEHICLEPROFILE00000001 /* VehicleProfile.swift in Sources */,
 				A1FREQROUTES00000000001 /* FrequentRoutesService.swift in Sources */,
 				A1ROUTEPRIVCLIP0000001 /* RoutePrivacyClipper.swift in Sources */,
@@ -689,6 +685,9 @@
 				B10000000000000000000001 /* TripNotificationService.swift in Sources */,
 				B10000000000000000000002 /* CarPairingSheet.swift in Sources */,
 				B10000000000000000000003 /* RecordingCarAnimationView.swift in Sources */,
+				B10000000000000000000014 /* DateFormatters.swift in Sources */,
+				B10000000000000000000016 /* SharedL10n.swift in Sources */,
+				B10000000000000000000018 /* CarinhoBrandColors.swift in Sources */,
 				A1RECCARDSTYLE00000001 /* RecordingCardStyle.swift in Sources */,
 				B10000000000000000000004 /* TripRecordingAttributes.swift in Sources */,
 				B10000000000000000000008 /* RecordingControlBridge.swift in Sources */,
@@ -702,6 +701,9 @@
 			files = (
 				B10000000000000000000005 /* CarinhoWidget.swift in Sources */,
 				B10000000000000000000006 /* WidgetRecordingIntents.swift in Sources */,
+				B10000000000000000000015 /* DateFormatters.swift in Sources */,
+				B10000000000000000000017 /* SharedL10n.swift in Sources */,
+				B10000000000000000000019 /* CarinhoBrandColors.swift in Sources */,
 				B10000000000000000000007 /* TripRecordingAttributes.swift in Sources */,
 				B10000000000000000000009 /* RecordingControlBridge.swift in Sources */,
 				B10000000000000000000012 /* AppNotificationArchive.swift in Sources */,
@@ -852,7 +854,6 @@
 				INFOPLIST_FILE = Carinho/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Carinho;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.travel";
-				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Bluetooth is used to start recording automatically when your vehicle connects.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Face ID is used to protect your trip history.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Location access is required for background trip recording.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to record your trips.";
@@ -894,7 +895,6 @@
 				INFOPLIST_FILE = Carinho/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Carinho;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.travel";
-				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Bluetooth is used to start recording automatically when your vehicle connects.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Face ID is used to protect your trip history.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Location access is required for background trip recording.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to record your trips.";

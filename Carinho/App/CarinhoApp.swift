@@ -104,7 +104,7 @@ final class AppRuntime {
         CategorySeeder.seedIfNeeded(in: container.mainContext)
         VehiclePairingService.migrateLegacyPairingIfNeeded(in: container.mainContext)
         locationService.requestPermission()
-        TripFetch.syncWidgetWeekDistance(in: container.mainContext)
+        TripStore.syncWidgetWeekDistance(in: container.mainContext)
         TripRecoveryService.finalizeStaleOrphans(in: container.mainContext)
         TripRecoveryService.scheduleOrphanStaleNotifications(
             in: container.mainContext,
@@ -124,7 +124,6 @@ final class AppRuntime {
                 olderThanDays: AppSettings.shared.autoDeleteDays
             )
         }
-        TripFetch.syncWidgetWeekDistance(in: container.mainContext)
     }
 
     var shouldKeepVehicleMonitoring: Bool {
@@ -179,7 +178,7 @@ final class AppRuntime {
             tripRecordingService.processExternalStopRequest()
             return
         }
-        if settings.pendingStartRecordingRequest {
+        if settings.pendingStartRecordingRequest || settings.awaitingExternalStartConfirmation {
             tripRecordingService.processExternalStartRequest()
             return
         }
@@ -220,12 +219,6 @@ struct CarinhoApp: App {
                 }
                 .onChange(of: scenePhase) { _, phase in
                     handleScenePhase(phase)
-                }
-                .onReceive(NotificationCenter.default.publisher(for: .carinhoStartRecording)) { _ in
-                    runtime.tripRecordingService.processExternalStartRequest()
-                }
-                .onReceive(NotificationCenter.default.publisher(for: .carinhoStopRecording)) { _ in
-                    runtime.tripRecordingService.stopManualRecording()
                 }
                 .onOpenURL { url in
                     runtime.bootstrap(container: modelContainer)

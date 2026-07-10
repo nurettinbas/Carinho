@@ -1,19 +1,8 @@
 import Foundation
 
 enum L10n {
-    private static let preferredLanguageKey = "preferredLanguageCode"
-    private static let suiteName = "group.com.carinho.app"
-
-    private static var preferredLanguageCode: String? {
-        let defaults = UserDefaults(suiteName: suiteName) ?? .standard
-        return defaults.string(forKey: preferredLanguageKey)
-    }
-
-    static func string(_ key: String.LocalizationValue) -> String {
-        if let code = preferredLanguageCode {
-            return String(localized: key, locale: Locale(identifier: code))
-        }
-        return String(localized: key, locale: .current)
+    static func string(_ key: StaticString) -> String {
+        SharedL10n.text(String(describing: key), bundle: .main)
     }
 
     static var tripStartedTitle: String { string("trip.started.title") }
@@ -185,6 +174,19 @@ enum L10n {
     static var vehiclePairingMissingConnection: String { string("vehicle.pairing.missing_connection") }
     static var vehicleDefaultName: String { string("vehicle.default_name") }
     static var vehicleAutoTrigger: String { string("vehicle.auto_trigger") }
+    static var tripListSetupVehicleTitle: String { string("trip.list.setup_vehicle.title") }
+    static var tripListSetupVehicleMessage: String { string("trip.list.setup_vehicle.message") }
+    static var appLockReason: String { string("settings.privacy.app_lock_reason") }
+    static var settingsConfirmExternalStart: String { string("settings.privacy.confirm_external_start") }
+    static var appLockTitle: String { string("settings.privacy.app_lock_title") }
+    static var appLockUnlock: String { string("settings.privacy.app_lock_unlock") }
+    static var appLockUnavailableTitle: String { string("settings.privacy.app_lock_unavailable_title") }
+    static var appLockUnavailable: String { string("settings.privacy.app_lock_unavailable") }
+    static var externalStartConfirmTitle: String { string("recording.external_start.title") }
+    static var externalStartConfirmMessage: String { string("recording.external_start.message") }
+    static var externalStartConfirmAction: String { string("recording.external_start.confirm") }
+    static var cancel: String { string("action.cancel") }
+    static var ok: String { string("action.ok") }
     static var pdfWorkReportTitle: String { string("pdf.work_report.title") }
     static var pdfColumnDate: String { string("pdf.column.date") }
     static var pdfColumnRoute: String { string("pdf.column.route") }

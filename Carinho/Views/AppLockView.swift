@@ -8,9 +8,16 @@ struct AppLockView: View {
         VStack(spacing: 16) {
             Image(systemName: "lock.fill")
                 .font(.system(size: 48))
-            Text("Carinho kilitli")
+            Text(L10n.appLockTitle)
                 .font(.title2)
-            Button("Kilidi aç") {
+            if !appLockService.canUseDeviceAuthentication {
+                Text(L10n.appLockUnavailable)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+            }
+            Button(L10n.appLockUnlock) {
                 Task { @MainActor in
                     _ = await appLockService.authenticateIfNeeded(enabled: settings.appLockEnabled)
                 }

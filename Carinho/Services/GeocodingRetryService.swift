@@ -17,7 +17,7 @@ final class GeocodingRetryService {
         guard networkMonitor.isConnected else { return }
 
         let complete = GeocodeStatus.complete.rawValue
-        let trips = TripFetch.completed(from: context)
+        let trips = TripStore.completed(from: context)
 
         for trip in trips where trip.geocodeStatusRaw != complete {
             await enrich(trip: trip, context: context)

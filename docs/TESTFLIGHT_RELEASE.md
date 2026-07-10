@@ -10,9 +10,8 @@
 
 1. Bundle ID: `com.carinho.app`
 2. Widget: `com.carinho.app.widget`
-3. Watch: `com.carinho.app.watchkitapp` *(planned — not in Xcode project yet)*
-4. Signing: Automatic + Team seç
-5. Capabilities: App Groups, Background Modes (location), CarPlay
+3. Signing: Automatic + Team seç
+4. Capabilities: App Groups, Background Modes (location), CarPlay
 
 ## App Store Connect
 

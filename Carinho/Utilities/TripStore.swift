@@ -1,33 +1,32 @@
 import Foundation
 import SwiftData
 
-/// Fetches trips without SwiftData `#Predicate` or `SortDescriptor` key paths (Swift 6 Sendable-safe).
 @MainActor
-enum TripFetch {
+enum TripStore {
     static func all(from context: ModelContext) -> [Trip] {
         (try? context.fetch(FetchDescriptor<Trip>())) ?? []
     }
 
     static func completed(from context: ModelContext) -> [Trip] {
-        all(from: context).filter { $0.endedAt != nil }
+        all(from: context).filter(isCompleted)
     }
 
     static func completedSince(_ date: Date, from context: ModelContext) -> [Trip] {
         let minimum = date.timeIntervalSinceReferenceDate
-        return completed(from: context).filter {
-            $0.startedAt.timeIntervalSinceReferenceDate >= minimum
+        return completed(from: context).filter { trip in
+            trip.startedAt.timeIntervalSinceReferenceDate >= minimum
         }
     }
 
     static func completedBefore(_ date: Date, from context: ModelContext) -> [Trip] {
         let maximum = date.timeIntervalSinceReferenceDate
-        return completed(from: context).filter {
-            $0.startedAt.timeIntervalSinceReferenceDate < maximum
+        return completed(from: context).filter { trip in
+            trip.startedAt.timeIntervalSinceReferenceDate < maximum
         }
     }
 
     static func orphans(from context: ModelContext) -> [Trip] {
-        all(from: context).filter { $0.endedAt == nil }
+        all(from: context).filter { !isCompleted($0) }
     }
 
     static func orphansNewestFirst(from context: ModelContext) -> [Trip] {
@@ -52,5 +51,9 @@ enum TripFetch {
         let todayTrips = completedSince(startOfDay, from: context)
         let todayDistance = todayTrips.reduce(0) { $0 + $1.distanceMeters }
         TodayKmProvider.syncTodayDistance(todayDistance)
+    }
+
+    private static func isCompleted(_ trip: Trip) -> Bool {
+        trip.duration != nil
     }
 }

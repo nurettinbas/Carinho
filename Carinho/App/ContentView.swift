@@ -48,6 +48,16 @@ struct ContentView: View {
                     processPendingRecordingRequests()
                 }
             }
+            .alert(L10n.externalStartConfirmTitle, isPresented: externalStartConfirmationBinding) {
+                Button(L10n.externalStartConfirmAction) {
+                    tripRecordingService.confirmExternalStartRecording()
+                }
+                Button(L10n.cancel, role: .cancel) {
+                    tripRecordingService.cancelExternalStartRecording()
+                }
+            } message: {
+                Text(L10n.externalStartConfirmMessage)
+            }
             .appErrorAlert()
         }
     }
@@ -63,7 +73,7 @@ struct ContentView: View {
             tripRecordingService.processExternalStopRequest()
             return
         }
-        if settings.pendingStartRecordingRequest {
+        if settings.pendingStartRecordingRequest || settings.awaitingExternalStartConfirmation {
             tripRecordingService.processExternalStartRequest()
             return
         }
@@ -74,6 +84,17 @@ struct ContentView: View {
         if settings.pendingResumeRecordingRequest {
             tripRecordingService.processExternalResumeRequest()
         }
+    }
+
+    private var externalStartConfirmationBinding: Binding<Bool> {
+        Binding(
+            get: { settings.awaitingExternalStartConfirmation },
+            set: { newValue in
+                if !newValue, settings.awaitingExternalStartConfirmation {
+                    tripRecordingService.cancelExternalStartRecording()
+                }
+            }
+        )
     }
 }
 

@@ -146,8 +146,3 @@ struct CarinhoShortcuts: AppShortcutsProvider {
         )
     }
 }
-
-extension Notification.Name {
-    static let carinhoStartRecording = Notification.Name("carinho.startRecording")
-    static let carinhoStopRecording = Notification.Name("carinho.stopRecording")
-}

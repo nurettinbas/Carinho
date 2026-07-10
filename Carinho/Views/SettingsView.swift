@@ -11,6 +11,7 @@ struct SettingsView: View {
     @Environment(TripRecordingService.self) private var tripRecordingService
     @Environment(BluetoothTriggerService.self) private var bluetoothService
     @Environment(GeocodingRetryService.self) private var geocodingRetryService
+    @Environment(AppLockService.self) private var appLockService
     @Query private var places: [SavedPlace]
     @Query(sort: \Trip.startedAt, order: .reverse) private var trips: [Trip]
     @Bindable private var settings = AppSettings.shared
@@ -18,6 +19,7 @@ struct SettingsView: View {
     @State private var exportURL: URL?
     @State private var showExportSheet = false
     @State private var showCarPairing = false
+    @State private var showAppLockUnavailableAlert = false
 
     @FocusState private var focusedField: SettingsFocusedField?
 
@@ -197,7 +199,8 @@ struct SettingsView: View {
             }
 
             Section(L10n.settingsPrivacySection) {
-                Toggle(L10n.settingsAppLock, isOn: $settings.appLockEnabled)
+                Toggle(L10n.settingsAppLock, isOn: appLockEnabledBinding)
+                Toggle(L10n.settingsConfirmExternalStart, isOn: $settings.confirmExternalRecordingStart)
                 LabeledContent(L10n.settingsPrivacyRadius) {
                     TextField("metre", value: $settings.privacyRadiusMeters, format: .number)
                         .keyboardType(.numberPad)
@@ -275,6 +278,11 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showCarPairing) {
             CarPairingSheet()
+        }
+        .alert(L10n.appLockUnavailableTitle, isPresented: $showAppLockUnavailableAlert) {
+            Button(L10n.ok, role: .cancel) {}
+        } message: {
+            Text(L10n.appLockUnavailable)
         }
     }
 
@@ -403,6 +411,20 @@ struct SettingsView: View {
         case .restricted: L10n.settingsLocationRestricted
         }
     }
+
+    private var appLockEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { settings.appLockEnabled },
+            set: { newValue in
+                if newValue, !appLockService.canUseDeviceAuthentication {
+                    settings.appLockEnabled = false
+                    showAppLockUnavailableAlert = true
+                } else {
+                    settings.appLockEnabled = newValue
+                }
+            }
+        )
+    }
 }
 
 struct ExportActivityShareSheet: UIViewControllerRepresentable {
@@ -423,4 +445,5 @@ struct ExportActivityShareSheet: UIViewControllerRepresentable {
         .environment(PreviewData.shared.recordingService)
         .environment(BluetoothTriggerService())
         .environment(GeocodingRetryService(geocodingService: GeocodingService()))
+        .environment(AppLockService())
 }

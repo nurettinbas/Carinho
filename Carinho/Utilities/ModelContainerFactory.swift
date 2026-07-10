@@ -9,12 +9,23 @@ enum ModelContainerFactory {
     static var storeURL: URL {
         let directory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        return directory.appendingPathComponent(storeFileName)
+        let url = directory.appendingPathComponent(storeFileName)
+        applyFileProtectionIfNeeded(at: url)
+        return url
+    }
+
+    private static func applyFileProtectionIfNeeded(at url: URL) {
+        guard FileManager.default.fileExists(atPath: url.path) else { return }
+        try? FileManager.default.setAttributes(
+            [.protectionKey: FileProtectionType.complete],
+            ofItemAtPath: url.path
+        )
     }
 
     static func makeSafe() -> ModelContainer {
         if let container = try? makeWithMigration() {
             markSchemaCurrent()
+            applyFileProtectionIfNeeded(at: storeURL)
             return container
         }
 
@@ -25,6 +36,7 @@ enum ModelContainerFactory {
 
         if let container = try? makeWithMigration() {
             markSchemaCurrent()
+            applyFileProtectionIfNeeded(at: storeURL)
             return container
         }
 

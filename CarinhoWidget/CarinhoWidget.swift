@@ -4,29 +4,8 @@ import SwiftUI
 import WidgetKit
 
 private enum WidgetL10n {
-    private static let suiteName = "group.com.carinho.app"
-    private static let bundle = Bundle.main
-
-    private static var preferredLanguageCode: String? {
-        UserDefaults(suiteName: suiteName)?.string(forKey: "preferredLanguageCode")
-    }
-
     private static func text(_ key: String) -> String {
-        if let code = preferredLanguageCode, !code.isEmpty,
-           let path = bundle.path(forResource: code, ofType: "lproj"),
-           let localizedBundle = Bundle(path: path) {
-            let localized = localizedBundle.localizedString(forKey: key, value: nil, table: nil)
-            if localized != key { return localized }
-        }
-
-        let localized = bundle.localizedString(forKey: key, value: nil, table: nil)
-        if localized != key { return localized }
-
-        return String(
-            localized: String.LocalizationValue(stringLiteral: key),
-            bundle: bundle,
-            locale: .current
-        )
+        SharedL10n.text(key)
     }
 
     static var pause: String { text("action.pause") }
@@ -43,13 +22,13 @@ private enum WidgetL10n {
 }
 
 private enum WidgetPalette {
-    static let brandTop = Color(red: 0.42, green: 0.71, blue: 0.93)
-    static let brandBottom = Color(red: 0.23, green: 0.56, blue: 0.85)
-    static let recording = Color.red
-    static let paused = Color.orange
-    static let resume = Color.green
-    static let stop = Color.red
-    static let start = brandBottom
+    static let brandTop = CarinhoBrandColors.brandTop
+    static let brandBottom = CarinhoBrandColors.brandBottom
+    static let recording = CarinhoBrandColors.recording
+    static let paused = CarinhoBrandColors.paused
+    static let resume = CarinhoBrandColors.resume
+    static let stop = CarinhoBrandColors.stop
+    static let start = CarinhoBrandColors.start
 }
 
 private struct WidgetAdaptiveBackground: View {
@@ -168,62 +147,6 @@ private struct WidgetIntentButton<Intent: AppIntent>: View {
     }
 }
 
-private struct WidgetStartLink: View {
-    enum Size {
-        case regular
-        case small
-    }
-
-    let title: String
-    let tint: Color
-    let size: Size
-
-    @Environment(\.widgetRenderingMode) private var renderingMode
-
-    private var usesLiquidGlassLayout: Bool {
-        renderingMode != .fullColor
-    }
-
-    var body: some View {
-        Link(destination: CarinhoDeepLink.startRecording) {
-            Label(title, systemImage: "play.fill")
-                .font(labelFont)
-                .labelStyle(.titleAndIcon)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, size == .small ? 6 : 8)
-                .padding(.horizontal, usesLiquidGlassLayout ? 10 : 0)
-        }
-        .tint(usesLiquidGlassLayout ? .primary : tint)
-        .accessibilityLabel(title)
-    }
-
-    private var labelFont: Font {
-        switch size {
-        case .regular: .caption.weight(.semibold)
-        case .small: .caption2.weight(.semibold)
-        }
-    }
-}
-
-private enum WidgetFormatters {
-    static func formatDuration(_ interval: TimeInterval) -> String {
-        let totalSeconds = max(0, Int(interval.rounded()))
-        let hours = totalSeconds / 3600
-        let minutes = (totalSeconds % 3600) / 60
-        let seconds = totalSeconds % 60
-        if hours > 0 {
-            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
-        }
-        return String(format: "%d:%02d", minutes, seconds)
-    }
-
-    static func formatDistance(_ meters: Double) -> String {
-        String(format: "%.1f km", meters / 1000)
-    }
-}
-
 struct CarinhoWidgetEntry: TimelineEntry {
     let date: Date
     let isRecording: Bool
@@ -316,12 +239,12 @@ struct CarinhoWidgetView: View {
                             : (entry.isPaused ? WidgetPalette.paused : WidgetPalette.recording)
                     )
                     .lineLimit(1)
-                Text(WidgetFormatters.formatDuration(entry.elapsed))
+                Text(DateFormatters.formatDuration(entry.elapsed))
                     .font(.system(.title3, design: .rounded, weight: .bold))
                     .monospacedDigit()
                     .minimumScaleFactor(0.8)
                     .lineLimit(1)
-                Text(WidgetFormatters.formatDistance(entry.distanceMeters))
+                Text(DateFormatters.formatDistance(entry.distanceMeters))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 Spacer(minLength: 0)
@@ -330,16 +253,18 @@ struct CarinhoWidgetView: View {
                 Text(WidgetL10n.thisWeek)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
-                Text(WidgetFormatters.formatDistance(entry.weekDistanceMeters))
+                Text(DateFormatters.formatDistance(entry.weekDistanceMeters))
                     .font(.system(.title3, design: .rounded, weight: .bold))
                     .monospacedDigit()
                     .minimumScaleFactor(0.8)
                     .lineLimit(1)
                 Spacer(minLength: 0)
-                WidgetStartLink(
+                WidgetIntentButton(
                     title: WidgetL10n.start,
+                    systemImage: "play.fill",
                     tint: WidgetPalette.start,
-                    size: .small
+                    size: .small,
+                    intent: WidgetStartRecordingIntent()
                 )
             }
         }
@@ -352,7 +277,7 @@ struct CarinhoWidgetView: View {
 
             if entry.isRecording || entry.isPaused {
                 statusBadge
-                Text("\(WidgetFormatters.formatDuration(entry.elapsed)) · \(WidgetFormatters.formatDistance(entry.distanceMeters))")
+                Text("\(DateFormatters.formatDuration(entry.elapsed)) · \(DateFormatters.formatDistance(entry.distanceMeters))")
                     .font(.system(.title2, design: .rounded, weight: .bold))
                     .monospacedDigit()
                     .lineLimit(1)
@@ -361,7 +286,7 @@ struct CarinhoWidgetView: View {
                 Text(WidgetL10n.thisWeek)
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Text(WidgetFormatters.formatDistance(entry.weekDistanceMeters))
+                Text(DateFormatters.formatDistance(entry.weekDistanceMeters))
                     .font(.system(.title2, design: .rounded, weight: .bold))
                     .monospacedDigit()
             }
@@ -378,17 +303,17 @@ struct CarinhoWidgetView: View {
 
             if entry.isRecording || entry.isPaused {
                 statusBadge
-                Text(WidgetFormatters.formatDuration(entry.elapsed))
+                Text(DateFormatters.formatDuration(entry.elapsed))
                     .font(.system(size: 36, weight: .bold, design: .rounded))
                     .monospacedDigit()
-                Text(WidgetFormatters.formatDistance(entry.distanceMeters))
+                Text(DateFormatters.formatDistance(entry.distanceMeters))
                     .font(.title3)
                     .foregroundStyle(.secondary)
             } else {
                 Text(WidgetL10n.thisWeek)
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Text(WidgetFormatters.formatDistance(entry.weekDistanceMeters))
+                Text(DateFormatters.formatDistance(entry.weekDistanceMeters))
                     .font(.system(size: 36, weight: .bold, design: .rounded))
                     .monospacedDigit()
                 Text(WidgetL10n.noRecording)
@@ -464,10 +389,12 @@ struct CarinhoWidgetView: View {
                 )
             }
         } else {
-            WidgetStartLink(
+            WidgetIntentButton(
                 title: WidgetL10n.start,
+                systemImage: "play.fill",
                 tint: WidgetPalette.start,
-                size: .regular
+                size: .regular,
+                intent: WidgetStartRecordingIntent()
             )
         }
     }
@@ -571,7 +498,7 @@ struct CarinhoLiveActivity: Widget {
                         Text(context.state.isPaused ? WidgetL10n.paused : WidgetL10n.recording)
                             .font(.caption)
                             .foregroundStyle(context.state.isPaused ? .orange : .primary)
-                        Text("\(WidgetFormatters.formatDuration(TimeInterval(context.state.elapsedSeconds))) · \(context.state.currentSpeedKmh) km/s")
+                        Text("\(DateFormatters.formatDuration(TimeInterval(context.state.elapsedSeconds))) · \(context.state.currentSpeedKmh) km/s")
                             .font(.headline)
                             .monospacedDigit()
                     }
@@ -582,7 +509,7 @@ struct CarinhoLiveActivity: Widget {
             } compactLeading: {
                 LiveActivityCarIcon(isPaused: context.state.isPaused, font: .caption)
             } compactTrailing: {
-                Text(WidgetFormatters.formatDuration(TimeInterval(context.state.elapsedSeconds)))
+                Text(DateFormatters.formatDuration(TimeInterval(context.state.elapsedSeconds)))
                     .font(.caption2)
                     .monospacedDigit()
             } minimal: {
@@ -627,9 +554,9 @@ struct CarinhoLiveActivity: Widget {
 
     private func liveActivityStats(_ state: TripRecordingAttributes.ContentState) -> String {
         if state.isPaused {
-            return "\(WidgetFormatters.formatDuration(TimeInterval(state.elapsedSeconds))) · \(WidgetFormatters.formatDistance(state.distanceMeters))"
+            return "\(DateFormatters.formatDuration(TimeInterval(state.elapsedSeconds))) · \(DateFormatters.formatDistance(state.distanceMeters))"
         }
-        return "\(WidgetFormatters.formatDuration(TimeInterval(state.elapsedSeconds))) · \(WidgetFormatters.formatDistance(state.distanceMeters)) · \(state.currentSpeedKmh) km/s"
+        return "\(DateFormatters.formatDuration(TimeInterval(state.elapsedSeconds))) · \(DateFormatters.formatDistance(state.distanceMeters)) · \(state.currentSpeedKmh) km/s"
     }
 }
 

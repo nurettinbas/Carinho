@@ -5,6 +5,19 @@ import ActivityKit
 public enum RecordingControlBridge {
     public static let appGroupSuiteName = "group.com.carinho.app"
 
+    private struct UncheckedDefaults: @unchecked Sendable {
+        let value: UserDefaults
+    }
+
+    private static let uncheckedSharedDefaults = UncheckedDefaults(
+        value: UserDefaults(suiteName: appGroupSuiteName) ?? .standard
+    )
+
+    /// Cached app-group defaults; avoids repeated `UserDefaults(suiteName:)` calls that spam cfprefsd logs.
+    public static func sharedDefaults() -> UserDefaults {
+        uncheckedSharedDefaults.value
+    }
+
     public enum Keys {
         public static let requestStop = "recording.requestStop"
         public static let requestStart = "recording.requestStart"
@@ -16,99 +29,81 @@ public enum RecordingControlBridge {
         public static let distance = "recording.distance"
     }
 
-    private enum DarwinNotification {
-        static let stopRequestName = "com.carinho.recording.requestStop"
-        static let startRequestName = "com.carinho.recording.requestStart"
-        static let pauseRequestName = "com.carinho.recording.requestPause"
-        static let resumeRequestName = "com.carinho.recording.requestResume"
+    private enum DarwinNotification: CaseIterable {
+        case start
+        case stop
+        case pause
+        case resume
 
-        static func stopRequestCFName() -> CFNotificationName {
-            CFNotificationName(stopRequestName as CFString)
+        var name: String {
+            switch self {
+            case .start: "com.carinho.recording.requestStart"
+            case .stop: "com.carinho.recording.requestStop"
+            case .pause: "com.carinho.recording.requestPause"
+            case .resume: "com.carinho.recording.requestResume"
+            }
         }
 
-        static func startRequestCFName() -> CFNotificationName {
-            CFNotificationName(startRequestName as CFString)
+        var cfName: CFNotificationName {
+            CFNotificationName(name as CFString)
         }
 
-        static func pauseRequestCFName() -> CFNotificationName {
-            CFNotificationName(pauseRequestName as CFString)
+        var cfString: CFString {
+            name as CFString
         }
+    }
 
-        static func resumeRequestCFName() -> CFNotificationName {
-            CFNotificationName(resumeRequestName as CFString)
-        }
+    private static func registerDarwinObserver(
+        _ notification: DarwinNotification,
+        observer: UnsafeRawPointer,
+        callback: @escaping CFNotificationCallback
+    ) {
+        CFNotificationCenterAddObserver(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            observer,
+            callback,
+            notification.cfString,
+            nil,
+            .deliverImmediately
+        )
+    }
 
-        static func stopRequestCFString() -> CFString {
-            stopRequestName as CFString
-        }
-
-        static func startRequestCFString() -> CFString {
-            startRequestName as CFString
-        }
-
-        static func pauseRequestCFString() -> CFString {
-            pauseRequestName as CFString
-        }
-
-        static func resumeRequestCFString() -> CFString {
-            resumeRequestName as CFString
-        }
+    private static func postDarwinNotification(_ notification: DarwinNotification) {
+        CFNotificationCenterPostNotification(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            notification.cfName,
+            nil,
+            nil,
+            true
+        )
     }
 
     public static func registerDarwinStartObserver(
         observer: UnsafeRawPointer,
         callback: @escaping CFNotificationCallback
     ) {
-        CFNotificationCenterAddObserver(
-            CFNotificationCenterGetDarwinNotifyCenter(),
-            observer,
-            callback,
-            DarwinNotification.startRequestCFString(),
-            nil,
-            .deliverImmediately
-        )
+        registerDarwinObserver(.start, observer: observer, callback: callback)
     }
 
     public static func registerDarwinStopObserver(
         observer: UnsafeRawPointer,
         callback: @escaping CFNotificationCallback
     ) {
-        CFNotificationCenterAddObserver(
-            CFNotificationCenterGetDarwinNotifyCenter(),
-            observer,
-            callback,
-            DarwinNotification.stopRequestCFString(),
-            nil,
-            .deliverImmediately
-        )
+        registerDarwinObserver(.stop, observer: observer, callback: callback)
     }
 
     public static func registerDarwinPauseObserver(
         observer: UnsafeRawPointer,
         callback: @escaping CFNotificationCallback
     ) {
-        CFNotificationCenterAddObserver(
-            CFNotificationCenterGetDarwinNotifyCenter(),
-            observer,
-            callback,
-            DarwinNotification.pauseRequestCFString(),
-            nil,
-            .deliverImmediately
-        )
+        registerDarwinObserver(.pause, observer: observer, callback: callback)
     }
 
     public static func registerDarwinResumeObserver(
         observer: UnsafeRawPointer,
         callback: @escaping CFNotificationCallback
     ) {
-        CFNotificationCenterAddObserver(
-            CFNotificationCenterGetDarwinNotifyCenter(),
-            observer,
-            callback,
-            DarwinNotification.resumeRequestCFString(),
-            nil,
-            .deliverImmediately
-        )
+        registerDarwinObserver(.resume, observer: observer, callback: callback)
     }
 
     @MainActor
@@ -128,66 +123,38 @@ public enum RecordingControlBridge {
     }
 
     public static func requestStartFromControlSurface() {
-        let defaults = UserDefaults(suiteName: appGroupSuiteName)
-        defaults?.set(false, forKey: Keys.requestStop)
-        defaults?.set(false, forKey: Keys.requestPause)
-        defaults?.set(false, forKey: Keys.requestResume)
-        defaults?.set(true, forKey: Keys.requestStart)
-
-        CFNotificationCenterPostNotification(
-            CFNotificationCenterGetDarwinNotifyCenter(),
-            DarwinNotification.startRequestCFName(),
-            nil,
-            nil,
-            true
-        )
+        let defaults = sharedDefaults()
+        defaults.set(false, forKey: Keys.requestStop)
+        defaults.set(false, forKey: Keys.requestPause)
+        defaults.set(false, forKey: Keys.requestResume)
+        defaults.set(true, forKey: Keys.requestStart)
+        postDarwinNotification(.start)
     }
 
     public static func requestStopFromControlSurface() {
-        let defaults = UserDefaults(suiteName: appGroupSuiteName)
-        defaults?.set(false, forKey: Keys.requestPause)
-        defaults?.set(false, forKey: Keys.requestResume)
-        defaults?.set(true, forKey: Keys.requestStop)
-        defaults?.set(false, forKey: Keys.isActive)
-        defaults?.set(false, forKey: Keys.isPaused)
-
-        CFNotificationCenterPostNotification(
-            CFNotificationCenterGetDarwinNotifyCenter(),
-            DarwinNotification.stopRequestCFName(),
-            nil,
-            nil,
-            true
-        )
+        let defaults = sharedDefaults()
+        defaults.set(false, forKey: Keys.requestPause)
+        defaults.set(false, forKey: Keys.requestResume)
+        defaults.set(true, forKey: Keys.requestStop)
+        defaults.set(false, forKey: Keys.isActive)
+        defaults.set(false, forKey: Keys.isPaused)
+        postDarwinNotification(.stop)
     }
 
     public static func requestPauseFromControlSurface() {
-        let defaults = UserDefaults(suiteName: appGroupSuiteName)
-        defaults?.set(false, forKey: Keys.requestResume)
-        defaults?.set(true, forKey: Keys.requestPause)
-        defaults?.set(true, forKey: Keys.isPaused)
-
-        CFNotificationCenterPostNotification(
-            CFNotificationCenterGetDarwinNotifyCenter(),
-            DarwinNotification.pauseRequestCFName(),
-            nil,
-            nil,
-            true
-        )
+        let defaults = sharedDefaults()
+        defaults.set(false, forKey: Keys.requestResume)
+        defaults.set(true, forKey: Keys.requestPause)
+        defaults.set(true, forKey: Keys.isPaused)
+        postDarwinNotification(.pause)
     }
 
     public static func requestResumeFromControlSurface() {
-        let defaults = UserDefaults(suiteName: appGroupSuiteName)
-        defaults?.set(false, forKey: Keys.requestPause)
-        defaults?.set(true, forKey: Keys.requestResume)
-        defaults?.set(false, forKey: Keys.isPaused)
-
-        CFNotificationCenterPostNotification(
-            CFNotificationCenterGetDarwinNotifyCenter(),
-            DarwinNotification.resumeRequestCFName(),
-            nil,
-            nil,
-            true
-        )
+        let defaults = sharedDefaults()
+        defaults.set(false, forKey: Keys.requestPause)
+        defaults.set(true, forKey: Keys.requestResume)
+        defaults.set(false, forKey: Keys.isPaused)
+        postDarwinNotification(.resume)
     }
 
     @MainActor

@@ -20,6 +20,7 @@ final class AppSettings {
         static let fuelPricePerLiter = "fuelPricePerLiter"
         static let evChargePricePerKWh = "evChargePricePerKWh"
         static let appLockEnabled = "appLockEnabled"
+        static let confirmExternalRecordingStart = "confirmExternalRecordingStart"
         static let privacyRadiusMeters = "privacyRadiusMeters"
         static let autoDeleteDays = "autoDeleteDays"
         static let blurExportCoordinates = "blurExportCoordinates"
@@ -44,7 +45,7 @@ final class AppSettings {
     }
 
     init(userDefaults: UserDefaults? = nil) {
-        defaults = userDefaults ?? UserDefaults(suiteName: suiteName) ?? .standard
+        defaults = userDefaults ?? RecordingControlBridge.sharedDefaults()
     }
 
     var autoRecordingEnabled: Bool {
@@ -90,6 +91,16 @@ final class AppSettings {
     var appLockEnabled: Bool {
         get { defaults.bool(forKey: Key.appLockEnabled) }
         set { defaults.set(newValue, forKey: Key.appLockEnabled) }
+    }
+
+    var confirmExternalRecordingStart: Bool {
+        get { defaults.bool(forKey: Key.confirmExternalRecordingStart) }
+        set { defaults.set(newValue, forKey: Key.confirmExternalRecordingStart) }
+    }
+
+    var awaitingExternalStartConfirmation: Bool {
+        get { defaults.bool(forKey: "recording.awaitingExternalStartConfirmation") }
+        set { defaults.set(newValue, forKey: "recording.awaitingExternalStartConfirmation") }
     }
 
     var privacyRadiusMeters: Double {

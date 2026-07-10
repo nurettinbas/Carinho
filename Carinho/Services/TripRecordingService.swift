@@ -144,15 +144,32 @@ final class TripRecordingService {
     func processExternalStartRequest() {
         guard state == .idle else {
             settings.pendingStartRecordingRequest = false
+            settings.awaitingExternalStartConfirmation = false
             return
         }
 
         settings.pendingPauseRecordingRequest = false
         settings.pendingResumeRecordingRequest = false
 
+        if settings.confirmExternalRecordingStart {
+            settings.awaitingExternalStartConfirmation = true
+            settings.pendingStartRecordingRequest = false
+            return
+        }
+
         if startManualRecording() {
             settings.pendingStartRecordingRequest = false
         }
+    }
+
+    func confirmExternalStartRecording() {
+        settings.awaitingExternalStartConfirmation = false
+        _ = startManualRecording()
+    }
+
+    func cancelExternalStartRecording() {
+        settings.awaitingExternalStartConfirmation = false
+        settings.pendingStartRecordingRequest = false
     }
 
     func processExternalStopRequest() {
@@ -225,22 +242,6 @@ final class TripRecordingService {
         }
     }
 
-    func handleCarPlayConnected() {
-        handleVehicleConnected(trigger: .carPlay)
-    }
-
-    func handleCarPlayDisconnected() {
-        handleVehicleDisconnected(trigger: .carPlay)
-    }
-
-    func handleBluetoothConnected() {
-        handleVehicleConnected(trigger: .bluetooth)
-    }
-
-    func handleBluetoothDisconnected() {
-        handleVehicleDisconnected(trigger: .bluetooth)
-    }
-
     private enum RecordingTrigger {
         case manual, automatic, carPlay, bluetooth
     }
@@ -276,8 +277,7 @@ final class TripRecordingService {
         stopIdleCheckTimer()
         RecordingLiveActivityService.start(startedAt: trip.startedAt)
         syncExternalState(force: true)
-
-        Task { CarPlayConnectionHandler.shared.refreshCarPlayUI() }
+        refreshCarPlayUIIfConnected()
     }
 
     private func handleAutomotiveChange(_ isAutomotive: Bool) {
@@ -402,9 +402,7 @@ final class TripRecordingService {
         CarinhoHaptics.recordingStarted()
         CarinhoSounds.recordingStarted()
 
-        Task {
-            CarPlayConnectionHandler.shared.refreshCarPlayUI()
-        }
+        refreshCarPlayUIIfConnected()
 
         if let location = locationService.lastLocation {
             handleLocationUpdate(location)
@@ -533,9 +531,7 @@ final class TripRecordingService {
         syncExternalState()
         WidgetCenter.shared.reloadAllTimelines()
 
-        Task {
-            CarPlayConnectionHandler.shared.refreshCarPlayUI()
-        }
+        refreshCarPlayUIIfConnected()
     }
 
     private func resetActiveSession() {
@@ -597,12 +593,6 @@ final class TripRecordingService {
             distanceMeters: currentDistanceMeters,
             currentSpeedKmh: speedKmh
         )
-        WatchConnectivityService.shared.sendRecordingState(
-            isRecording: isRecording || isPaused,
-            isPaused: isPaused,
-            elapsed: elapsedTime,
-            distanceMeters: currentDistanceMeters
-        )
         RecordingLiveActivityService.update(
             elapsed: elapsedTime,
             distanceMeters: currentDistanceMeters,
@@ -625,7 +615,12 @@ final class TripRecordingService {
             WidgetCenter.shared.reloadAllTimelines()
         }
 
-        Task { CarPlayConnectionHandler.shared.refreshCarPlayUI() }
+        refreshCarPlayUIIfConnected()
+    }
+
+    private func refreshCarPlayUIIfConnected() {
+        guard CarPlayConnectionHandler.shared.isConnected else { return }
+        CarPlayConnectionHandler.shared.refreshCarPlayUI()
     }
 
     private func startElapsedTimer() {

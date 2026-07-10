@@ -16,7 +16,7 @@ enum TripRecoveryService {
         var results: [OrphanTrip] = []
         results.reserveCapacity(4)
 
-        for trip in TripFetch.orphansNewestFirst(from: context) {
+        for trip in TripStore.orphansNewestFirst(from: context) {
             let lastPoint = trip.sortedPoints.last?.timestamp ?? trip.startedAt
             let lastActivity = max(lastPoint, trip.startedAt)
             let isStale = Date().timeIntervalSince(lastActivity) >= staleThreshold

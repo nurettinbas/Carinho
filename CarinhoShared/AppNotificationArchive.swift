@@ -31,17 +31,15 @@ public struct StoredAppNotification: Codable, Identifiable, Sendable {
 public enum AppNotificationArchive {
     private static let storageKey = "app.notifications.inbox"
     private static let maxCount = 100
-    private static let suiteName = RecordingControlBridge.appGroupSuiteName
-
     public static func load() -> [StoredAppNotification] {
-        guard let data = defaults()?.data(forKey: storageKey) else { return [] }
+        guard let data = RecordingControlBridge.sharedDefaults().data(forKey: storageKey) else { return [] }
         return (try? JSONDecoder().decode([StoredAppNotification].self, from: data)) ?? []
     }
 
     public static func save(_ items: [StoredAppNotification]) {
         let trimmed = Array(items.prefix(maxCount))
         guard let data = try? JSONEncoder().encode(trimmed) else { return }
-        defaults()?.set(data, forKey: storageKey)
+        RecordingControlBridge.sharedDefaults().set(data, forKey: storageKey)
     }
 
     public static func append(
@@ -63,7 +61,4 @@ public enum AppNotificationArchive {
         save(items)
     }
 
-    private static func defaults() -> UserDefaults? {
-        UserDefaults(suiteName: suiteName)
-    }
 }

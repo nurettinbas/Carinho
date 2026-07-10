@@ -8,9 +8,12 @@ struct RecordingCarAnimationView: View {
 
     private var sceneHeight: CGFloat { compact ? 44 : 80 }
     private var shouldAnimate: Bool { isAnimating && !reduceMotion }
+    private var animationInterval: TimeInterval {
+        ProcessInfo.processInfo.isLowPowerModeEnabled ? (1 / 15) : (1 / 30)
+    }
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1 / 30)) { timeline in
+        TimelineView(.animation(minimumInterval: animationInterval)) { timeline in
             RoadSceneDriver(
                 liveTime: timeline.date.timeIntervalSinceReferenceDate,
                 shouldAnimate: shouldAnimate,

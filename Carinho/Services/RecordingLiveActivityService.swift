@@ -62,13 +62,3 @@ enum RecordingLiveActivityService {
         }
     }
 }
-
-enum LiveActivityFormatters {
-    static func formatDuration(_ interval: TimeInterval) -> String {
-        DateFormatters.formatDuration(interval)
-    }
-
-    static func formatDistance(_ meters: Double) -> String {
-        DateFormatters.formatDistance(meters)
-    }
-}

@@ -112,7 +112,25 @@
         }
       }
     },
+    "action.cancel" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İptal"
+          }
+        }
+      }
+    },
     "action.category" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -129,6 +147,7 @@
       }
     },
     "action.delete" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -145,6 +164,7 @@
       }
     },
     "action.merge" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -160,7 +180,25 @@
         }
       }
     },
+    "action.ok" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamam"
+          }
+        }
+      }
+    },
     "action.pause" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -177,6 +215,7 @@
       }
     },
     "action.refresh" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -193,6 +232,7 @@
       }
     },
     "action.resume" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -209,6 +249,7 @@
       }
     },
     "action.share" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -242,6 +283,7 @@
       }
     },
     "action.stop" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -305,6 +347,7 @@
       }
     },
     "Aracımı tanımla" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -315,6 +358,7 @@
       }
     },
     "Aracınızı tanımlayın" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -459,6 +503,7 @@
       }
     },
     "Bluetooth veya CarPlay bağlandığında otomatik kayıt için aracınızı eşleştirin." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -512,6 +557,7 @@
       }
     },
     "Carinho kilitli" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -576,6 +622,7 @@
       }
     },
     "carplay.distance" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -592,6 +639,7 @@
       }
     },
     "carplay.idle" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -608,6 +656,7 @@
       }
     },
     "carplay.recording" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -624,6 +673,7 @@
       }
     },
     "carplay.status" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -651,6 +701,7 @@
       }
     },
     "category.business" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -667,6 +718,7 @@
       }
     },
     "category.personal" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -868,6 +920,7 @@
       }
     },
     "filter.all" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -884,6 +937,7 @@
       }
     },
     "filter.category" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -910,6 +964,7 @@
       }
     },
     "fuel.diesel" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -926,6 +981,7 @@
       }
     },
     "fuel.electric" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -942,6 +998,7 @@
       }
     },
     "fuel.hybrid" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -958,6 +1015,7 @@
       }
     },
     "fuel.petrol" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1007,6 +1065,7 @@
       }
     },
     "gps.quality.good" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1023,6 +1082,7 @@
       }
     },
     "gps.quality.lost" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1039,6 +1099,7 @@
       }
     },
     "gps.quality.weak" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1274,6 +1335,7 @@
       }
     },
     "Kayıt başlat" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1295,6 +1357,7 @@
       }
     },
     "Kilidi aç" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1363,6 +1426,7 @@
       }
     },
     "label.avg_abbr" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1397,6 +1461,7 @@
       }
     },
     "label.current_speed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1431,6 +1496,7 @@
       }
     },
     "label.distance" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1447,6 +1513,7 @@
       }
     },
     "label.duration" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1481,6 +1548,7 @@
       }
     },
     "label.estimated_fuel" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1497,6 +1565,7 @@
       }
     },
     "label.holiday" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1513,6 +1582,7 @@
       }
     },
     "label.market" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1529,6 +1599,7 @@
       }
     },
     "label.max_abbr" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1563,6 +1634,7 @@
       }
     },
     "label.max_speed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1579,6 +1651,7 @@
       }
     },
     "label.other" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1595,6 +1668,7 @@
       }
     },
     "label.work" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1656,6 +1730,7 @@
       }
     },
     "location.banner.denied" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1672,6 +1747,7 @@
       }
     },
     "location.banner.grant" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1688,6 +1764,7 @@
       }
     },
     "location.banner.not_determined" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1704,6 +1781,7 @@
       }
     },
     "location.banner.settings" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1720,6 +1798,7 @@
       }
     },
     "location.banner.when_in_use" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1736,6 +1815,7 @@
       }
     },
     "Maks. hız: %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1756,6 +1836,7 @@
       }
     },
     "map.fullscreen" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1772,6 +1853,7 @@
       }
     },
     "map.style.dark" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1788,6 +1870,7 @@
       }
     },
     "map.style.light" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1845,6 +1928,7 @@
       }
     },
     "notifications.clear_all" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1861,6 +1945,7 @@
       }
     },
     "notifications.empty.message" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1877,6 +1962,7 @@
       }
     },
     "notifications.empty.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1893,6 +1979,7 @@
       }
     },
     "notifications.mark_all_read" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1909,6 +1996,7 @@
       }
     },
     "notifications.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1925,6 +2013,7 @@
       }
     },
     "onboarding.back" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1941,6 +2030,7 @@
       }
     },
     "onboarding.finish" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1957,6 +2047,7 @@
       }
     },
     "onboarding.location.enable_always" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1973,6 +2064,7 @@
       }
     },
     "onboarding.location.message" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1989,6 +2081,7 @@
       }
     },
     "onboarding.location.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2005,6 +2098,7 @@
       }
     },
     "onboarding.motion.message" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2021,6 +2115,7 @@
       }
     },
     "onboarding.motion.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2037,6 +2132,7 @@
       }
     },
     "onboarding.next" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2053,6 +2149,7 @@
       }
     },
     "onboarding.notifications.message" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2069,6 +2166,7 @@
       }
     },
     "onboarding.notifications.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2085,6 +2183,7 @@
       }
     },
     "onboarding.permission.allow" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2101,6 +2200,7 @@
       }
     },
     "onboarding.permission.granted" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2132,6 +2232,7 @@
       }
     },
     "orphan.stale.body" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2148,6 +2249,7 @@
       }
     },
     "orphan.stale.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2197,6 +2299,7 @@
       }
     },
     "pdf.column.cost" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2213,6 +2316,7 @@
       }
     },
     "pdf.column.date" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2229,6 +2333,7 @@
       }
     },
     "pdf.column.distance" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2245,6 +2350,7 @@
       }
     },
     "pdf.column.duration" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2261,6 +2367,7 @@
       }
     },
     "pdf.column.route" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2277,6 +2384,7 @@
       }
     },
     "pdf.generate_failed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2293,6 +2401,7 @@
       }
     },
     "pdf.no_business_trips" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2309,6 +2418,7 @@
       }
     },
     "pdf.work_report.summary" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2325,6 +2435,7 @@
       }
     },
     "pdf.work_report.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2341,6 +2452,7 @@
       }
     },
     "place.home" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2357,6 +2469,7 @@
       }
     },
     "place.info.section" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2373,6 +2486,7 @@
       }
     },
     "place.kind.field" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2389,6 +2503,7 @@
       }
     },
     "place.location.section" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2405,6 +2520,7 @@
       }
     },
     "place.name.field" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2421,6 +2537,7 @@
       }
     },
     "place.other" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2437,6 +2554,7 @@
       }
     },
     "place.picker.edit_title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2453,6 +2571,7 @@
       }
     },
     "place.picker.move_map_hint" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2469,6 +2588,7 @@
       }
     },
     "place.picker.nearby_section" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2485,6 +2605,7 @@
       }
     },
     "place.picker.new_title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2501,6 +2622,7 @@
       }
     },
     "place.picker.resolving_address" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2517,6 +2639,7 @@
       }
     },
     "place.picker.save" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2533,6 +2656,7 @@
       }
     },
     "place.picker.selected_location" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2549,6 +2673,7 @@
       }
     },
     "place.picker.use_address_as_name" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2565,6 +2690,7 @@
       }
     },
     "place.picker.use_current_location" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2581,6 +2707,7 @@
       }
     },
     "place.privacy_zone" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2597,6 +2724,7 @@
       }
     },
     "place.suggestion.section" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2613,6 +2741,7 @@
       }
     },
     "place.suggestion.visits" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2629,6 +2758,7 @@
       }
     },
     "place.work" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2645,6 +2775,7 @@
       }
     },
     "recording.accessibility.summary" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2660,7 +2791,59 @@
         }
       }
     },
+    "recording.external_start.confirm" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start recording"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kaydı başlat"
+          }
+        }
+      }
+    },
+    "recording.external_start.message" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A widget, shortcut, or link requested trip recording. Do you want to start now?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget, kısayol veya bağlantı kayıt başlatmak istiyor. Şimdi başlatılsın mı?"
+          }
+        }
+      }
+    },
+    "recording.external_start.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start recording?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kayıt başlatılsın mı?"
+          }
+        }
+      }
+    },
     "recording.paused" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2677,6 +2860,7 @@
       }
     },
     "recording.started" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -2759,6 +2943,7 @@
       "isCommentAutoGenerated" : true
     },
     "search.trips" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2783,6 +2968,7 @@
       "isCommentAutoGenerated" : true
     },
     "section.older" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2799,6 +2985,7 @@
       }
     },
     "section.this_month" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2815,6 +3002,7 @@
       }
     },
     "section.this_week" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2831,6 +3019,7 @@
       }
     },
     "section.today" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2847,6 +3036,7 @@
       }
     },
     "section.yesterday" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2863,6 +3053,7 @@
       }
     },
     "settings.about.privacy" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2879,6 +3070,7 @@
       }
     },
     "settings.about.section" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2895,6 +3087,7 @@
       }
     },
     "settings.about.version" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2911,6 +3104,7 @@
       }
     },
     "settings.add_place" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2927,6 +3121,7 @@
       }
     },
     "settings.backup.csv" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2943,6 +3138,7 @@
       }
     },
     "settings.backup.gpx" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2959,6 +3155,7 @@
       }
     },
     "settings.backup.json" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2975,6 +3172,7 @@
       }
     },
     "settings.backup.kml" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2991,6 +3189,7 @@
       }
     },
     "settings.backup.pdf" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3007,6 +3206,7 @@
       }
     },
     "settings.backup.section" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3023,6 +3223,7 @@
       }
     },
     "settings.backup.share" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3039,6 +3240,7 @@
       }
     },
     "settings.carplay.hint" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3055,6 +3257,7 @@
       }
     },
     "settings.carplay.section" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3071,6 +3274,7 @@
       }
     },
     "settings.carplay.status" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3087,6 +3291,7 @@
       }
     },
     "settings.connection.connected" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3103,6 +3308,7 @@
       }
     },
     "settings.connection.disconnected" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3153,6 +3359,7 @@
       }
     },
     "settings.favorite_places" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3169,6 +3376,7 @@
       }
     },
     "settings.fuel.consumption" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3185,6 +3393,7 @@
       }
     },
     "settings.fuel.price" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3201,6 +3410,7 @@
       }
     },
     "settings.fuel.section" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3217,6 +3427,7 @@
       }
     },
     "settings.language.english" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3233,6 +3444,7 @@
       }
     },
     "settings.language.picker" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3249,6 +3461,7 @@
       }
     },
     "settings.language.section" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3265,6 +3478,7 @@
       }
     },
     "settings.language.system" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3281,6 +3495,7 @@
       }
     },
     "settings.language.turkish" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3297,6 +3512,7 @@
       }
     },
     "settings.location.always" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3313,6 +3529,7 @@
       }
     },
     "settings.location.denied" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3329,6 +3546,7 @@
       }
     },
     "settings.location.not_determined" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3345,6 +3563,7 @@
       }
     },
     "settings.location.restricted" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3361,6 +3580,7 @@
       }
     },
     "settings.location.when_in_use" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3377,6 +3597,7 @@
       }
     },
     "settings.permissions.background_location_hint" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3393,6 +3614,7 @@
       }
     },
     "settings.permissions.granted" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3409,6 +3631,7 @@
       }
     },
     "settings.permissions.location" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3425,6 +3648,7 @@
       }
     },
     "settings.permissions.motion" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3441,6 +3665,7 @@
       }
     },
     "settings.permissions.open_settings" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3457,6 +3682,7 @@
       }
     },
     "settings.permissions.request_location" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3473,6 +3699,7 @@
       }
     },
     "settings.permissions.request_motion" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3489,6 +3716,7 @@
       }
     },
     "settings.permissions.required" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3505,6 +3733,7 @@
       }
     },
     "settings.permissions.section" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3521,6 +3750,7 @@
       }
     },
     "settings.privacy.app_lock" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3536,7 +3766,93 @@
         }
       }
     },
+    "settings.privacy.app_lock_reason" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verify to view your trip history."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yolculuk geçmişinizi görmek için doğrulayın."
+          }
+        }
+      }
+    },
+    "settings.privacy.app_lock_title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carinho is locked"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carinho kilitli"
+          }
+        }
+      }
+    },
+    "settings.privacy.app_lock_unavailable" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set a device passcode or enable Face ID / Touch ID in Settings to use app lock."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama kilidi için cihaz parolası veya Face ID / Touch ID ayarlayın."
+          }
+        }
+      }
+    },
+    "settings.privacy.app_lock_unavailable_title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App lock unavailable"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama kilidi kullanılamıyor"
+          }
+        }
+      }
+    },
+    "settings.privacy.app_lock_unlock" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlock"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kilidi aç"
+          }
+        }
+      }
+    },
     "settings.privacy.auto_delete" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3553,6 +3869,7 @@
       }
     },
     "settings.privacy.auto_delete.never" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3569,6 +3886,7 @@
       }
     },
     "settings.privacy.blur_export" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3584,7 +3902,25 @@
         }
       }
     },
+    "settings.privacy.confirm_external_start" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm external recording start"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Harici kayıt başlatmayı onayla"
+          }
+        }
+      }
+    },
     "settings.privacy.radius" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3601,6 +3937,7 @@
       }
     },
     "settings.privacy.section" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3617,6 +3954,7 @@
       }
     },
     "settings.recording.auto" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3633,6 +3971,7 @@
       }
     },
     "settings.recording.idle_timeout" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3649,6 +3988,7 @@
       }
     },
     "settings.recording.low_speed_stop" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3665,6 +4005,7 @@
       }
     },
     "settings.recording.min_distance" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3681,6 +4022,7 @@
       }
     },
     "settings.recording.min_duration" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3697,6 +4039,7 @@
       }
     },
     "settings.recording.section" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3713,6 +4056,7 @@
       }
     },
     "settings.recording.sensitivity" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3729,6 +4073,7 @@
       }
     },
     "settings.recording.sounds" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3745,6 +4090,7 @@
       }
     },
     "settings.recording.start_speed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3761,6 +4107,7 @@
       }
     },
     "settings.recording.stop_speed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3777,6 +4124,7 @@
       }
     },
     "settings.recording.trip_stop_min_duration" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3793,6 +4141,7 @@
       }
     },
     "settings.recording.trip_stop_speed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3809,6 +4158,7 @@
       }
     },
     "settings.siri.shortcuts_hint" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3825,6 +4175,7 @@
       }
     },
     "settings.siri.shortcuts_link" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3841,6 +4192,7 @@
       }
     },
     "settings.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3857,6 +4209,7 @@
       }
     },
     "settings.vehicle_pairing.change" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3873,6 +4226,7 @@
       }
     },
     "settings.vehicle_pairing.connection" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3889,6 +4243,7 @@
       }
     },
     "settings.vehicle_pairing.define" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3905,6 +4260,7 @@
       }
     },
     "settings.vehicle_pairing.hint" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3921,6 +4277,7 @@
       }
     },
     "settings.vehicle_pairing.paired" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3937,6 +4294,7 @@
       }
     },
     "settings.vehicle_pairing.remove" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3953,6 +4311,7 @@
       }
     },
     "settings.vehicle_pairing.section" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3969,6 +4328,7 @@
       }
     },
     "settings.vehicle_pairing.type" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3985,6 +4345,7 @@
       }
     },
     "share.card.error" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4258,6 +4619,7 @@
       }
     },
     "Şimdilik atla" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4290,6 +4652,7 @@
       }
     },
     "speed.legend.fast" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4306,6 +4669,7 @@
       }
     },
     "speed.legend.medium" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4322,6 +4686,7 @@
       }
     },
     "speed.legend.slow" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4338,6 +4703,7 @@
       }
     },
     "stats.average_duration" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4354,6 +4720,7 @@
       }
     },
     "stats.chart.categories" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4370,6 +4737,7 @@
       }
     },
     "stats.chart.day" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4386,6 +4754,7 @@
       }
     },
     "stats.chart.distance_km" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4402,6 +4771,7 @@
       }
     },
     "stats.chart.weekly_distance" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4418,6 +4788,7 @@
       }
     },
     "stats.goal.monthly" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4434,6 +4805,7 @@
       }
     },
     "stats.goal.progress_accessibility" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4450,6 +4822,7 @@
       }
     },
     "stats.goal.section" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4466,6 +4839,7 @@
       }
     },
     "stats.goal.target_km" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4482,6 +4856,7 @@
       }
     },
     "stats.night_driving" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4498,6 +4873,7 @@
       }
     },
     "stats.night_driving.format" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4514,6 +4890,7 @@
       }
     },
     "stats.period.custom" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4530,6 +4907,7 @@
       }
     },
     "stats.period.end" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4546,6 +4924,7 @@
       }
     },
     "stats.period.month" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4562,6 +4941,7 @@
       }
     },
     "stats.period.start" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4578,6 +4958,7 @@
       }
     },
     "stats.period.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4594,6 +4975,7 @@
       }
     },
     "stats.period.week" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4610,6 +4992,7 @@
       }
     },
     "stats.summary.section" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4626,6 +5009,7 @@
       }
     },
     "stats.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4642,6 +5026,7 @@
       }
     },
     "stats.total_distance" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4658,6 +5043,7 @@
       }
     },
     "stats.trend.format" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4674,6 +5060,7 @@
       }
     },
     "stats.trips" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4701,6 +5088,7 @@
       }
     },
     "tab.settings" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4717,6 +5105,7 @@
       }
     },
     "tab.stats" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4733,6 +5122,7 @@
       }
     },
     "tab.trips" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4800,6 +5190,7 @@
       }
     },
     "trip.discarded.body" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4816,6 +5207,7 @@
       }
     },
     "trip.discarded.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4832,6 +5224,7 @@
       }
     },
     "trip.edit.times" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4848,6 +5241,7 @@
       }
     },
     "trip.end_address" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4864,6 +5258,7 @@
       }
     },
     "trip.end_place_name" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4880,6 +5275,7 @@
       }
     },
     "trip.ended_at" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4913,6 +5309,7 @@
       }
     },
     "trip.ended.rich.body" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4929,6 +5326,7 @@
       }
     },
     "trip.ended.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -4962,7 +5360,42 @@
         }
       }
     },
+    "trip.list.setup_vehicle.message" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pair your vehicle for automatic recording when Bluetooth or CarPlay connects."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth veya CarPlay bağlandığında otomatik kayıt için aracınızı eşleştirin."
+          }
+        }
+      }
+    },
+    "trip.list.setup_vehicle.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set up your vehicle"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aracınızı tanımlayın"
+          }
+        }
+      }
+    },
     "trip.location.overrides" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4979,6 +5412,7 @@
       }
     },
     "trip.speed_chart" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4995,6 +5429,7 @@
       }
     },
     "trip.start_address" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5011,6 +5446,7 @@
       }
     },
     "trip.start_place_name" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5027,6 +5463,7 @@
       }
     },
     "trip.started_at" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5043,6 +5480,7 @@
       }
     },
     "trip.started.body" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5077,6 +5515,7 @@
       }
     },
     "trip.started.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5111,6 +5550,7 @@
       }
     },
     "trip.stops.section" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5127,6 +5567,7 @@
       }
     },
     "trip.summary" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5143,6 +5584,7 @@
       }
     },
     "trip.trim.head" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5159,6 +5601,7 @@
       }
     },
     "trip.trim.points" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5175,6 +5618,7 @@
       }
     },
     "trip.trim.tail" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5246,6 +5690,7 @@
       }
     },
     "unit.speed_kmh" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5309,6 +5754,7 @@
       "isCommentAutoGenerated" : true
     },
     "vehicle.auto_trigger" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5325,6 +5771,7 @@
       }
     },
     "vehicle.default_name" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5341,6 +5788,7 @@
       }
     },
     "vehicle.pairing.bluetooth" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5357,6 +5805,7 @@
       }
     },
     "vehicle.pairing.carplay" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5373,6 +5822,7 @@
       }
     },
     "vehicle.pairing.carplay_connected" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5389,6 +5839,7 @@
       }
     },
     "vehicle.pairing.carplay_hint" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5405,6 +5856,7 @@
       }
     },
     "vehicle.pairing.confirm" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5421,6 +5873,7 @@
       }
     },
     "vehicle.pairing.connected_device" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5437,6 +5890,7 @@
       }
     },
     "vehicle.pairing.connection_type" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5453,6 +5907,7 @@
       }
     },
     "vehicle.pairing.message" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5469,6 +5924,7 @@
       }
     },
     "vehicle.pairing.missing_connection" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5485,6 +5941,7 @@
       }
     },
     "vehicle.pairing.no_connection" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5501,6 +5958,7 @@
       }
     },
     "vehicle.pairing.saved_vehicles" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5517,6 +5975,7 @@
       }
     },
     "vehicle.pairing.skip" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5533,6 +5992,7 @@
       }
     },
     "vehicle.pairing.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5549,6 +6009,7 @@
       }
     },
     "vehicle.pairing.waiting_bluetooth" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5565,6 +6026,7 @@
       }
     },
     "week.summary" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

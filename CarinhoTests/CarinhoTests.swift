@@ -153,13 +153,13 @@ final class TripReportPDFTests: XCTestCase {
             startedAt: Date(),
             endedAt: Date(),
             distanceMeters: 1000,
-            categoryID: BuiltInCategory.businessID.uuidString
+            category: .business
         )
         let personalTrip = Trip(
             startedAt: Date(),
             endedAt: Date(),
             distanceMeters: 1000,
-            categoryID: BuiltInCategory.personalID.uuidString
+            category: .personal
         )
         let trips = TripReportPDF.businessTrips(in: [businessTrip, personalTrip])
         XCTAssertEqual(trips.count, 1)
@@ -170,7 +170,7 @@ final class TripReportPDFTests: XCTestCase {
             startedAt: Date(),
             endedAt: Date(),
             distanceMeters: 1000,
-            categoryID: BuiltInCategory.personalID.uuidString
+            category: .personal
         )
         let data = TripReportPDF.generateMonthlyWorkReport(
             trips: [personalTrip],
@@ -185,7 +185,7 @@ final class TripReportPDFTests: XCTestCase {
             startedAt: Date(),
             endedAt: Date(),
             distanceMeters: 5000,
-            categoryID: BuiltInCategory.businessID.uuidString
+            category: .business
         )
         let data = TripReportPDF.generateMonthlyWorkReport(
             trips: [businessTrip],
@@ -227,7 +227,7 @@ final class FuelCostCalculatorTests: XCTestCase {
 }
 
 @MainActor
-final class TripFetchTests: XCTestCase {
+final class TripStoreTests: XCTestCase {
     func testOrphansExcludesCompletedTrips() throws {
         let container = try ModelContainer(
             for: Trip.self,
@@ -240,7 +240,7 @@ final class TripFetchTests: XCTestCase {
         context.insert(done)
         try context.save()
 
-        let orphans = TripFetch.orphans(from: context)
+        let orphans = TripStore.orphans(from: context)
         XCTAssertEqual(orphans.count, 1)
         XCTAssertEqual(orphans.first?.id, open.id)
     }
@@ -261,7 +261,7 @@ final class TripFetchTests: XCTestCase {
         try context.save()
 
         let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
-        let recentTrips = TripFetch.completedSince(weekAgo, from: context)
+        let recentTrips = TripStore.completedSince(weekAgo, from: context)
         XCTAssertEqual(recentTrips.count, 1)
         XCTAssertEqual(recentTrips.first?.id, recent.id)
     }

@@ -9,10 +9,13 @@ struct SpeedColoredSegment: Identifiable {
     let color: Color
 }
 
+@MainActor
 struct TripDetailViewModel {
     let trip: Trip
     let places: [SavedPlace]
     let privacyRadius: Double
+
+    private static var speedSegmentCache: [UUID: (pointCount: Int, segments: [SpeedColoredSegment])] = [:]
 
     var durationText: String {
         guard let duration = trip.duration else { return "—" }
@@ -78,6 +81,17 @@ struct TripDetailViewModel {
     }
 
     var speedColoredSegments: [SpeedColoredSegment] {
+        let pointCount = trip.sortedPoints.count
+        if let cached = Self.speedSegmentCache[trip.id], cached.pointCount == pointCount {
+            return cached.segments
+        }
+
+        let segments = buildSpeedColoredSegments()
+        Self.speedSegmentCache[trip.id] = (pointCount, segments)
+        return segments
+    }
+
+    private func buildSpeedColoredSegments() -> [SpeedColoredSegment] {
         let points = trip.sortedPoints
         guard points.count >= 2 else { return [] }
 

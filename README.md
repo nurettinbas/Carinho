@@ -13,18 +13,18 @@ Carinho is a native SwiftUI app built with SwiftData. It records routes locally,
 ### Recording
 - Manual start/stop, pause/resume
 - Auto-recording via automotive motion + speed thresholds
-- **Bluetooth** and **CarPlay** (wired & wireless) vehicle triggers
+- **Bluetooth audio route** and **CarPlay** (wired & wireless) vehicle triggers
 - Vehicle profiles with fuel/EV cost per trip
 - Siri Shortcuts: *Start trip*, *Pause trip*, *Resume trip*, *End trip*
 - Widget + Live Activity controls
 - CarPlay minimal UI (status, pause, stop)
-- Watch companion hooks (WatchConnectivity; watch app target not shipped yet)
 
 ### Privacy & data
-- All trips stored locally with **SwiftData**
+- All trips stored locally with **SwiftData** (file protection on store)
 - Offline-first recording; geocoding retries when online
 - Home/work saved places with privacy radius (route clipping)
-- Optional Face ID app lock
+- Optional Face ID app lock (device passcode required)
+- Optional confirmation before widget/shortcut/deep-link recording start
 - Configurable auto-delete (30/90/365 days)
 - Export: JSON, CSV, GPX, KML, monthly business PDF
 
@@ -51,7 +51,6 @@ Carinho is a native SwiftUI app built with SwiftData. It records routes locally,
 | **CarPlay** | iOS 17.0+ | ✅ Wired & wireless |
 | **Widget + Live Activity** | iOS 17.0+ | ✅ Home Screen & Lock Screen |
 | **Siri / Shortcuts** | iOS 17.0+ | ✅ App Intents (4 recording actions) |
-| **watchOS** | — | ⏳ Code stubs only; no Watch target in Xcode yet |
 | **macOS / visionOS / tvOS** | — | ❌ Not supported |
 
 ### Why iOS 17?
@@ -64,7 +63,7 @@ Carinho uses **SwiftData**, **App Intents**, **Live Activities**, and modern **W
 |-------------|----------|
 | GPS (Always / When In Use) | Route recording, background trips |
 | Motion & Fitness | Auto start/stop while driving |
-| Bluetooth | Vehicle connect trigger |
+| Bluetooth audio route | Vehicle connect trigger (AVAudioSession, no CoreBluetooth scan) |
 | Notifications | Trip started/ended alerts |
 | Face ID (optional) | App lock |
 | CarPlay entitlement | In-car status & controls |
@@ -153,7 +152,7 @@ docs/                 # Battery optimization, TestFlight checklist
 Carinho, yolculuklarınızı **yalnızca cihazınızda** kaydeden gizlilik odaklı bir sürüş günlüğüdür.
 
 - GPS ile rota ve mesafe takibi
-- Bluetooth / CarPlay ile otomatik başlat-bitir
+- Bluetooth audio / CarPlay ile otomatik başlat-bitir
 - Siri: *Yolculuğu başlat*, *duraklat*, *sürdür*, *bitir*
 - Widget ve Live Activity
 - İş/kişisel kategori, yakıt/EV maliyet tahmini
@@ -169,7 +168,6 @@ Carinho, yolculuklarınızı **yalnızca cihazınızda** kaydeden gizlilik odakl
 | **CarPlay** | iOS 17.0+ | ✅ Kablolu ve kablosuz |
 | **Widget + Live Activity** | iOS 17.0+ | ✅ Ana ekran ve kilit ekranı |
 | **Siri / Kısayollar** | iOS 17.0+ | ✅ 4 kayıt eylemi |
-| **watchOS** | — | ⏳ Kod hazır; Watch hedefi henüz yok |
 | **macOS / visionOS / tvOS** | — | ❌ Desteklenmiyor |
 
 **iOS 17 zorunlu** — SwiftData, App Intents ve Live Activity bu sürümü gerektirir. iOS 16 ve altı desteklenmez.

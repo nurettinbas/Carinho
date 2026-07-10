@@ -8,6 +8,8 @@
 4. **Geocoding:** Yalnızca trip başlangıç/bitişinde; offline'da pending, ağ gelince retry.
 5. **Polyline:** 1000+ noktada Douglas-Peucker sadeleştirme.
 6. **Timer:** Yalnızca aktif kayıtta 1 sn elapsed timer.
+7. **CarPlay UI:** Yalnızca CarPlay bağlıyken `refreshCarPlayUI()` çağrılır.
+8. **Kayıt animasyonu:** Düşük güç modunda 15 FPS; `reduceMotion` desteklenir.
 
 ## Instruments ile doğrulama
 
@@ -19,7 +21,7 @@
 ## Arka plan görev denetimi
 
 - `CMMotionActivityManager` automotive izleme: düşük maliyet.
-- `BluetoothTriggerService` scan: yalnızca ayarlarda araç seçiliyken anlamlı; pil etkisi için tarama aralığı sistem tarafından yönetilir.
+- `BluetoothTriggerService`: Bluetooth audio route değişikliği dinler (`AVAudioSession`); CoreBluetooth taraması yok.
 - Live Activity: yalnızca kayıt sırasında.
 
 ## TestFlight öncesi kontrol listesi
