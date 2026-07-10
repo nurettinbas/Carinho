@@ -1,0 +1,109 @@
+import CoreLocation
+import Foundation
+import MapKit
+
+struct GeocodedPlace {
+    let suggestedName: String?
+    let address: String?
+}
+
+struct NearbyPlaceOption: Identifiable {
+    let id: String
+    let name: String
+    let subtitle: String?
+    let coordinate: CLLocationCoordinate2D
+}
+
+actor GeocodingService {
+    private let geocoder = CLGeocoder()
+
+    func reverseGeocode(_ location: CLLocation) async -> String? {
+        let place = await lookupPlace(at: location)
+        return place.address ?? place.suggestedName
+    }
+
+    func lookupPlace(at location: CLLocation) async -> GeocodedPlace {
+        do {
+            let placemarks = try await geocoder.reverseGeocodeLocation(location)
+            let placemark = placemarks.first
+            return GeocodedPlace(
+                suggestedName: suggestedName(from: placemark),
+                address: formattedAddress(from: placemark)
+            )
+        } catch {
+            return GeocodedPlace(
+                suggestedName: nil,
+                address: DateFormatters.formatCoordinate(location.coordinate)
+            )
+        }
+    }
+
+    func nearbyPointsOfInterest(
+        around coordinate: CLLocationCoordinate2D,
+        radius: CLLocationDistance = 450
+    ) async -> [NearbyPlaceOption] {
+        let request = MKLocalPointsOfInterestRequest(center: coordinate, radius: radius)
+        let search = MKLocalSearch(request: request)
+
+        do {
+            let response = try await search.start()
+            var seen = Set<String>()
+            var results: [NearbyPlaceOption] = []
+
+            for item in response.mapItems {
+                let name = item.name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                guard !name.isEmpty else { continue }
+
+                let key = "\(name)|\(item.placemark.coordinate.latitude)|\(item.placemark.coordinate.longitude)"
+                guard seen.insert(key).inserted else { continue }
+
+                results.append(
+                    NearbyPlaceOption(
+                        id: key,
+                        name: name,
+                        subtitle: formattedAddress(from: item.placemark),
+                        coordinate: item.placemark.coordinate
+                    )
+                )
+                if results.count >= 8 { break }
+            }
+
+            return results
+        } catch {
+            return []
+        }
+    }
+
+    private func suggestedName(from placemark: CLPlacemark?) -> String? {
+        guard let placemark else { return nil }
+        if let area = placemark.areasOfInterest?.first?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !area.isEmpty {
+            return area
+        }
+        if let name = placemark.name?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !name.isEmpty,
+           !looksLikeStreetAddress(name) {
+            return name
+        }
+        return nil
+    }
+
+    private func looksLikeStreetAddress(_ value: String) -> Bool {
+        value.range(of: #"\d"#, options: .regularExpression) != nil
+            && (value.contains("Sk") || value.contains("Cd") || value.contains("No") || value.contains("Mah"))
+    }
+
+    private func formattedAddress(from placemark: CLPlacemark?) -> String? {
+        guard let placemark else { return nil }
+        let parts = [
+            placemark.subLocality,
+            placemark.locality,
+            placemark.administrativeArea
+        ].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+
+        if parts.isEmpty {
+            return placemark.name
+        }
+        return parts.joined(separator: ", ")
+    }
+}

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none">
+  <!-- Yol çizgisi  direksiyondan kalbin içinden geçer -->
+  <path
+    d="M512 612
+       C 512 560, 470 520, 430 470
+       C 390 420, 400 360, 470 310
+       C 540 260, 620 250, 700 290"
+    stroke="#FFFFFF"
+    stroke-width="34"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M512 612
+       C 512 560, 470 520, 430 470
+       C 390 420, 400 360, 470 310
+       C 540 260, 620 250, 700 290"
+    stroke="#7EC8E8"
+    stroke-width="12"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.55"
+  />
+</svg>

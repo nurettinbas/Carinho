@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none">
+  <!-- Kalp çerçevesi  Icon Composer'da ana katman -->
+  <path
+    d="M512 748
+       C 512 748, 188 500, 188 332
+       C 188 210, 308 168, 512 318
+       C 716 168, 836 210, 836 332
+       C 836 500, 512 748, 512 748 Z"
+    stroke="#FFFFFF"
+    stroke-width="30"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
