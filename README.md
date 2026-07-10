@@ -15,10 +15,10 @@ Carinho is a native SwiftUI app built with SwiftData. It records routes locally,
 - Auto-recording via automotive motion + speed thresholds
 - **Bluetooth** and **CarPlay** (wired & wireless) vehicle triggers
 - Vehicle profiles with fuel/EV cost per trip
-- Siri Shortcuts: *Start trip*, *Stop trip*, *Pause trip*
+- Siri Shortcuts: *Start trip*, *Pause trip*, *Resume trip*, *End trip*
 - Widget + Live Activity controls
 - CarPlay minimal UI (status, pause, stop)
-- Watch companion hooks (WatchConnectivity)
+- Watch companion hooks (WatchConnectivity; watch app target not shipped yet)
 
 ### Privacy & data
 - All trips stored locally with **SwiftData**
@@ -42,13 +42,47 @@ Carinho is a native SwiftUI app built with SwiftData. It records routes locally,
 
 ---
 
-## Requirements
+## Platform support
+
+| Platform | Minimum version | Status |
+|----------|-----------------|--------|
+| **iPhone (iOS)** | **17.0** | ✅ Primary target |
+| **iPadOS** | 17.0 | ⚠️ Runs as iPhone app (not optimized for iPad) |
+| **CarPlay** | iOS 17.0+ | ✅ Wired & wireless |
+| **Widget + Live Activity** | iOS 17.0+ | ✅ Home Screen & Lock Screen |
+| **Siri / Shortcuts** | iOS 17.0+ | ✅ App Intents (4 recording actions) |
+| **watchOS** | — | ⏳ Code stubs only; no Watch target in Xcode yet |
+| **macOS / visionOS / tvOS** | — | ❌ Not supported |
+
+### Why iOS 17?
+
+Carinho uses **SwiftData**, **App Intents**, **Live Activities**, and modern **WidgetKit** APIs that require iOS 17. The project does not build for iOS 16 or earlier.
+
+### Device & permissions
+
+| Requirement | Used for |
+|-------------|----------|
+| GPS (Always / When In Use) | Route recording, background trips |
+| Motion & Fitness | Auto start/stop while driving |
+| Bluetooth | Vehicle connect trigger |
+| Notifications | Trip started/ended alerts |
+| Face ID (optional) | App lock |
+| CarPlay entitlement | In-car status & controls |
+
+**Physical iPhone recommended** for real-world testing (GPS, Bluetooth, CarPlay, background recording). Simulator is fine for UI and basic location simulation.
+
+---
+
+## Requirements (development)
 
 | | |
 |---|---|
-| **Xcode** | 15+ |
-| **iOS** | 17.0+ |
+| **Xcode** | 15.0+ (iOS 17 SDK) |
+| **Swift** | 5.0 (strict concurrency enabled) |
+| **iOS deployment target** | 17.0 |
 | **Dependencies** | None (Apple frameworks only) |
+| **Bundle IDs** | `com.carinho.app` · `com.carinho.app.widget` |
+| **App Group** | `group.com.carinho.app` |
 
 ---
 
@@ -73,11 +107,17 @@ open Carinho.xcodeproj
 
 ### Siri Shortcuts
 
-After first launch, open **Shortcuts** → find Carinho → add:
-- *Start trip* — `Hey Siri, Carinho start trip`
-- *Stop trip* / *Pause trip*
+Requires **iOS 17+** and **Siri enabled**. After first launch:
 
-Or use **Settings → Recording → Open Shortcuts** in the app.
+1. Open **Shortcuts** → search **Carinho**
+2. Add the four actions: **Start trip**, **Pause trip**, **Resume trip**, **End trip**
+3. Or use **Settings → Recording → Open Shortcuts** in the app
+
+**English Siri examples:** *“Start trip in Carinho”*, *“Pause trip in Carinho”*
+
+**Turkish Siri examples:** *“Carinho yolculuğu başlat”*, *“Carinho yolculuğu duraklat”*, *“Carinho yolculuğu sürdür”*, *“Carinho yolculuğu bitir”*
+
+> Siri language and system language can differ. Shortcuts list follows system language; voice phrases follow Siri language.
 
 ---
 
@@ -114,11 +154,27 @@ Carinho, yolculuklarınızı **yalnızca cihazınızda** kaydeden gizlilik odakl
 
 - GPS ile rota ve mesafe takibi
 - Bluetooth / CarPlay ile otomatik başlat-bitir
-- Siri: *Yolculuğu başlat*, *durdur*, *duraklat*
+- Siri: *Yolculuğu başlat*, *duraklat*, *sürdür*, *bitir*
 - Widget ve Live Activity
 - İş/kişisel kategori, yakıt/EV maliyet tahmini
 - JSON, CSV, GPX, KML, aylık iş PDF export
 - Türkçe ve İngilizce arayüz
+
+### Platform desteği
+
+| Platform | Minimum sürüm | Durum |
+|----------|---------------|-------|
+| **iPhone (iOS)** | **17.0** | ✅ Ana hedef |
+| **iPadOS** | 17.0 | ⚠️ iPhone uygulaması olarak çalışır |
+| **CarPlay** | iOS 17.0+ | ✅ Kablolu ve kablosuz |
+| **Widget + Live Activity** | iOS 17.0+ | ✅ Ana ekran ve kilit ekranı |
+| **Siri / Kısayollar** | iOS 17.0+ | ✅ 4 kayıt eylemi |
+| **watchOS** | — | ⏳ Kod hazır; Watch hedefi henüz yok |
+| **macOS / visionOS / tvOS** | — | ❌ Desteklenmiyor |
+
+**iOS 17 zorunlu** — SwiftData, App Intents ve Live Activity bu sürümü gerektirir. iOS 16 ve altı desteklenmez.
+
+Gerçek sürüş, Bluetooth ve CarPlay testleri için **fiziksel iPhone** önerilir.
 
 ---
 
