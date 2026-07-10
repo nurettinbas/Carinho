@@ -103,7 +103,7 @@ open Carinho.xcodeproj
 
 1. Tap **Start** in the app
 2. **Features → Location → Freeway Drive**
-3. Stop after 1–2 minutes, or use **Settings → Demo** sample trip
+3. Stop after 1–2 minutes
 
 ### Siri Shortcuts
 

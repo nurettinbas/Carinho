@@ -88,6 +88,7 @@ enum L10n {
     static var mapStyleLight: String { string("map.style.light") }
     static var mapStyleDark: String { string("map.style.dark") }
     static var speedLegendSlow: String { string("speed.legend.slow") }
+    static var tripSpeedChart: String { string("trip.speed_chart") }
     static var speedLegendMedium: String { string("speed.legend.medium") }
     static var speedLegendFast: String { string("speed.legend.fast") }
     static var tripSummary: String { string("trip.summary") }
@@ -160,8 +161,6 @@ enum L10n {
     static var settingsExportKML: String { string("settings.backup.kml") }
     static var settingsExportMonthlyPDF: String { string("settings.backup.pdf") }
     static var settingsShareFile: String { string("settings.backup.share") }
-    static var settingsDemoSection: String { string("settings.demo.section") }
-    static var settingsDemoTrip: String { string("settings.demo.trip") }
     static var settingsAboutSection: String { string("settings.about.section") }
     static var settingsVersion: String { string("settings.about.version") }
     static var settingsAboutPrivacy: String { string("settings.about.privacy") }

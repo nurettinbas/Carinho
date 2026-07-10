@@ -251,12 +251,6 @@ struct SettingsView: View {
                 Button(L10n.settingsExportMonthlyPDF) { exportMonthlyPDF() }
             }
 
-            Section(L10n.settingsDemoSection) {
-                Button(L10n.settingsDemoTrip) {
-                    MockTripSeeder.insertSampleTrip(into: modelContext)
-                }
-            }
-
             Section(L10n.settingsAboutSection) {
                 LabeledContent(L10n.settingsVersion, value: "1.1.0")
                 Text(L10n.settingsAboutPrivacy)

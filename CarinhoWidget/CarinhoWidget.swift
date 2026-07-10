@@ -520,13 +520,30 @@ struct CarinhoWidget: Widget {
     }
 }
 
+private struct LiveActivityCarIcon: View {
+    let isPaused: Bool
+    var font: Font = .title2
+
+    var body: some View {
+        Group {
+            if isPaused {
+                Image(systemName: "pause.circle.fill")
+                    .foregroundStyle(.orange)
+            } else {
+                Image(systemName: "car.side.fill")
+                    .foregroundStyle(.blue)
+                    .scaleEffect(x: -1, y: 1)
+            }
+        }
+        .font(font)
+    }
+}
+
 struct CarinhoLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: TripRecordingAttributes.self) { context in
             HStack(spacing: 12) {
-                Image(systemName: context.state.isPaused ? "pause.circle.fill" : "car.fill")
-                    .font(.title2)
-                    .foregroundStyle(context.state.isPaused ? .orange : .blue)
+                LiveActivityCarIcon(isPaused: context.state.isPaused)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(context.state.isPaused ? WidgetL10n.paused : WidgetL10n.recording)
@@ -547,8 +564,7 @@ struct CarinhoLiveActivity: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    Image(systemName: context.state.isPaused ? "pause.circle.fill" : "car.fill")
-                        .foregroundStyle(context.state.isPaused ? .orange : .blue)
+                    LiveActivityCarIcon(isPaused: context.state.isPaused, font: .title3)
                 }
                 DynamicIslandExpandedRegion(.center) {
                     VStack(alignment: .leading) {
@@ -564,14 +580,13 @@ struct CarinhoLiveActivity: Widget {
                     liveActivityControls(isPaused: context.state.isPaused)
                 }
             } compactLeading: {
-                Image(systemName: context.state.isPaused ? "pause.circle.fill" : "car.fill")
-                    .foregroundStyle(context.state.isPaused ? .orange : .blue)
+                LiveActivityCarIcon(isPaused: context.state.isPaused, font: .caption)
             } compactTrailing: {
                 Text(WidgetFormatters.formatDuration(TimeInterval(context.state.elapsedSeconds)))
                     .font(.caption2)
                     .monospacedDigit()
             } minimal: {
-                Image(systemName: context.state.isPaused ? "pause.circle.fill" : "car.fill")
+                LiveActivityCarIcon(isPaused: context.state.isPaused, font: .caption2)
             }
         }
     }

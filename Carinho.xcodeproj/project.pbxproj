@@ -52,7 +52,6 @@
 		A1VEHPAIRING00000001 /* VehiclePairingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2VEHPAIRING00000001 /* VehiclePairingService.swift */; };
 		A1VEHCONNKIND0000001 /* VehicleConnectionKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2VEHCONNKIND0000001 /* VehicleConnectionKind.swift */; };
 		A1INFOPLISTXC0000001 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A2INFOPLISTXC0000001 /* InfoPlist.xcstrings */; };
-		A10000000000000000000025 /* MockTripSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* MockTripSeeder.swift */; };
 		A10000000000000000000028 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000027 /* PrivacyInfo.xcprivacy */; };
 		A5667A7DE2024FB687E8DD43 /* CarinhoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86269EF985B34281B00F7FAC /* CarinhoTests.swift */; };
 		B10000000000000000000001 /* TripNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* TripNotificationService.swift */; };
@@ -68,6 +67,7 @@
 		B10000000000000000000011 /* AppNotificationArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000011 /* AppNotificationArchive.swift */; };
 		B10000000000000000000012 /* AppNotificationArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000011 /* AppNotificationArchive.swift */; };
 		B10000000000000000000013 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A2LOCALIZABLE00000000001 /* Localizable.xcstrings */; };
+		A1RECCARDSTYLE00000001 /* RecordingCardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2RECCARDSTYLE00000001 /* RecordingCardStyle.swift */; };
 		B10000000000000000000005 /* CarinhoWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000005 /* CarinhoWidget.swift */; };
 		B10000000000000000000006 /* WidgetRecordingIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000006 /* WidgetRecordingIntents.swift */; };
 		B10000000000000000000007 /* TripRecordingAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000004 /* TripRecordingAttributes.swift */; };
@@ -183,7 +183,6 @@
 		A2VEHCONNKIND0000001 /* VehicleConnectionKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleConnectionKind.swift; sourceTree = "<group>"; };
 		A2INFOPLISTXC0000001 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		A20000000000000000000024 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A20000000000000000000025 /* MockTripSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockTripSeeder.swift; sourceTree = "<group>"; };
 		A20000000000000000000026 /* Carinho.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Carinho.entitlements; sourceTree = "<group>"; };
 		A20000000000000000000027 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A30000000000000000000001 /* Carinho.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Carinho.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -193,6 +192,7 @@
 		A2ONBOARDING00000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A2PERMBANNER00000000001 /* PermissionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionBanner.swift; sourceTree = "<group>"; };
 		B20000000000000000000003 /* RecordingCarAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingCarAnimationView.swift; sourceTree = "<group>"; };
+		A2RECCARDSTYLE00000001 /* RecordingCardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingCardStyle.swift; sourceTree = "<group>"; };
 		B20000000000000000000004 /* TripRecordingAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripRecordingAttributes.swift; sourceTree = "<group>"; };
 		A2APPNOTIFSTORE00000001 /* AppNotificationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNotificationStore.swift; sourceTree = "<group>"; };
 		A2NOTIFLISTVIEW00000001 /* NotificationsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsListView.swift; sourceTree = "<group>"; };
@@ -406,7 +406,7 @@
 				A2NOTIFLISTVIEW00000001 /* NotificationsListView.swift */,
 				A2PERMBANNER00000000001 /* PermissionBanner.swift */,
 				B20000000000000000000002 /* CarPairingSheet.swift */,
-				B20000000000000000000003 /* RecordingCarAnimationView.swift */,
+				A2RECCARDSTYLE00000001 /* RecordingCardStyle.swift */,
 				A20000000000000000000017 /* SettingsView.swift */,
 				A2CATMGMT00000000000001 /* CategoryManagementView.swift */,
 				A2VEHICLEMGMT00000001 /* VehicleManagementView.swift */,
@@ -429,7 +429,6 @@
 				A20000000000000000000019 /* DateFormatters.swift */,
 				A20000000000000000000020 /* AppSettings.swift */,
 				A20000000000000000000021 /* PreviewData.swift */,
-				A20000000000000000000025 /* MockTripSeeder.swift */,
 				A2TRIPFETCH0000000000001 /* TripFetch.swift */,
 				A2TRIPDATEGROUP000000001 /* TripDateGrouping.swift */,
 				A2TRIPMAPSNAP00000000001 /* TripMapSnapshotCache.swift */,
@@ -455,6 +454,7 @@
 			isa = PBXGroup;
 			children = (
 				B20000000000000000000004 /* TripRecordingAttributes.swift */,
+				B20000000000000000000003 /* RecordingCarAnimationView.swift */,
 				B20000000000000000000009 /* RecordingControlBridge.swift */,
 				B20000000000000000000011 /* AppNotificationArchive.swift */,
 			);
@@ -635,7 +635,6 @@
 				A10000000000000000000021 /* PreviewData.swift in Sources */,
 				A10000000000000000000023 /* AppDelegate.swift in Sources */,
 				A1APPSERVICES00000001 /* AppServices.swift in Sources */,
-				A10000000000000000000025 /* MockTripSeeder.swift in Sources */,
 				A2TRIPFETCH0000000000002 /* TripFetch.swift in Sources */,
 				A2TRIPDATEGROUP000000002 /* TripDateGrouping.swift in Sources */,
 				A2TRIPMAPSNAP00000000002 /* TripMapSnapshotCache.swift in Sources */,
@@ -690,6 +689,7 @@
 				B10000000000000000000001 /* TripNotificationService.swift in Sources */,
 				B10000000000000000000002 /* CarPairingSheet.swift in Sources */,
 				B10000000000000000000003 /* RecordingCarAnimationView.swift in Sources */,
+				A1RECCARDSTYLE00000001 /* RecordingCardStyle.swift in Sources */,
 				B10000000000000000000004 /* TripRecordingAttributes.swift in Sources */,
 				B10000000000000000000008 /* RecordingControlBridge.swift in Sources */,
 				B10000000000000000000011 /* AppNotificationArchive.swift in Sources */,

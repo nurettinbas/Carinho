@@ -95,14 +95,36 @@ struct TripDetailView: View {
                     summaryCard
 
                     if !viewModel.speedSamples.isEmpty {
-                        Chart(viewModel.speedSamples, id: \.date) { sample in
-                            LineMark(
-                                x: .value("Zaman", sample.date),
-                                y: .value("Hız", sample.speedKmh)
-                            )
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(L10n.tripSpeedChart)
+                                .font(.subheadline.bold())
+
+                            Chart(viewModel.speedSamples, id: \.id) { sample in
+                                AreaMark(
+                                    x: .value("Zaman", sample.date),
+                                    y: .value("Hız", sample.speedKmh)
+                                )
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [Color.blue.opacity(0.35), Color.blue.opacity(0.05)],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                )
+
+                                LineMark(
+                                    x: .value("Zaman", sample.date),
+                                    y: .value("Hız", sample.speedKmh)
+                                )
+                                .foregroundStyle(Color.blue)
+                                .lineStyle(StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+                            }
+                            .chartYScale(domain: 0...viewModel.speedChartMaxKmh)
+                            .chartYAxisLabel(L10n.speedKmh)
                         }
-                        .frame(height: 140)
-                        .chartYAxisLabel(L10n.speedKmh)
+                        .padding(12)
+                        .background(Color(.secondarySystemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
 
                     if !sortedStops.isEmpty {
@@ -335,7 +357,11 @@ struct TripDetailView: View {
         Map(position: $cameraPosition, interactionModes: interactive ? .all : []) {
             ForEach(viewModel.speedColoredSegments) { segment in
                 MapPolyline(coordinates: segment.coordinates)
-                    .stroke(segment.color, lineWidth: 4)
+                    .stroke(
+                        segment.color,
+                        style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)
+                    )
+                    .mapOverlayLevel(level: .aboveRoads)
             }
 
             if viewModel.speedColoredSegments.isEmpty, viewModel.coordinates.count >= 2 {

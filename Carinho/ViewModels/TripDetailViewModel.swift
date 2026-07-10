@@ -39,11 +39,17 @@ struct TripDetailViewModel {
         )
     }
 
-    var speedSamples: [(date: Date, speedKmh: Double)] {
-        trip.sortedPoints.compactMap { point in
-            guard let speed = point.speedMps, speed > 0 else { return nil }
-            return (date: point.timestamp, speedKmh: speed * 3.6)
+    var speedSamples: [(id: Int, date: Date, speedKmh: Double)] {
+        trip.sortedPoints.enumerated().compactMap { index, point in
+            guard let speedMps = point.speedMps, speedMps > 0 else { return nil }
+            return (id: index, date: point.timestamp, speedKmh: speedMps * 3.6)
         }
+    }
+
+    var speedChartMaxKmh: Double {
+        let peak = speedSamples.map(\.speedKmh).max() ?? 0
+        let reference = max(peak, (trip.maxSpeedMps ?? 0) * 3.6, 60)
+        return min(max(reference * 1.15, 80), 200)
     }
 
     var maxSpeedText: String? {
@@ -77,16 +83,15 @@ struct TripDetailViewModel {
 
         var segments: [SpeedColoredSegment] = []
         var currentCoordinates = [points[0].coordinate]
-        var currentColor = speedColor(for: points[0].speedMps)
+        var currentColor = Self.speedColor(for: points[0].speedMps)
 
         for index in 1..<points.count {
             let point = points[index]
-            let color = speedColor(for: point.speedMps)
+            let color = Self.speedColor(for: point.speedMps)
 
-            if color == currentColor {
-                currentCoordinates.append(point.coordinate)
-            } else {
-                currentCoordinates.append(point.coordinate)
+            currentCoordinates.append(point.coordinate)
+
+            if color != currentColor {
                 if currentCoordinates.count >= 2 {
                     segments.append(
                         SpeedColoredSegment(
@@ -96,7 +101,7 @@ struct TripDetailViewModel {
                         )
                     )
                 }
-                currentCoordinates = [point.coordinate]
+                currentCoordinates = [points[index - 1].coordinate, point.coordinate]
                 currentColor = color
             }
         }
@@ -142,9 +147,5 @@ struct TripDetailViewModel {
         if kmh < 50 { return .green }
         if kmh < 90 { return .yellow }
         return .red
-    }
-
-    private func speedColor(for speedMps: Double?) -> Color {
-        Self.speedColor(for: speedMps)
     }
 }

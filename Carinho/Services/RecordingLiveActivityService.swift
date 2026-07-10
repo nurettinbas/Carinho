@@ -9,7 +9,12 @@ enum RecordingLiveActivityService {
     static func start(startedAt: Date) {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
         let attributes = TripRecordingAttributes(startedAt: startedAt)
-        let state = TripRecordingAttributes.ContentState(elapsedSeconds: 0, distanceMeters: 0, currentSpeedKmh: 0, isPaused: false)
+        let state = TripRecordingAttributes.ContentState(
+            elapsedSeconds: 0,
+            distanceMeters: 0,
+            currentSpeedKmh: 0,
+            isPaused: false
+        )
         _ = try? Activity.request(attributes: attributes, content: .init(state: state, staleDate: nil))
         lastUpdateAt = nil
         lastPublishedIsPaused = false
