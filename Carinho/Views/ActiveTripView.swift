@@ -3,6 +3,7 @@ import SwiftUI
 struct ActiveTripView: View {
     @Environment(TripRecordingService.self) private var recordingService
     @Environment(LocationService.self) private var locationService
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isPaused: Bool {
         recordingService.state == .paused
@@ -39,16 +40,17 @@ struct ActiveTripView: View {
                 Text(statusText)
                     .font(.headline.weight(.bold))
                     .foregroundStyle(.white)
+                    .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: statusText)
                 Spacer(minLength: 4)
                 GPSQualityBadge(quality: locationService.gpsQuality)
                 Image(systemName: isPaused ? "pause.circle.fill" : "record.circle.fill")
                     .font(.title3)
                     .foregroundStyle(isPaused ? .yellow : .red)
+                    .symbolEffect(.pulse, options: .repeating, isActive: !isPaused && !reduceMotion)
                     .accessibilityHidden(true)
             }
 
             RecordingCarAnimationView(compact: true, isAnimating: !isPaused)
-                .id(isPaused)
 
             HStack(spacing: 0) {
                 statItem(icon: "clock.fill", label: L10n.duration, text: elapsedText)
@@ -89,7 +91,7 @@ struct ActiveTripView: View {
         }
         .padding(16)
         .background(RecordingCardStyle.background(isPaused: isPaused))
-        .animation(.easeInOut(duration: 0.25), value: isPaused)
+        .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: isPaused)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .padding(.horizontal)
         .accessibilityElement(children: .combine)
@@ -116,6 +118,7 @@ struct ActiveTripView: View {
                 .foregroundStyle(.white)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
+                .numericTextAnimation(value: text)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)

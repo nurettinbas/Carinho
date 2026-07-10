@@ -1,0 +1,6 @@
+Trip recording sound effects from Mixkit (https://mixkit.co)
+Licensed under the Mixkit Sound Effects Free License.
+Free for commercial and non-commercial use; no attribution required.
+
+- trip_start.caf — Mixkit item #1531 (Car engine start)
+- trip_stop.caf — Mixkit item #1529 (Short car ignition off / key turn)

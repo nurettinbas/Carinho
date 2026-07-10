@@ -6,11 +6,13 @@ struct StatsView: View {
     @Query(sort: \Trip.startedAt, order: .reverse) private var trips: [Trip]
     @Query(sort: \UserCategory.sortOrder) private var categories: [UserCategory]
     @Bindable private var settings = AppSettings.shared
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var selectedPeriod: StatsPeriod = .week
     @State private var selectedCategoryID: String?
     @State private var customStart = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
     @State private var customEnd = Date()
+    @State private var animatedProgress: Double = 0
 
     private var completedTrips: [Trip] {
         trips.filter { $0.endedAt != nil }
@@ -79,6 +81,10 @@ struct StatsView: View {
         return min(1, monthDistanceMeters / settings.monthlyDistanceGoalMeters)
     }
 
+    private var goalPercentText: String {
+        "\(Int(goalProgress * 100))%"
+    }
+
     var body: some View {
         List {
             Picker(L10n.string("stats.period.title"), selection: $selectedPeriod) {
@@ -115,7 +121,10 @@ struct StatsView: View {
                         Stepper(
                             value: Binding(
                                 get: { Int(settings.monthlyDistanceGoalMeters / 1000) },
-                                set: { settings.monthlyDistanceGoalMeters = Double($0) * 1000 }
+                                set: { newValue in
+                                    settings.monthlyDistanceGoalMeters = Double(newValue) * 1000
+                                    CarinhoHaptics.selection()
+                                }
                             ),
                             in: 50...2000,
                             step: 50
@@ -135,6 +144,7 @@ struct StatsView: View {
                 statRow(L10n.estimatedFuel, value: stats.fuelCostText)
                 statRow(L10n.string("stats.night_driving"), value: stats.nightDrivingText)
             }
+            .transition(CarinhoMotion.fadeScaleTransition(reduceMotion: reduceMotion))
 
             if !dailyChartData.isEmpty {
                 Section(L10n.string("stats.chart.weekly_distance")) {
@@ -148,6 +158,7 @@ struct StatsView: View {
                     .chartYAxisLabel(L10n.string("stats.chart.distance_km"))
                     .frame(height: 200)
                 }
+                .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: selectedPeriod)
             }
 
             if !categoryChartData.isEmpty {
@@ -169,9 +180,21 @@ struct StatsView: View {
                         }
                     }
                 }
+                .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: selectedCategoryID)
             }
         }
+        .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: selectedPeriod)
+        .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: selectedCategoryID)
         .navigationTitle(L10n.string("stats.title"))
+        .onAppear {
+            updateAnimatedProgress(animated: false)
+        }
+        .onChange(of: goalProgress) { _, _ in
+            updateAnimatedProgress(animated: true)
+        }
+        .onChange(of: monthDistanceMeters) { _, _ in
+            updateAnimatedProgress(animated: true)
+        }
     }
 
     private var goalRing: some View {
@@ -179,15 +202,26 @@ struct StatsView: View {
             Circle()
                 .stroke(Color.blue.opacity(0.15), lineWidth: 10)
             Circle()
-                .trim(from: 0, to: goalProgress)
+                .trim(from: 0, to: animatedProgress)
                 .stroke(Color.blue, style: StrokeStyle(lineWidth: 10, lineCap: .round))
                 .rotationEffect(.degrees(-90))
-            Text("\(Int(goalProgress * 100))%")
+            Text(goalPercentText)
                 .font(.caption.bold())
+                .numericTextAnimation(value: goalPercentText)
         }
         .frame(width: 72, height: 72)
         .accessibilityLabel(L10n.string("stats.goal.progress_accessibility"))
-        .accessibilityValue("\(Int(goalProgress * 100))%")
+        .accessibilityValue(goalPercentText)
+    }
+
+    private func updateAnimatedProgress(animated: Bool) {
+        if animated && !reduceMotion {
+            withAnimation(CarinhoMotion.cardSpring) {
+                animatedProgress = goalProgress
+            }
+        } else {
+            animatedProgress = goalProgress
+        }
     }
 
     private func statRow(_ title: String, value: String) -> some View {
@@ -205,6 +239,8 @@ struct StatsView: View {
                     Text(trend)
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(trendColor(for: trend))
+                        .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: trend)
+                        .transition(reduceMotion ? .identity : .scale.combined(with: .opacity))
                 }
             }
         }

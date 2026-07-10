@@ -40,6 +40,7 @@ enum L10n {
     static var recordingPaused: String { string("recording.paused") }
     static var settingsRecordingSection: String { string("settings.recording.section") }
     static var settingsAutoRecording: String { string("settings.recording.auto") }
+    static var settingsRecordingSounds: String { string("settings.recording.sounds") }
     static var settingsRecordingSensitivitySection: String { string("settings.recording.sensitivity") }
     static var settingsIdleTimeout: String { string("settings.recording.idle_timeout") }
     static var settingsLowSpeedStop: String { string("settings.recording.low_speed_stop") }
@@ -195,6 +196,9 @@ enum L10n {
     static var pdfGenerateFailed: String { string("pdf.generate_failed") }
     static var settingsSiriShortcutsHint: String { string("settings.siri.shortcuts_hint") }
     static var settingsSiriShortcutsLink: String { string("settings.siri.shortcuts_link") }
+    static var tabTrips: String { string("tab.trips") }
+    static var tabStats: String { string("tab.stats") }
+    static var tabSettings: String { string("tab.settings") }
 
     static func pdfWorkReportSummary(distance: String, tripCount: Int, fuelCost: String) -> String {
         let format = string("pdf.work_report.summary")

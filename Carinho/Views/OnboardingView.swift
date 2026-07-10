@@ -19,7 +19,7 @@ struct OnboardingView: View {
                 notificationsPage.tag(2)
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
-            .animation(.easeInOut, value: page)
+            .animation(CarinhoMotion.gentle, value: page)
 
             bottomBar
                 .padding(.horizontal, 24)
@@ -33,100 +33,56 @@ struct OnboardingView: View {
     }
 
     private var locationPage: some View {
-        onboardingPage(
+        OnboardingPermissionPage(
             systemImage: "location.fill",
             tint: .blue,
             title: L10n.string("onboarding.location.title"),
             message: L10n.string("onboarding.location.message"),
-            isGranted: locationService.authorizationState == .authorizedAlways
-        ) {
-            locationService.requestPermission()
-        } actionTitle: {
-            switch locationService.authorizationState {
-            case .authorizedAlways:
-                L10n.string("onboarding.permission.granted")
-            case .authorizedWhenInUse:
-                L10n.string("onboarding.location.enable_always")
-            default:
-                L10n.string("onboarding.permission.allow")
-            }
-        }
+            isGranted: locationService.authorizationState == .authorizedAlways,
+            actionTitle: {
+                switch locationService.authorizationState {
+                case .authorizedAlways:
+                    L10n.string("onboarding.permission.granted")
+                case .authorizedWhenInUse:
+                    L10n.string("onboarding.location.enable_always")
+                default:
+                    L10n.string("onboarding.permission.allow")
+                }
+            },
+            action: { locationService.requestPermission() }
+        )
     }
 
     private var motionPage: some View {
-        onboardingPage(
+        OnboardingPermissionPage(
             systemImage: "figure.walk.motion",
             tint: .purple,
             title: L10n.string("onboarding.motion.title"),
             message: L10n.string("onboarding.motion.message"),
-            isGranted: motionActivityService.isAuthorized
-        ) {
-            motionActivityService.requestPermission()
-        } actionTitle: {
-            motionActivityService.isAuthorized
-                ? L10n.string("onboarding.permission.granted")
-                : L10n.string("onboarding.permission.allow")
-        }
+            isGranted: motionActivityService.isAuthorized,
+            actionTitle: {
+                motionActivityService.isAuthorized
+                    ? L10n.string("onboarding.permission.granted")
+                    : L10n.string("onboarding.permission.allow")
+            },
+            action: { motionActivityService.requestPermission() }
+        )
     }
 
     private var notificationsPage: some View {
-        onboardingPage(
+        OnboardingPermissionPage(
             systemImage: "bell.badge.fill",
             tint: .orange,
             title: L10n.string("onboarding.notifications.title"),
             message: L10n.string("onboarding.notifications.message"),
-            isGranted: notificationsAuthorized
-        ) {
-            requestNotifications()
-        } actionTitle: {
-            notificationsAuthorized
-                ? L10n.string("onboarding.permission.granted")
-                : L10n.string("onboarding.permission.allow")
-        }
-    }
-
-    private func onboardingPage(
-        systemImage: String,
-        tint: Color,
-        title: String,
-        message: String,
-        isGranted: Bool,
-        action: @escaping () -> Void,
-        actionTitle: () -> String
-    ) -> some View {
-        VStack(spacing: 24) {
-            Spacer()
-
-            Image(systemName: systemImage)
-                .font(.system(size: 56))
-                .foregroundStyle(tint)
-                .symbolRenderingMode(.hierarchical)
-
-            VStack(spacing: 12) {
-                Text(title)
-                    .font(.title2.bold())
-                    .multilineTextAlignment(.center)
-                Text(message)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 8)
-            }
-
-            if isGranted {
-                Label(L10n.string("onboarding.permission.granted"), systemImage: "checkmark.circle.fill")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.green)
-            } else {
-                Button(actionTitle(), action: action)
-                    .buttonStyle(.borderedProminent)
-                    .tint(tint)
-            }
-
-            Spacer()
-            Spacer()
-        }
-        .padding(.horizontal, 28)
+            isGranted: notificationsAuthorized,
+            actionTitle: {
+                notificationsAuthorized
+                    ? L10n.string("onboarding.permission.granted")
+                    : L10n.string("onboarding.permission.allow")
+            },
+            action: { requestNotifications() }
+        )
     }
 
     private var bottomBar: some View {
@@ -164,6 +120,70 @@ struct OnboardingView: View {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
             Task { @MainActor in
                 notificationsAuthorized = granted
+            }
+        }
+    }
+}
+
+private struct OnboardingPermissionPage: View {
+    let systemImage: String
+    let tint: Color
+    let title: String
+    let message: String
+    let isGranted: Bool
+    let actionTitle: () -> String
+    let action: () -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var iconScale: CGFloat = 1
+
+    var body: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            Image(systemName: systemImage)
+                .font(.system(size: 56))
+                .foregroundStyle(tint)
+                .symbolRenderingMode(.hierarchical)
+                .scaleEffect(iconScale)
+
+            VStack(spacing: 12) {
+                Text(title)
+                    .font(.title2.bold())
+                    .multilineTextAlignment(.center)
+                Text(message)
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 8)
+            }
+
+            if isGranted {
+                Label(L10n.string("onboarding.permission.granted"), systemImage: "checkmark.circle.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.green)
+                    .transition(.scale.combined(with: .opacity))
+            } else {
+                Button(actionTitle(), action: action)
+                    .buttonStyle(.borderedProminent)
+                    .tint(tint)
+            }
+
+            Spacer()
+            Spacer()
+        }
+        .padding(.horizontal, 28)
+        .animation(reduceMotion ? nil : CarinhoMotion.cardSpring, value: isGranted)
+        .onChange(of: isGranted) { wasGranted, isNowGranted in
+            guard !wasGranted, isNowGranted else { return }
+            CarinhoHaptics.selection()
+            if !reduceMotion {
+                withAnimation(CarinhoMotion.cardSpring) {
+                    iconScale = 1.08
+                }
+                withAnimation(CarinhoMotion.cardSpring.delay(0.15)) {
+                    iconScale = 1
+                }
             }
         }
     }

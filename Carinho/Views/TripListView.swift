@@ -7,6 +7,7 @@ struct TripListView: View {
     @Query(sort: \UserCategory.sortOrder) private var categories: [UserCategory]
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(TripRecordingService.self) private var recordingService
     @Bindable private var settings = AppSettings.shared
 
@@ -114,6 +115,7 @@ struct TripListView: View {
             if recordingService.state.isActiveSession {
                 Section {
                     ActiveTripView()
+                        .carinhoCardTransition(reduceMotion: reduceMotion)
                 }
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
@@ -131,6 +133,7 @@ struct TripListView: View {
                             Text(weekSummaryText)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
+                                .numericTextAnimation(value: weekSummaryText)
                         }
                         Spacer(minLength: 0)
                     }
@@ -156,6 +159,8 @@ struct TripListView: View {
                             ? "Farklı bir filtre deneyin."
                             : "Manuel başlat veya araca bindiğinde otomatik kayıt başlasın.")
                     )
+                    .symbolEffect(.bounce, value: hasActiveFilters)
+                    .transition(CarinhoMotion.fadeScaleTransition(reduceMotion: reduceMotion))
                 }
             } else {
                 ForEach(groupedTrips, id: \.section) { group in
@@ -165,8 +170,10 @@ struct TripListView: View {
                         }
                     }
                 }
+                .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: completedTrips.count)
             }
         }
+        .animation(reduceMotion ? nil : CarinhoMotion.cardSpring, value: recordingService.state.isActiveSession)
         .searchable(text: $searchText, prompt: L10n.searchTrips)
         .sheet(isPresented: $showCarPairing) {
             CarPairingSheet()
@@ -232,8 +239,10 @@ struct TripListView: View {
                             Button { _ = recordingService.startManualRecording() } label: {
                                 Label("Başlat", systemImage: "record.circle")
                             }
+                            .transition(.scale.combined(with: .opacity))
                         }
                     }
+                    .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: recordingService.state.isActiveSession)
                 }
             }
         }
@@ -319,6 +328,7 @@ struct TripListView: View {
     }
 
     private func deleteTrip(_ trip: Trip) {
+        CarinhoHaptics.destructive()
         TripMapSnapshotCache.shared.remove(for: trip.id)
         modelContext.delete(trip)
         mergeSelection.remove(trip.id)
@@ -326,6 +336,7 @@ struct TripListView: View {
     }
 
     private func performMerge() {
+        CarinhoHaptics.selection()
         let selected = completedTrips.filter { mergeSelection.contains($0.id) }
         do {
             if let merged = try TripMergeService.merge(trips: selected, into: modelContext) {

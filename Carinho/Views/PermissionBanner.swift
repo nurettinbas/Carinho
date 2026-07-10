@@ -66,11 +66,13 @@ struct LocationPermissionBanner: View {
 
 struct GPSQualityBadge: View {
   let quality: LocationService.GPSQuality
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   var body: some View {
     HStack(spacing: 4) {
       Image(systemName: icon)
         .font(.caption2)
+        .symbolEffect(.bounce, value: quality)
       Text(label)
         .font(.caption2.weight(.medium))
     }
@@ -79,6 +81,7 @@ struct GPSQualityBadge: View {
     .padding(.vertical, 4)
     .background(color.opacity(0.15))
     .clipShape(Capsule())
+    .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: quality)
     .accessibilityLabel(label)
   }
 

@@ -37,6 +37,10 @@
 		A10000000000000000000016 /* ActiveTripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* ActiveTripView.swift */; };
 		A10000000000000000000017 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* SettingsView.swift */; };
 		A10000000000000000000018 /* DistanceCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* DistanceCalculator.swift */; };
+		A1CARINHOMOTION00000001 /* CarinhoMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2CARINHOMOTION00000001 /* CarinhoMotion.swift */; };
+		A1CARINHOSOUNDS00000001 /* CarinhoSounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2CARINHOSOUNDS00000001 /* CarinhoSounds.swift */; };
+		A1TRIPSTARTCAF000000001 /* trip_start.caf in Resources */ = {isa = PBXBuildFile; fileRef = A2TRIPSTARTCAF000000001 /* trip_start.caf */; };
+		A1TRIPSTOPCAF0000000001 /* trip_stop.caf in Resources */ = {isa = PBXBuildFile; fileRef = A2TRIPSTOPCAF0000000001 /* trip_stop.caf */; };
 		A10000000000000000000019 /* DateFormatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* DateFormatters.swift */; };
 		A10000000000000000000020 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* AppSettings.swift */; };
 		A10000000000000000000021 /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* PreviewData.swift */; };
@@ -163,6 +167,10 @@
 		A20000000000000000000016 /* ActiveTripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveTripView.swift; sourceTree = "<group>"; };
 		A20000000000000000000017 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A20000000000000000000018 /* DistanceCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistanceCalculator.swift; sourceTree = "<group>"; };
+		A2CARINHOMOTION00000001 /* CarinhoMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarinhoMotion.swift; sourceTree = "<group>"; };
+		A2CARINHOSOUNDS00000001 /* CarinhoSounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarinhoSounds.swift; sourceTree = "<group>"; };
+		A2TRIPSTARTCAF000000001 /* trip_start.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = trip_start.caf; sourceTree = "<group>"; };
+		A2TRIPSTOPCAF0000000001 /* trip_stop.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = trip_stop.caf; sourceTree = "<group>"; };
 		A20000000000000000000019 /* DateFormatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatters.swift; sourceTree = "<group>"; };
 		A20000000000000000000020 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		A20000000000000000000021 /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
@@ -274,6 +282,7 @@
 				A50000000000000000000007 /* ViewModels */,
 				A50000000000000000000008 /* Views */,
 				A50000000000000000000009 /* Utilities */,
+				A5SOUNDS000000000000001 /* Sounds */,
 				A20000000000000000000022 /* Assets.xcassets */,
 				A2CARINHOICON000000001 /* Carinho.icon */,
 				A20000000000000000000024 /* Info.plist */,
@@ -293,6 +302,15 @@
 				3C4D5673496049A7A905249D /* CarinhoTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		A5SOUNDS000000000000001 /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				A2TRIPSTARTCAF000000001 /* trip_start.caf */,
+				A2TRIPSTOPCAF0000000001 /* trip_stop.caf */,
+			);
+			path = Sounds;
 			sourceTree = "<group>";
 		};
 		A50000000000000000000004 /* App */ = {
@@ -406,6 +424,8 @@
 				A2SCHEMAMIG0000000000001 /* CarinhoSchemaMigration.swift */,
 				A2APPERRORPRES0000001 /* AppErrorPresenter.swift */,
 				A20000000000000000000018 /* DistanceCalculator.swift */,
+				A2CARINHOMOTION00000001 /* CarinhoMotion.swift */,
+				A2CARINHOSOUNDS00000001 /* CarinhoSounds.swift */,
 				A20000000000000000000019 /* DateFormatters.swift */,
 				A20000000000000000000020 /* AppSettings.swift */,
 				A20000000000000000000021 /* PreviewData.swift */,
@@ -557,6 +577,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000000000000000000022 /* Assets.xcassets in Resources */,
+				A1TRIPSTARTCAF000000001 /* trip_start.caf in Resources */,
+				A1TRIPSTOPCAF0000000001 /* trip_stop.caf in Resources */,
 				A1CARINHOICON000000001 /* Carinho.icon in Resources */,
 				A10000000000000000000028 /* PrivacyInfo.xcprivacy in Resources */,
 				A1LOCALIZABLE00000000001 /* Localizable.xcstrings in Resources */,
@@ -606,6 +628,8 @@
 				A1PERMBANNER00000000001 /* PermissionBanner.swift in Sources */,
 				A10000000000000000000017 /* SettingsView.swift in Sources */,
 				A10000000000000000000018 /* DistanceCalculator.swift in Sources */,
+				A1CARINHOMOTION00000001 /* CarinhoMotion.swift in Sources */,
+				A1CARINHOSOUNDS00000001 /* CarinhoSounds.swift in Sources */,
 				A10000000000000000000019 /* DateFormatters.swift in Sources */,
 				A10000000000000000000020 /* AppSettings.swift in Sources */,
 				A10000000000000000000021 /* PreviewData.swift in Sources */,

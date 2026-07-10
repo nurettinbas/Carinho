@@ -15,6 +15,7 @@ final class AppSettings {
 
     private enum Key {
         static let autoRecording = "autoRecordingEnabled"
+        static let recordingSounds = "recordingSoundsEnabled"
         static let fuelLitersPer100km = "fuelLitersPer100km"
         static let fuelPricePerLiter = "fuelPricePerLiter"
         static let evChargePricePerKWh = "evChargePricePerKWh"
@@ -52,6 +53,14 @@ final class AppSettings {
             return defaults.bool(forKey: Key.autoRecording)
         }
         set { defaults.set(newValue, forKey: Key.autoRecording) }
+    }
+
+    var recordingSoundsEnabled: Bool {
+        get {
+            if defaults.object(forKey: Key.recordingSounds) == nil { return true }
+            return defaults.bool(forKey: Key.recordingSounds)
+        }
+        set { defaults.set(newValue, forKey: Key.recordingSounds) }
     }
 
     var fuelLitersPer100km: Double {

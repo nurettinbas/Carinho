@@ -33,6 +33,7 @@ struct SettingsView: View {
                     .onChange(of: settings.autoRecordingEnabled) { _, enabled in
                         tripRecordingService.refreshAutoRecording(enabled: enabled)
                     }
+                Toggle(L10n.settingsRecordingSounds, isOn: $settings.recordingSoundsEnabled)
                 Text(L10n.settingsSiriShortcutsHint)
                     .font(.footnote)
                     .foregroundStyle(.secondary)

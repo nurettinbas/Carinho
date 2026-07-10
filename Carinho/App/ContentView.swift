@@ -28,13 +28,14 @@ struct ContentView: View {
         } else {
             TabView {
                 NavigationStack { TripListView() }
-                    .tabItem { Label("Yolculuklar", systemImage: "list.bullet") }
+                    .tabItem { Label(L10n.tabTrips, systemImage: "list.bullet") }
+                    .badge(tripRecordingService.state.isActiveSession ? "" : nil)
 
                 NavigationStack { StatsView() }
-                    .tabItem { Label("İstatistikler", systemImage: "chart.bar") }
+                    .tabItem { Label(L10n.tabStats, systemImage: "chart.bar") }
 
                 NavigationStack { SettingsView() }
-                    .tabItem { Label("Ayarlar", systemImage: "gearshape") }
+                    .tabItem { Label(L10n.tabSettings, systemImage: "gearshape") }
             }
             .environment(\.locale, appLocale)
             .environment(\.layoutDirection, isRTL ? .rightToLeft : .leftToRight)

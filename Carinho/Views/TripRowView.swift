@@ -5,7 +5,9 @@ struct TripRowView: View {
     var places: [SavedPlace] = []
     var privacyRadius: Double = 500
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var thumbnail: UIImage?
+    @State private var thumbnailLoaded = false
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -67,20 +69,32 @@ struct TripRowView: View {
         }
         .padding(.vertical, 2)
         .task(id: trip.id) {
-            thumbnail = await TripMapSnapshotCache.shared.snapshot(for: trip)
+            thumbnailLoaded = false
+            let image = await TripMapSnapshotCache.shared.snapshot(for: trip)
+            if !reduceMotion {
+                withAnimation(CarinhoMotion.gentle) {
+                    thumbnail = image
+                    thumbnailLoaded = true
+                }
+            } else {
+                thumbnail = image
+                thumbnailLoaded = true
+            }
         }
     }
 
     @ViewBuilder
     private var thumbnailView: some View {
         Group {
-            if let thumbnail {
+            if let thumbnail, thumbnailLoaded {
                 Image(uiImage: thumbnail)
                     .resizable()
                     .scaledToFill()
+                    .transition(.opacity)
             } else {
                 ZStack {
                     Color.secondary.opacity(0.12)
+                        .shimmer()
                     Image(systemName: "map")
                         .font(.caption)
                         .foregroundStyle(.secondary)

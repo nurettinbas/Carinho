@@ -185,6 +185,7 @@ final class TripRecordingService {
         state = .paused
         stopElapsedTimer()
         syncExternalState(force: true)
+        CarinhoHaptics.recordingPaused()
     }
 
     func resumeRecording() {
@@ -193,6 +194,7 @@ final class TripRecordingService {
         state = .recording
         startElapsedTimer()
         syncExternalState(force: true)
+        CarinhoHaptics.recordingResumed()
     }
 
     func handleVehicleConnected(trigger: VehicleRecordingTrigger) {
@@ -397,6 +399,8 @@ final class TripRecordingService {
         RecordingLiveActivityService.start(startedAt: recordingStartedAt ?? Date())
         TripNotificationService.notifyTripStarted(tripID: trip.id)
         syncExternalState(force: true)
+        CarinhoHaptics.recordingStarted()
+        CarinhoSounds.recordingStarted()
 
         Task {
             CarPlayConnectionHandler.shared.refreshCarPlayUI()
@@ -444,6 +448,8 @@ final class TripRecordingService {
 
         finalizeStopIfNeeded()
         state = .idle
+        CarinhoHaptics.recordingStopped()
+        CarinhoSounds.recordingStopped()
         locationService.stopTracking()
         if settings.autoRecordingEnabled {
             locationService.startLowPowerMonitoring()

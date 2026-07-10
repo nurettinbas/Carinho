@@ -46,6 +46,8 @@ struct TripDetailView: View {
     @State private var editedEndedAt: Date = Date()
     @State private var trimHeadCount: Int = 0
     @State private var trimTailCount: Int = 0
+    @State private var didAppear = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var sortedStops: [TripStop] {
         trip.stops.sorted { $0.startedAt < $1.startedAt }
@@ -223,6 +225,8 @@ struct TripDetailView: View {
             .background(.ultraThinMaterial)
             .dismissKeyboardOnScroll()
         }
+        .opacity(didAppear ? 1 : 0)
+        .offset(y: didAppear ? 0 : 12)
         .dismissKeyboardOnTap(focus: $noteFocused)
         .navigationTitle("Yolculuk")
         .navigationBarTitleDisplayMode(.inline)
@@ -248,6 +252,13 @@ struct TripDetailView: View {
             editedEndedAt = trip.endedAt ?? Date()
             if let region = viewModel.mapRegion {
                 cameraPosition = .region(region)
+            }
+            if reduceMotion {
+                didAppear = true
+            } else {
+                withAnimation(CarinhoMotion.gentle) {
+                    didAppear = true
+                }
             }
         }
     }
