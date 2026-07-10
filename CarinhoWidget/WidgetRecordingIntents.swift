@@ -4,6 +4,7 @@ import Foundation
 struct WidgetStartRecordingIntent: AppIntent {
     static let title: LocalizedStringResource = "Kaydı başlat"
     static let openAppWhenRun = true
+    static var isDiscoverable: Bool { false }
 
     @MainActor
     func perform() async throws -> some IntentResult {
@@ -15,6 +16,7 @@ struct WidgetStartRecordingIntent: AppIntent {
 struct WidgetStopRecordingIntent: AppIntent {
     static let title: LocalizedStringResource = "Kaydı durdur"
     static let openAppWhenRun = false
+    static var isDiscoverable: Bool { false }
 
     @MainActor
     func perform() async throws -> some IntentResult {
@@ -26,6 +28,7 @@ struct WidgetStopRecordingIntent: AppIntent {
 struct WidgetPauseRecordingIntent: AppIntent {
     static let title: LocalizedStringResource = "Kaydı duraklat"
     static let openAppWhenRun = false
+    static var isDiscoverable: Bool { false }
 
     @MainActor
     func perform() async throws -> some IntentResult {
@@ -37,6 +40,7 @@ struct WidgetPauseRecordingIntent: AppIntent {
 struct WidgetResumeRecordingIntent: AppIntent {
     static let title: LocalizedStringResource = "Kayda devam et"
     static let openAppWhenRun = false
+    static var isDiscoverable: Bool { false }
 
     @MainActor
     func perform() async throws -> some IntentResult {

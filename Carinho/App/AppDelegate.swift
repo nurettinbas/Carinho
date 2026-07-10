@@ -1,3 +1,4 @@
+import AppIntents
 import CarPlay
 @preconcurrency import UserNotifications
 import UIKit
@@ -8,6 +9,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         UNUserNotificationCenter.current().delegate = self
+        CarinhoShortcuts.updateAppShortcutParameters()
         Task { @MainActor in
             AppServices.bootstrapRecordingIfNeeded()
         }
