@@ -36,9 +36,9 @@ struct SettingsView: View {
                 Text(L10n.settingsSiriShortcutsHint)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-                ShortcutsLink {
-                    Label(L10n.settingsSiriShortcutsLink, systemImage: "mic.fill")
-                }
+                ShortcutsLink()
+                    .shortcutsLinkStyle(.automaticOutline)
+                    .accessibilityLabel(L10n.settingsSiriShortcutsLink)
             }
 
             Section(L10n.settingsRecordingSensitivitySection) {

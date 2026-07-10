@@ -84,7 +84,7 @@ final class VehicleProfile {
             bluetoothID = nil
             carPlayFlag = true
             if connectionIdentifier == nil {
-                connectionIdentifier = AppSettings.carPlayVehicleID
+                connectionIdentifier = VehicleConnectionKind.carPlayVehicleID
             }
             if connectionDisplayName == nil {
                 connectionDisplayName = "CarPlay"

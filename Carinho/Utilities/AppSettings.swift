@@ -218,10 +218,8 @@ final class AppSettings {
         pairedVehicleType = type
     }
 
-    static let carPlayVehicleID = "carinho.carplay"
-
     var isPairedCarPlayVehicle: Bool {
-        pairedVehicleType == .carPlay && pairedVehicleID == Self.carPlayVehicleID
+        pairedVehicleType == .carPlay && pairedVehicleID == VehicleConnectionKind.carPlayVehicleID
     }
 
     var isPairedBluetoothVehicle: Bool {

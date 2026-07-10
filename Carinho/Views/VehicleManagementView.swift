@@ -174,7 +174,7 @@ struct VehicleEditorView: View {
                 VehiclePairingService.pair(
                     vehicle: vehicle,
                     kind: .carPlay,
-                    identifier: AppSettings.carPlayVehicleID,
+                    identifier: VehicleConnectionKind.carPlayVehicleID,
                     displayName: vehicle.connectionDisplayName ?? "CarPlay",
                     in: modelContext
                 )

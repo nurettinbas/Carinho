@@ -94,7 +94,7 @@ enum VehiclePairingService {
         switch settings.pairedVehicleType {
         case .carPlay:
             vehicle.connectionKind = .carPlay
-            vehicle.connectionIdentifier = AppSettings.carPlayVehicleID
+            vehicle.connectionIdentifier = VehicleConnectionKind.carPlayVehicleID
             vehicle.connectionDisplayName = settings.pairedVehicleName ?? "CarPlay"
         case .bluetoothAudio:
             vehicle.connectionKind = .bluetooth
@@ -116,7 +116,7 @@ enum VehiclePairingService {
         switch vehicle.connectionKind {
         case .carPlay:
             settings.pairVehicle(
-                id: vehicle.connectionIdentifier ?? AppSettings.carPlayVehicleID,
+                id: vehicle.connectionIdentifier ?? VehicleConnectionKind.carPlayVehicleID,
                 name: vehicle.connectionDisplayName ?? "CarPlay",
                 type: .carPlay
             )

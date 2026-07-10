@@ -222,7 +222,7 @@ struct CarPairingSheet: View {
             VehiclePairingService.pair(
                 vehicle: vehicle,
                 kind: .carPlay,
-                identifier: AppSettings.carPlayVehicleID,
+                identifier: VehicleConnectionKind.carPlayVehicleID,
                 displayName: vehicle.connectionDisplayName ?? "CarPlay",
                 in: modelContext
             )
@@ -252,7 +252,7 @@ struct CarPairingSheet: View {
         VehiclePairingService.pair(
             vehicle: vehicle,
             kind: .carPlay,
-            identifier: AppSettings.carPlayVehicleID,
+            identifier: VehicleConnectionKind.carPlayVehicleID,
             displayName: "CarPlay",
             in: modelContext
         )
