@@ -147,6 +147,56 @@ private struct WidgetIntentButton<Intent: AppIntent>: View {
     }
 }
 
+/// Opens the main app via deep link so bootstrap + `processPendingRecordingRequests` run in-app.
+/// Widget `AppIntent` alone runs in the extension process and cannot start recording reliably.
+private struct WidgetStartLink: View {
+    enum Size {
+        case regular
+        case small
+    }
+
+    let title: String
+    let systemImage: String
+    let tint: Color
+    let size: Size
+
+    @Environment(\.widgetRenderingMode) private var renderingMode
+
+    private var usesLiquidGlassLayout: Bool {
+        renderingMode != .fullColor
+    }
+
+    var body: some View {
+        Group {
+            if usesLiquidGlassLayout {
+                Link(destination: CarinhoDeepLink.startRecording) {
+                    label
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .tint(tint)
+            } else {
+                Link(destination: CarinhoDeepLink.startRecording) {
+                    label
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(tint)
+            }
+        }
+        .controlSize(size == .small ? .small : .regular)
+        .accessibilityLabel(title)
+    }
+
+    private var label: some View {
+        Label(title, systemImage: systemImage)
+            .font(size == .regular ? .caption.weight(.semibold) : .caption2.weight(.semibold))
+            .labelStyle(.titleAndIcon)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+    }
+}
+
 struct CarinhoWidgetEntry: TimelineEntry {
     let date: Date
     let isRecording: Bool
@@ -259,12 +309,11 @@ struct CarinhoWidgetView: View {
                     .minimumScaleFactor(0.8)
                     .lineLimit(1)
                 Spacer(minLength: 0)
-                WidgetIntentButton(
+                WidgetStartLink(
                     title: WidgetL10n.start,
                     systemImage: "play.fill",
                     tint: WidgetPalette.start,
-                    size: .small,
-                    intent: WidgetStartRecordingIntent()
+                    size: .small
                 )
             }
         }
@@ -389,12 +438,11 @@ struct CarinhoWidgetView: View {
                 )
             }
         } else {
-            WidgetIntentButton(
+            WidgetStartLink(
                 title: WidgetL10n.start,
                 systemImage: "play.fill",
                 tint: WidgetPalette.start,
-                size: .regular,
-                intent: WidgetStartRecordingIntent()
+                size: .regular
             )
         }
     }

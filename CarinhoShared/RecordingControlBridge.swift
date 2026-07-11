@@ -15,7 +15,12 @@ public enum RecordingControlBridge {
 
     /// Cached app-group defaults; avoids repeated `UserDefaults(suiteName:)` calls that spam cfprefsd logs.
     public static func sharedDefaults() -> UserDefaults {
-        uncheckedSharedDefaults.value
+        UserDefaults(suiteName: appGroupSuiteName) ?? uncheckedSharedDefaults.value
+    }
+
+    private static func stampRequest(_ key: String, at timestampKey: String, in defaults: UserDefaults) {
+        defaults.set(Date().timeIntervalSince1970, forKey: timestampKey)
+        defaults.set(true, forKey: key)
     }
 
     public enum Keys {
@@ -23,6 +28,10 @@ public enum RecordingControlBridge {
         public static let requestStart = "recording.requestStart"
         public static let requestPause = "recording.requestPause"
         public static let requestResume = "recording.requestResume"
+        public static let requestStartAt = "recording.requestStartAt"
+        public static let requestStopAt = "recording.requestStopAt"
+        public static let requestPauseAt = "recording.requestPauseAt"
+        public static let requestResumeAt = "recording.requestResumeAt"
         public static let isActive = "recording.isActive"
         public static let isPaused = "recording.isPaused"
         public static let elapsed = "recording.elapsed"
@@ -127,7 +136,7 @@ public enum RecordingControlBridge {
         defaults.set(false, forKey: Keys.requestStop)
         defaults.set(false, forKey: Keys.requestPause)
         defaults.set(false, forKey: Keys.requestResume)
-        defaults.set(true, forKey: Keys.requestStart)
+        stampRequest(Keys.requestStart, at: Keys.requestStartAt, in: defaults)
         postDarwinNotification(.start)
     }
 
@@ -135,7 +144,7 @@ public enum RecordingControlBridge {
         let defaults = sharedDefaults()
         defaults.set(false, forKey: Keys.requestPause)
         defaults.set(false, forKey: Keys.requestResume)
-        defaults.set(true, forKey: Keys.requestStop)
+        stampRequest(Keys.requestStop, at: Keys.requestStopAt, in: defaults)
         defaults.set(false, forKey: Keys.isActive)
         defaults.set(false, forKey: Keys.isPaused)
         postDarwinNotification(.stop)
@@ -144,7 +153,7 @@ public enum RecordingControlBridge {
     public static func requestPauseFromControlSurface() {
         let defaults = sharedDefaults()
         defaults.set(false, forKey: Keys.requestResume)
-        defaults.set(true, forKey: Keys.requestPause)
+        stampRequest(Keys.requestPause, at: Keys.requestPauseAt, in: defaults)
         defaults.set(true, forKey: Keys.isPaused)
         postDarwinNotification(.pause)
     }
@@ -152,7 +161,7 @@ public enum RecordingControlBridge {
     public static func requestResumeFromControlSurface() {
         let defaults = sharedDefaults()
         defaults.set(false, forKey: Keys.requestPause)
-        defaults.set(true, forKey: Keys.requestResume)
+        stampRequest(Keys.requestResume, at: Keys.requestResumeAt, in: defaults)
         defaults.set(false, forKey: Keys.isPaused)
         postDarwinNotification(.resume)
     }

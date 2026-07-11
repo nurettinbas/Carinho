@@ -222,7 +222,11 @@ struct CarinhoApp: App {
                 }
                 .onOpenURL { url in
                     runtime.bootstrap(container: modelContainer)
-                    if CarinhoDeepLink.handle(url) {
+                    guard CarinhoDeepLink.handle(url) else { return }
+                    runtime.processPendingRecordingRequests()
+                    // Widget deep link can arrive before UI/auth is ready; retry once.
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(300))
                         runtime.processPendingRecordingRequests()
                     }
                 }
