@@ -40,6 +40,21 @@ final class VehicleConnectionCoordinator {
         syncSnapshot(bluetooth: bluetoothConnected, carPlay: carPlayConnected)
     }
 
+    /// Marks an already-live vehicle connection as handled so pairing in the garage does not auto-start recording.
+    func acknowledgeLiveConnectionWithoutRecording() {
+        guard hasAutoTriggerVehicle else { return }
+
+        let carPlayLive = settings.isPairedCarPlayVehicle && carPlayConnected
+        let bluetoothLive = settings.isPairedBluetoothVehicle && bluetoothConnected
+        guard carPlayLive || bluetoothLive else { return }
+
+        connectTask?.cancel()
+        connectTask = nil
+
+        let trigger: VehicleConnectionTrigger = carPlayLive ? .carPlay : .bluetooth
+        persistState(connected: true, trigger: trigger)
+    }
+
     func handleBluetoothSnapshot(isConnected: Bool) {
         bluetoothConnected = isConnected
         syncSnapshot(bluetooth: isConnected, carPlay: carPlayConnected)
@@ -57,25 +72,16 @@ final class VehicleConnectionCoordinator {
             return
         }
 
-        let trigger: VehicleConnectionTrigger?
-        let isConnected: Bool
+        let carPlayLive = settings.isPairedCarPlayVehicle && carPlay
+        let bluetoothLive = settings.isPairedBluetoothVehicle && bluetooth
+        let isAnyConnected = carPlayLive || bluetoothLive
 
-        if settings.isPairedCarPlayVehicle, carPlay {
-            trigger = .carPlay
-            isConnected = true
-        } else if settings.isPairedBluetoothVehicle, bluetooth {
-            trigger = .bluetooth
-            isConnected = true
-        } else {
-            trigger = nil
-            isConnected = false
-        }
-
-        if isConnected, let trigger {
+        if isAnyConnected {
+            let trigger: VehicleConnectionTrigger = carPlayLive ? .carPlay : .bluetooth
             let persistedConnected = defaults.bool(forKey: DefaultsKey.lastConnected)
             let lastTriggerRaw = defaults.string(forKey: DefaultsKey.lastTrigger)
             let lastTrigger = lastTriggerRaw.flatMap(VehicleConnectionTrigger.init(rawValue:))
-            if persistedConnected, lastTrigger == trigger {
+            if persistedConnected, lastTrigger != nil {
                 return
             }
             scheduleConnect(trigger: trigger)
@@ -96,6 +102,12 @@ final class VehicleConnectionCoordinator {
 
         guard connectTask == nil else { return }
 
+        let channel: AutoRecordingEventChannel = trigger == .carPlay ? .carPlay : .bluetooth
+        AutoRecordingEventLog.shared.noteVehicleConnectTrigger(
+            channel: channel,
+            vehicleName: settings.pairedVehicleName
+        )
+
         connectTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(Self.connectDebounceSeconds))
             guard !Task.isCancelled, let self else { return }
@@ -110,10 +122,20 @@ final class VehicleConnectionCoordinator {
 
         guard disconnectTask == nil else { return }
 
+        let lastTriggerRaw = defaults.string(forKey: DefaultsKey.lastTrigger)
+        let lastTrigger = lastTriggerRaw.flatMap(VehicleConnectionTrigger.init(rawValue:))
+        let channel: AutoRecordingEventChannel = lastTrigger == .carPlay ? .carPlay : .bluetooth
+        AutoRecordingEventLog.shared.noteVehicleDisconnectTrigger(channel: channel)
+
         disconnectTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(Self.disconnectDebounceSeconds))
             guard !Task.isCancelled, let self else { return }
             self.disconnectTask = nil
+
+            let carPlayLive = self.settings.isPairedCarPlayVehicle && self.carPlayConnected
+            let bluetoothLive = self.settings.isPairedBluetoothVehicle && self.bluetoothConnected
+            guard !(carPlayLive || bluetoothLive) else { return }
+
             self.applyDisconnect()
         }
     }
@@ -127,12 +149,7 @@ final class VehicleConnectionCoordinator {
 
     private func applyConnect(trigger: VehicleConnectionTrigger) {
         let wasConnected = defaults.bool(forKey: DefaultsKey.lastConnected)
-        let lastTriggerRaw = defaults.string(forKey: DefaultsKey.lastTrigger)
-        let lastTrigger = lastTriggerRaw.flatMap(VehicleConnectionTrigger.init(rawValue:))
-
-        if wasConnected, lastTrigger == trigger {
-            return
-        }
+        if wasConnected { return }
 
         persistState(connected: true, trigger: trigger)
 

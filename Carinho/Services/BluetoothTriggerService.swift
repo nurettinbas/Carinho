@@ -6,6 +6,7 @@ import Foundation
 final class BluetoothTriggerService {
     private(set) var isCarConnected = false
     private(set) var currentAudioRouteName: String?
+    private(set) var lastMatchMethod: BluetoothRouteMatchMethod?
 
     var onRouteSnapshotChanged: ((Bool) -> Void)?
 
@@ -29,6 +30,7 @@ final class BluetoothTriggerService {
     }
 
     func refreshMonitoring() {
+        activate()
         syncRouteSnapshot()
     }
 
@@ -36,8 +38,8 @@ final class BluetoothTriggerService {
         evaluateCurrentRoute(reportSnapshot: true)
     }
 
-    func selectCar(identifier: String, name: String) {
-        settings.pairVehicle(id: identifier, name: name, type: .bluetoothAudio)
+    func selectCar(uid: String?, identifier: String, name: String) {
+        settings.pairVehicle(uid: uid, legacyIdentifier: identifier, name: name, type: .bluetoothAudio)
         syncRouteSnapshot()
     }
 
@@ -45,17 +47,45 @@ final class BluetoothTriggerService {
         settings.clearPairedVehicle()
         isCarConnected = false
         currentAudioRouteName = nil
+        lastMatchMethod = nil
         onRouteSnapshotChanged?(false)
     }
 
     /// Returns the currently connected car audio device for pairing UI.
-    func connectedCarCandidate() -> (id: String, name: String)? {
+    func connectedCarCandidate() -> BluetoothRouteCandidate? {
         let session = AVAudioSession.sharedInstance()
-        for output in session.currentRoute.outputs {
-            guard isCarAudioPort(output.portType) else { continue }
-            let name = output.portName.trimmingCharacters(in: .whitespacesAndNewlines)
+        try? session.setCategory(
+            .playback,
+            mode: .default,
+            options: [.allowBluetoothHFP, .allowBluetoothA2DP, .mixWithOthers]
+        )
+        try? session.setActive(true)
+
+        if let active = firstCarCandidate(
+            in: session.currentRoute.outputs + session.currentRoute.inputs
+        ) {
+            return active
+        }
+
+        if let available = session.availableInputs,
+           let parked = firstCarCandidate(in: available) {
+            return parked
+        }
+
+        return nil
+    }
+
+    private func firstCarCandidate(in ports: [AVAudioSessionPortDescription]) -> BluetoothRouteCandidate? {
+        for port in ports {
+            guard isCarAudioPort(port.portType) else { continue }
+            let name = port.portName.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !name.isEmpty else { continue }
-            return (id: routeIdentifier(for: output), name: name)
+            let uid = port.uid.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty
+            return BluetoothRouteCandidate(
+                uid: uid,
+                name: name,
+                portTypeLabel: portTypeLabel(for: port.portType)
+            )
         }
         return nil
     }
@@ -77,10 +107,10 @@ final class BluetoothTriggerService {
         let candidate = connectedCarCandidate()
         currentAudioRouteName = candidate?.name
 
-        guard let selectedID = settings.pairedVehicleID,
-              settings.pairedVehicleType == .bluetoothAudio else {
+        guard settings.pairedBluetoothChannelEnabled else {
             if isCarConnected {
                 isCarConnected = false
+                lastMatchMethod = nil
                 if reportSnapshot {
                     onRouteSnapshotChanged?(false)
                 }
@@ -88,7 +118,14 @@ final class BluetoothTriggerService {
             return
         }
 
-        let matched = candidate.map { routeMatches(selectedID: selectedID, candidateID: $0.id) } ?? false
+        let matchMethod = candidate.flatMap { routeMatchMethod(for: $0) }
+        lastMatchMethod = matchMethod
+        let matched = matchMethod != nil
+
+        if let candidate, let matchMethod {
+            learnPairedIdentityIfNeeded(from: candidate, method: matchMethod)
+        }
+
         let wasConnected = isCarConnected
         isCarConnected = matched
 
@@ -98,18 +135,31 @@ final class BluetoothTriggerService {
         }
     }
 
-    private func routeMatches(selectedID: String, candidateID: String) -> Bool {
-        if selectedID == candidateID { return true }
-        // Legacy pairings stored normalized display names.
-        return selectedID == normalizedRouteID(candidateID)
-            || normalizedRouteID(selectedID) == candidateID
+    private func routeMatchMethod(for candidate: BluetoothRouteCandidate) -> BluetoothRouteMatchMethod? {
+        BluetoothRouteMatcher.match(
+            candidate: candidate,
+            pairing: settings.bluetoothPairingIdentity,
+            allowLastKnownVehicleFallback: settings.activeAutoTriggerVehicleID != nil
+        )
     }
 
-    private func routeIdentifier(for output: AVAudioSessionPortDescription) -> String {
-        if let uid = output.uid.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty {
-            return uid
+    private func learnPairedIdentityIfNeeded(
+        from candidate: BluetoothRouteCandidate,
+        method: BluetoothRouteMatchMethod
+    ) {
+        guard method == .name || method == .legacyIdentifier || method == .lastKnownVehicle else { return }
+        guard let uid = candidate.uid else { return }
+        settings.learnPairedBluetoothUID(uid)
+    }
+
+    private func portTypeLabel(for portType: AVAudioSession.Port) -> String {
+        switch portType {
+        case .bluetoothHFP: return "HFP"
+        case .bluetoothA2DP: return "A2DP"
+        case .bluetoothLE: return "LE"
+        case .carAudio: return "CarAudio"
+        default: return portType.rawValue
         }
-        return normalizedRouteID(output.portName)
     }
 
     private func isCarAudioPort(_ portType: AVAudioSession.Port) -> Bool {
@@ -119,10 +169,6 @@ final class BluetoothTriggerService {
         default:
             return false
         }
-    }
-
-    private func normalizedRouteID(_ name: String) -> String {
-        name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 

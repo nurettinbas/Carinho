@@ -22,8 +22,15 @@ struct ActiveTripView: View {
         DateFormatters.formatDistance(recordingService.currentDistanceMeters)
     }
 
+    private var isPendingGPS: Bool {
+        recordingService.state == .pendingGPS
+    }
+
     private var statusText: String {
-        isPaused ? L10n.recordingPaused : L10n.recordingStarted
+        if isPendingGPS {
+            return L10n.recordingAwaitingGPS
+        }
+        return isPaused ? L10n.recordingPaused : L10n.recordingStarted
     }
 
     var body: some View {
@@ -35,47 +42,55 @@ struct ActiveTripView: View {
     }
 
     private var recordingCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                Text(statusText)
-                    .font(.headline.weight(.bold))
-                    .foregroundStyle(.white)
-                    .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: statusText)
-                Spacer(minLength: 4)
-                GPSQualityBadge(quality: locationService.gpsQuality)
-                Image(systemName: isPaused ? "pause.circle.fill" : "record.circle.fill")
-                    .font(.title3)
-                    .foregroundStyle(isPaused ? .yellow : .red)
-                    .symbolEffect(.pulse, options: .repeating, isActive: !isPaused && !reduceMotion)
-                    .accessibilityHidden(true)
-            }
-
-            RecordingCarAnimationView(compact: true, isAnimating: !isPaused)
-
-            HStack(spacing: 0) {
-                statItem(icon: "clock.fill", label: L10n.duration, text: elapsedText)
-                divider
-                statItem(icon: "speedometer", label: L10n.currentSpeed, text: speedText)
-                divider
-                statItem(icon: "location.fill", label: L10n.string("label.distance"), text: distanceText)
-            }
-            .frame(maxWidth: .infinity)
-
-            HStack(spacing: 10) {
-                Button {
-                    if isPaused {
-                        recordingService.resumeRecording()
-                    } else {
-                        recordingService.pauseRecording()
-                    }
-                } label: {
-                    Label(isPaused ? L10n.resume : L10n.pause, systemImage: isPaused ? "play.fill" : "pause.fill")
-                        .font(.subheadline.weight(.semibold))
-                        .frame(maxWidth: .infinity)
+                HStack(spacing: 6) {
+                    Image(systemName: pendingStatusIcon)
+                        .font(.subheadline)
+                        .foregroundStyle(pendingStatusColor)
+                        .symbolEffect(.pulse, options: .repeating, isActive: !isPaused && !isPendingGPS && !reduceMotion)
+                    Text(statusText)
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(.white)
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
-                .tint(.white)
+
+                Spacer(minLength: 4)
+
+                GPSQualityBadge(quality: locationService.gpsQuality)
+            }
+            .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: statusText)
+
+            RecordingCarAnimationView(compact: true, isAnimating: !isPaused && !isPendingGPS)
+
+            if isPendingGPS {
+                Text(L10n.recordingAwaitingGPSBody)
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.85))
+            }
+
+            HStack(alignment: .top, spacing: 8) {
+                statPill(icon: "clock.fill", label: L10n.duration, text: elapsedText)
+                statPill(icon: "speedometer", label: L10n.currentSpeed, text: speedText)
+                statPill(icon: "location.fill", label: L10n.string("label.distance"), text: distanceText)
+            }
+
+            HStack(spacing: 8) {
+                if !isPendingGPS {
+                    Button {
+                        if isPaused {
+                            recordingService.resumeRecording()
+                        } else {
+                            recordingService.pauseRecording()
+                        }
+                    } label: {
+                        Label(isPaused ? L10n.resume : L10n.pause, systemImage: isPaused ? "play.fill" : "pause.fill")
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .tint(.white)
+                }
 
                 Button(role: .destructive) {
                     recordingService.stopManualRecording()
@@ -85,17 +100,27 @@ struct ActiveTripView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
-                .controlSize(.regular)
+                .controlSize(.small)
                 .tint(.red)
             }
         }
-        .padding(16)
+        .padding(14)
         .background(RecordingCardStyle.background(isPaused: isPaused))
         .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: isPaused)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .padding(.horizontal)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilitySummary)
+    }
+
+    private var pendingStatusIcon: String {
+        if isPendingGPS { return "location.circle.fill" }
+        return isPaused ? "pause.circle.fill" : "record.circle.fill"
+    }
+
+    private var pendingStatusColor: Color {
+        if isPendingGPS { return .yellow }
+        return isPaused ? .yellow : .red
     }
 
     private var accessibilitySummary: String {
@@ -103,34 +128,28 @@ struct ActiveTripView: View {
         return String(format: format, statusText, elapsedText, speedText, distanceText)
     }
 
-    private func statItem(icon: String, label: String, text: String) -> some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.85))
-                Text(label)
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.75))
-            }
+    private func statPill(icon: String, label: String, text: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Label(label, systemImage: icon)
+                .font(.caption2)
+                .foregroundStyle(.white.opacity(0.75))
+                .labelStyle(.titleAndIcon)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
             Text(text)
-                .font(.title3.weight(.bold))
+                .font(.subheadline.weight(.bold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .numericTextAnimation(value: text)
         }
-        .frame(maxWidth: .infinity)
+        .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(.white.opacity(0.14))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(label): \(text)")
-    }
-
-    private var divider: some View {
-        Text("·")
-            .font(.title3)
-            .foregroundStyle(.white.opacity(0.5))
-            .padding(.horizontal, 2)
-            .accessibilityHidden(true)
     }
 }
 

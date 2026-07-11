@@ -5,11 +5,12 @@ import WidgetKit
 
 enum TripRecordingState: Equatable {
     case idle
+    case pendingGPS
     case recording
     case paused
 
     var isActiveSession: Bool {
-        self == .recording || self == .paused
+        self == .pendingGPS || self == .recording || self == .paused
     }
 }
 
@@ -38,8 +39,11 @@ final class TripRecordingService {
     private let saveBatchSize = 10
     private var elapsedTimer: Timer?
     private var idleCheckTimer: Timer?
+    private var pendingGPSTimer: Timer?
     @ObservationIgnored nonisolated(unsafe) private var elapsedTimerTarget: ElapsedTimerTarget?
     @ObservationIgnored nonisolated(unsafe) private var idleCheckTimerTarget: IdleCheckTimerTarget?
+    @ObservationIgnored nonisolated(unsafe) private var pendingGPSTimerTarget: PendingGPSTimerTarget?
+    private var pendingSessionID: UUID?
     private var lastMovementAt: Date?
     private var maxSpeedMps: Double = 0
     private var currentStopStartedAt: Date?
@@ -54,12 +58,17 @@ final class TripRecordingService {
         settings.recordingStopSpeedKmh / 3.6
     }
 
+    private var gpsPendingTimeoutSeconds: TimeInterval {
+        settings.gpsPendingTimeoutSeconds
+    }
+
     private var stopSpeedMps: Double {
         settings.stopSpeedKmh / 3.6
     }
 
     private static weak var elapsedTimerService: TripRecordingService?
     private static weak var idleCheckService: TripRecordingService?
+    private static weak var pendingGPSTimerService: TripRecordingService?
 
     init(
         locationService: LocationService,
@@ -116,6 +125,7 @@ final class TripRecordingService {
         locationService.stopTracking()
         stopElapsedTimer()
         stopIdleCheckTimer()
+        stopPendingGPSTimer()
     }
 
     func refreshAutoRecording(enabled: Bool) {
@@ -138,7 +148,15 @@ final class TripRecordingService {
     }
 
     func stopManualRecording() {
-        processExternalStopRequest()
+        settings.pendingStopRecordingRequest = false
+        switch state {
+        case .pendingGPS:
+            cancelPendingRecording(userInitiated: true)
+        case .recording, .paused:
+            stopRecording(saveTrip: true, reason: .manual)
+        case .idle:
+            break
+        }
     }
 
     func processExternalStartRequest() {
@@ -174,6 +192,10 @@ final class TripRecordingService {
 
     func processExternalStopRequest() {
         settings.pendingStopRecordingRequest = false
+        if state == .pendingGPS {
+            cancelPendingRecording()
+            return
+        }
         guard state.isActiveSession else { return }
         stopRecording(saveTrip: true, reason: .manual)
     }
@@ -217,11 +239,23 @@ final class TripRecordingService {
     func handleVehicleConnected(trigger: VehicleRecordingTrigger) {
         switch trigger {
         case .carPlay:
-            guard state == .idle else { return }
+            guard state == .idle else {
+                AutoRecordingEventLog.shared.recordConnectSkipped(
+                    channel: .carPlay,
+                    vehicleName: settings.pairedVehicleName
+                )
+                return
+            }
             guard settings.isPairedCarPlayVehicle else { return }
             beginRecording(trigger: .carPlay)
         case .bluetooth:
-            guard state == .idle else { return }
+            guard state == .idle else {
+                AutoRecordingEventLog.shared.recordConnectSkipped(
+                    channel: .bluetooth,
+                    vehicleName: settings.pairedVehicleName
+                )
+                return
+            }
             guard settings.isPairedBluetoothVehicle else { return }
             beginRecording(trigger: .bluetooth)
         case .manual, .automatic:
@@ -232,10 +266,24 @@ final class TripRecordingService {
     func handleVehicleDisconnected(trigger: VehicleRecordingTrigger) {
         switch trigger {
         case .carPlay:
-            guard state == .recording, activeTrigger == .carPlay else { return }
+            if state == .pendingGPS, activeTrigger == .carPlay {
+                cancelPendingRecording()
+                return
+            }
+            guard state == .recording, activeTrigger == .carPlay else {
+                AutoRecordingEventLog.shared.recordDisconnectSkipped(channel: .carPlay)
+                return
+            }
             stopRecording(saveTrip: true, reason: .carPlay)
         case .bluetooth:
-            guard state == .recording, activeTrigger == .bluetooth else { return }
+            if state == .pendingGPS, activeTrigger == .bluetooth {
+                cancelPendingRecording()
+                return
+            }
+            guard state == .recording, activeTrigger == .bluetooth else {
+                AutoRecordingEventLog.shared.recordDisconnectSkipped(channel: .bluetooth)
+                return
+            }
             stopRecording(saveTrip: true, reason: .bluetooth)
         case .manual, .automatic:
             break
@@ -299,8 +347,17 @@ final class TripRecordingService {
             }
         }
 
+        if state == .pendingGPS {
+            confirmPendingRecording(with: location)
+            return
+        }
+
         guard state == .recording else { return }
 
+        processRecordingLocationUpdate(location)
+    }
+
+    private func processRecordingLocationUpdate(_ location: CLLocation) {
         updateElapsedTime()
 
         let speed = location.speed >= 0 ? location.speed : 0
@@ -362,10 +419,21 @@ final class TripRecordingService {
 
     private func beginRecording(trigger: RecordingTrigger) {
         guard state == .idle else { return }
-        guard let modelContext else { return }
+
+        switch trigger {
+        case .manual:
+            beginRecordingImmediately(trigger: trigger)
+        case .automatic, .carPlay, .bluetooth:
+            beginPendingRecording(trigger: trigger)
+        }
+    }
+
+    private func beginPendingRecording(trigger: RecordingTrigger) {
+        guard state == .idle else { return }
 
         activeTrigger = trigger
-        state = .recording
+        pendingSessionID = UUID()
+        state = .pendingGPS
         currentDistanceMeters = 0
         currentSpeedMps = 0
         lastRecordedLocation = nil
@@ -373,13 +441,121 @@ final class TripRecordingService {
         pointsSinceLastSave = 0
         recordingStartedAt = Date()
         elapsedTime = 0
+        lastMovementAt = nil
+        maxSpeedMps = 0
+        currentStopStartedAt = nil
+        currentStopCoordinate = nil
+        lowSpeedStartedAt = nil
+
+        locationService.requestPermission()
+        locationService.startTracking()
+        startElapsedTimer()
+        schedulePendingGPSTimeout()
+        if let sessionID = pendingSessionID {
+            TripNotificationService.notifyRecordingAwaitingGPS(sessionID: sessionID)
+        }
+        syncExternalState(force: true)
+        CarinhoHaptics.recordingStarted()
+        refreshCarPlayUIIfConnected()
+
+        if let location = locationService.lastLocation {
+            handleLocationUpdate(location)
+        }
+
+        switch trigger {
+        case .bluetooth:
+            AutoRecordingEventLog.shared.recordConnectAwaitingGPS(
+                channel: .bluetooth,
+                vehicleName: settings.pairedVehicleName
+            )
+        case .carPlay:
+            AutoRecordingEventLog.shared.recordConnectAwaitingGPS(
+                channel: .carPlay,
+                vehicleName: settings.pairedVehicleName
+            )
+        case .manual, .automatic:
+            break
+        }
+    }
+
+    private func confirmPendingRecording(with location: CLLocation) {
+        guard state == .pendingGPS else { return }
+
+        let speed = location.speed >= 0 ? location.speed : 0
+        guard speed >= recordingStartSpeedMps else { return }
+
+        stopPendingGPSTimer()
+        if let sessionID = pendingSessionID {
+            TripNotificationService.cancelRecordingAwaitingGPSNotification(sessionID: sessionID)
+        }
+        pendingSessionID = nil
+        beginRecordingImmediately(
+            trigger: activeTrigger,
+            startedAt: recordingStartedAt ?? Date(),
+            announceStart: true,
+            processInitialLocation: false
+        )
+
+        guard state == .recording else { return }
+        processRecordingLocationUpdate(location)
+    }
+
+    private func cancelPendingRecording(userInitiated: Bool = false) {
+        guard state == .pendingGPS else { return }
+
+        stopPendingGPSTimer()
+        if let sessionID = pendingSessionID {
+            TripNotificationService.cancelRecordingAwaitingGPSNotification(sessionID: sessionID)
+        }
+        pendingSessionID = nil
+        state = .idle
+        locationService.stopTracking()
+        if settings.autoRecordingEnabled {
+            locationService.startLowPowerMonitoring()
+        }
+        stopElapsedTimer()
+        logAutoRecordingCancellation(for: activeTrigger)
+        resetActiveSession()
+        syncExternalState(force: true)
+        refreshCarPlayUIIfConnected()
+
+        if userInitiated {
+            AppErrorPresenter.shared.present(L10n.recordingPendingCancelled)
+        }
+    }
+
+    private func beginRecordingImmediately(
+        trigger: RecordingTrigger,
+        startedAt: Date? = nil,
+        announceStart: Bool = true,
+        processInitialLocation: Bool = true
+    ) {
+        let wasPending = state == .pendingGPS
+        guard state == .idle || wasPending else { return }
+        guard let modelContext else {
+            if wasPending {
+                cancelPendingRecording()
+            }
+            return
+        }
+
+        activeTrigger = trigger
+        let resolvedStartedAt = startedAt ?? Date()
+        state = .recording
+        currentDistanceMeters = 0
+        currentSpeedMps = 0
+        lastRecordedLocation = nil
+        pointSequence = 0
+        pointsSinceLastSave = 0
+        recordingStartedAt = resolvedStartedAt
+        elapsedTime = Date().timeIntervalSince(resolvedStartedAt)
         lastMovementAt = Date()
         maxSpeedMps = 0
         currentStopStartedAt = nil
         currentStopCoordinate = nil
         lowSpeedStartedAt = nil
 
-        let trip = Trip(startedAt: recordingStartedAt ?? Date())
+        let trip = Trip(startedAt: resolvedStartedAt)
         let vehicleTrigger: VehicleRecordingTrigger = switch trigger {
         case .manual: .manual
         case .automatic: .automatic
@@ -390,23 +566,42 @@ final class TripRecordingService {
             VehicleResolver.assign(vehicle: vehicle, to: trip)
         }
         modelContext.insert(trip)
+        do {
+            try modelContext.save()
+        } catch {
+            AppErrorPresenter.shared.present(error.localizedDescription)
+            resetActiveSession()
+            state = .idle
+            if wasPending {
+                locationService.stopTracking()
+                if settings.autoRecordingEnabled {
+                    locationService.startLowPowerMonitoring()
+                }
+                stopElapsedTimer()
+            }
+            return
+        }
         activeTrip = trip
 
         locationService.requestPermission()
         locationService.startTracking()
         startElapsedTimer()
         stopIdleCheckTimer()
-        RecordingLiveActivityService.start(startedAt: recordingStartedAt ?? Date())
+        RecordingLiveActivityService.start(startedAt: resolvedStartedAt)
         TripNotificationService.notifyTripStarted(tripID: trip.id)
         syncExternalState(force: true)
-        CarinhoHaptics.recordingStarted()
-        CarinhoSounds.recordingStarted()
+        if announceStart {
+            CarinhoHaptics.recordingStarted()
+            CarinhoSounds.recordingStarted()
+        }
 
         refreshCarPlayUIIfConnected()
 
-        if let location = locationService.lastLocation {
-            handleLocationUpdate(location)
+        if processInitialLocation, let location = locationService.lastLocation {
+            processRecordingLocationUpdate(location)
         }
+
+        logAutoRecordingStart(for: trigger)
     }
 
     private func appendPoint(from location: CLLocation, speed: Double) {
@@ -454,6 +649,7 @@ final class TripRecordingService {
         }
         stopElapsedTimer()
         stopIdleCheckTimer()
+        ensureTripHasAnchorPointIfNeeded()
         flushPointsToStore()
         RecordingLiveActivityService.stop()
         RecordingSyncCoordinator.reset()
@@ -474,6 +670,8 @@ final class TripRecordingService {
         case .bluetooth: .bluetooth
         case .idle: .idle
         }
+        let stopTrigger = activeTrigger
+        let stopDistanceMeters = currentDistanceMeters
         let shouldSave = RecordingStopPolicy.shouldSaveTrip(
             saveTrip: saveTrip,
             reason: policyReason,
@@ -487,7 +685,12 @@ final class TripRecordingService {
             trip.endedAt = endedAt
             trip.distanceMeters = currentDistanceMeters
             trip.maxSpeedMps = maxSpeedMps > 0 ? maxSpeedMps : nil
-            trip.estimatedFuelCost = FuelCostCalculator.estimateCost(distanceMeters: currentDistanceMeters, vehicle: trip.vehicle)
+            let vehicle = trip.vehicleID.flatMap { VehicleResolver.vehicle(withID: $0, in: modelContext) }
+            trip.vehicle = nil
+            trip.estimatedFuelCost = FuelCostCalculator.estimateCost(
+                distanceMeters: currentDistanceMeters,
+                vehicle: vehicle
+            )
             trip.geocodeStatus = .pending
 
             let places = (try? modelContext.fetch(FetchDescriptor<SavedPlace>())) ?? []
@@ -502,6 +705,9 @@ final class TripRecordingService {
                 try modelContext.save()
             } catch {
                 AppErrorPresenter.shared.present(error.localizedDescription)
+                resetActiveSession()
+                syncExternalState()
+                return
             }
             TripNotificationService.notifyTripEnded(
                 tripID: trip.id,
@@ -510,12 +716,12 @@ final class TripRecordingService {
                 routeSummary: routeSummary
             )
 
-            let tripID = trip.persistentModelID
+            let tripUUID = trip.id
             let container = modelContainer
             Task { @MainActor in
                 guard let container else { return }
                 await TripPostProcessor.process(
-                    tripID: tripID,
+                    tripUUID: tripUUID,
                     container: container
                 )
             }
@@ -528,14 +734,36 @@ final class TripRecordingService {
         }
 
         resetActiveSession()
+        logAutoRecordingStop(reason: reason, trigger: stopTrigger, distanceMeters: stopDistanceMeters)
         syncExternalState()
         WidgetCenter.shared.reloadAllTimelines()
 
         refreshCarPlayUIIfConnected()
     }
 
+    private func ensureTripHasAnchorPointIfNeeded() {
+        guard let trip = activeTrip, let modelContext else { return }
+        guard trip.points.isEmpty else { return }
+        guard let location = locationService.lastLocation else { return }
+
+        let point = TripPoint(
+            timestamp: Date(),
+            latitude: location.coordinate.latitude,
+            longitude: location.coordinate.longitude,
+            sequence: pointSequence,
+            speedMps: nil,
+            trip: trip
+        )
+        pointSequence += 1
+        trip.points.append(point)
+        trip.invalidatePointCaches()
+        modelContext.insert(point)
+        pointsSinceLastSave += 1
+    }
+
     private func resetActiveSession() {
         activeTrip = nil
+        pendingSessionID = nil
         lastRecordedLocation = nil
         pointSequence = 0
         pointsSinceLastSave = 0
@@ -547,6 +775,69 @@ final class TripRecordingService {
         currentStopStartedAt = nil
         currentStopCoordinate = nil
         lowSpeedStartedAt = nil
+    }
+
+    private func logAutoRecordingStart(for trigger: RecordingTrigger) {
+        switch trigger {
+        case .bluetooth:
+            AutoRecordingEventLog.shared.recordConnectStarted(
+                channel: .bluetooth,
+                vehicleName: settings.pairedVehicleName
+            )
+        case .carPlay:
+            AutoRecordingEventLog.shared.recordConnectStarted(
+                channel: .carPlay,
+                vehicleName: settings.pairedVehicleName
+            )
+        case .automatic:
+            AutoRecordingEventLog.shared.recordMotionStarted()
+        case .manual:
+            break
+        }
+    }
+
+    private func logAutoRecordingCancellation(for trigger: RecordingTrigger) {
+        switch trigger {
+        case .bluetooth:
+            AutoRecordingEventLog.shared.recordConnectCancelled(
+                channel: .bluetooth,
+                vehicleName: settings.pairedVehicleName
+            )
+        case .carPlay:
+            AutoRecordingEventLog.shared.recordConnectCancelled(
+                channel: .carPlay,
+                vehicleName: settings.pairedVehicleName
+            )
+        case .manual, .automatic:
+            break
+        }
+    }
+
+    private func logAutoRecordingStop(
+        reason: StopReason,
+        trigger: RecordingTrigger,
+        distanceMeters: Double
+    ) {
+        switch reason {
+        case .bluetooth:
+            AutoRecordingEventLog.shared.recordDisconnectStopped(
+                channel: .bluetooth,
+                distanceMeters: distanceMeters
+            )
+        case .carPlay:
+            AutoRecordingEventLog.shared.recordDisconnectStopped(
+                channel: .carPlay,
+                distanceMeters: distanceMeters
+            )
+        case .idle:
+            if trigger == .automatic {
+                AutoRecordingEventLog.shared.recordMotionStopped(distanceMeters: distanceMeters)
+            }
+        case .automatic:
+            AutoRecordingEventLog.shared.recordMotionStopped(distanceMeters: distanceMeters)
+        case .manual:
+            break
+        }
     }
 
     private func evaluateLowSpeedStop(speed: Double) {
@@ -586,9 +877,11 @@ final class TripRecordingService {
         let speedKmh = Int(max(0, currentSpeedMps) * 3.6)
         let isPaused = state == .paused
         let isRecording = state == .recording
+        let isPendingGPS = state == .pendingGPS
         settings.syncRecordingState(
             isRecording: isRecording || isPaused,
             isPaused: isPaused,
+            isPendingGPS: isPendingGPS,
             elapsed: elapsedTime,
             distanceMeters: currentDistanceMeters,
             currentSpeedKmh: speedKmh
@@ -700,12 +993,44 @@ final class TripRecordingService {
         }
     }
 
+    private func schedulePendingGPSTimeout() {
+        stopPendingGPSTimer()
+        Self.pendingGPSTimerService = self
+        let target = PendingGPSTimerTarget()
+        pendingGPSTimerTarget = target
+        pendingGPSTimer = Timer.scheduledTimer(
+            timeInterval: gpsPendingTimeoutSeconds,
+            target: target,
+            selector: #selector(PendingGPSTimerTarget.fire(_:)),
+            userInfo: nil,
+            repeats: false
+        )
+    }
+
+    fileprivate func handlePendingGPSTimeout() {
+        guard state == .pendingGPS else { return }
+        cancelPendingRecording()
+    }
+
+    private func stopPendingGPSTimer() {
+        pendingGPSTimer?.invalidate()
+        pendingGPSTimer = nil
+        pendingGPSTimerTarget = nil
+        if Self.pendingGPSTimerService === self {
+            Self.pendingGPSTimerService = nil
+        }
+    }
+
     static func handleElapsedTimerTickFromBackground() {
         elapsedTimerService?.handleElapsedTimerTick()
     }
 
     static func handleIdleCheckFromBackground() {
         idleCheckService?.evaluateIdleCheck()
+    }
+
+    static func handlePendingGPSTimeoutFromBackground() {
+        pendingGPSTimerService?.handlePendingGPSTimeout()
     }
 }
 
@@ -721,6 +1046,12 @@ private nonisolated func dispatchIdleCheckToMainActor() {
     }
 }
 
+private nonisolated func dispatchPendingGPSTimeoutToMainActor() {
+    Task { @MainActor in
+        TripRecordingService.handlePendingGPSTimeoutFromBackground()
+    }
+}
+
 private final class ElapsedTimerTarget: NSObject {
     @objc nonisolated func tick(_ timer: Timer) {
         dispatchElapsedTimerTickToMainActor()
@@ -733,14 +1064,21 @@ private final class IdleCheckTimerTarget: NSObject {
     }
 }
 
+private final class PendingGPSTimerTarget: NSObject {
+    @objc nonisolated func fire(_ timer: Timer) {
+        dispatchPendingGPSTimeoutToMainActor()
+    }
+}
+
 @MainActor
 enum TripPostProcessor {
     static func process(
-        tripID: PersistentIdentifier,
+        tripUUID: UUID,
         container: ModelContainer
     ) async {
         let context = ModelContext(container)
-        guard let trip = context.model(for: tripID) as? Trip else { return }
+        let trips = (try? context.fetch(FetchDescriptor<Trip>())) ?? []
+        guard let trip = trips.first(where: { $0.id == tripUUID }) else { return }
         let geocodingService = GeocodingService()
 
         await enrichTripWithAddresses(trip, context: context, geocodingService: geocodingService)

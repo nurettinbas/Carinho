@@ -46,6 +46,10 @@ enum CarinhoHaptics {
         UISelectionFeedbackGenerator().selectionChanged()
     }
 
+    static func pairingSucceeded() {
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+
     static func destructive() {
         UIImpactFeedbackGenerator(style: .rigid).impactOccurred()
     }

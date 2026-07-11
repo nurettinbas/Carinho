@@ -9,65 +9,66 @@ struct TripRowView: View {
     @State private var thumbnail: UIImage?
     @State private var thumbnailLoaded = false
 
+    private var routeSummary: String {
+        TripListViewModel.routeSummary(for: trip, places: places, privacyRadius: privacyRadius)
+    }
+
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
             thumbnailView
 
-            VStack(alignment: .leading, spacing: 5) {
-                HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(routeSummary)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+
+                HStack(spacing: 6) {
                     Text(TripListViewModel.dateText(for: trip))
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
 
                     if trip.categoryID == BuiltInCategory.businessID.uuidString {
                         Image(systemName: "briefcase.fill")
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(CarinhoBrandColors.brandBottom)
                     }
 
                     Spacer(minLength: 0)
                 }
 
-                Text(TripListViewModel.routeSummary(for: trip, places: places, privacyRadius: privacyRadius))
-                    .font(.headline)
-                    .lineLimit(2)
+                HStack(spacing: 6) {
+                    metricChip(
+                        icon: "clock",
+                        text: TripListViewModel.durationText(for: trip),
+                        tint: CarinhoBrandColors.brandBottom
+                    )
+                    metricChip(icon: "road.lanes", text: TripListViewModel.distanceText(for: trip))
+
+                    if let fuel = TripListViewModel.fuelText(for: trip) {
+                        metricChip(icon: "fuelpump", text: fuel)
+                    }
+
+                    if let maxLabel = TripListViewModel.maxSpeedLabel(for: trip) {
+                        metricChip(icon: "speedometer", text: maxLabel)
+                    }
+                }
 
                 if let label = trip.label, !label.isEmpty {
                     Text(label)
-                        .font(.caption)
+                        .font(.caption2.weight(.medium))
                         .foregroundStyle(.secondary)
-                }
-
-                HStack(spacing: 10) {
-                    statLabel(icon: "clock", text: TripListViewModel.durationText(for: trip))
-                    statLabel(icon: "road.lanes", text: TripListViewModel.distanceText(for: trip))
-                    if let fuel = TripListViewModel.fuelText(for: trip) {
-                        statLabel(icon: "fuelpump", text: fuel)
-                    }
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-                if let maxLabel = TripListViewModel.maxSpeedLabel(for: trip),
-                   let avgLabel = TripListViewModel.averageSpeedLabel(for: trip) {
-                    HStack(spacing: 10) {
-                        statLabel(icon: "speedometer", text: maxLabel)
-                        statLabel(icon: "gauge.with.dots.needle.33percent", text: avgLabel)
-                    }
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                } else if let maxLabel = TripListViewModel.maxSpeedLabel(for: trip) {
-                    statLabel(icon: "speedometer", text: maxLabel)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else if let avgLabel = TripListViewModel.averageSpeedLabel(for: trip) {
-                    statLabel(icon: "gauge.with.dots.needle.33percent", text: avgLabel)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color(.tertiarySystemFill))
+                        .clipShape(Capsule())
                 }
             }
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilitySummary)
         .task(id: trip.id) {
             thumbnailLoaded = false
             let image = await TripMapSnapshotCache.shared.snapshot(for: trip)
@@ -83,6 +84,16 @@ struct TripRowView: View {
         }
     }
 
+    private var accessibilitySummary: String {
+        var parts = [routeSummary, TripListViewModel.dateText(for: trip)]
+        parts.append(TripListViewModel.durationText(for: trip))
+        parts.append(TripListViewModel.distanceText(for: trip))
+        if let label = trip.label, !label.isEmpty {
+            parts.append(label)
+        }
+        return parts.joined(separator: ", ")
+    }
+
     @ViewBuilder
     private var thumbnailView: some View {
         Group {
@@ -93,7 +104,7 @@ struct TripRowView: View {
                     .transition(.opacity)
             } else {
                 ZStack {
-                    Color.secondary.opacity(0.12)
+                    Color(.tertiarySystemFill)
                         .shimmer()
                     Image(systemName: "map")
                         .font(.caption)
@@ -101,18 +112,24 @@ struct TripRowView: View {
                 }
             }
         }
-        .frame(width: 72, height: 72)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .frame(width: 58, height: 58)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 10)
-                .strokeBorder(Color.secondary.opacity(0.2), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.5)
         }
         .accessibilityHidden(true)
     }
 
-    private func statLabel(icon: String, text: String) -> some View {
-        Label(text, systemImage: icon)
-            .labelStyle(.titleAndIcon)
+    private func metricChip(icon: String, text: String, tint: Color = .secondary) -> some View {
+        HStack(spacing: 3) {
+            Image(systemName: icon)
+                .font(.system(size: 9, weight: .semibold))
+            Text(text)
+                .font(.caption2.weight(.medium))
+                .lineLimit(1)
+        }
+        .foregroundStyle(tint)
     }
 }
 

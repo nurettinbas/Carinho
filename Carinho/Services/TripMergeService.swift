@@ -64,11 +64,11 @@ enum TripMergeService {
         context.insert(merged)
         try context.save()
 
-        let mergedID = merged.persistentModelID
+        let mergedUUID = merged.id
         let container = context.container
         Task { @MainActor in
             await TripPostProcessor.process(
-                tripID: mergedID,
+                tripUUID: mergedUUID,
                 container: container
             )
         }

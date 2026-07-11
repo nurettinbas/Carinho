@@ -160,7 +160,9 @@ struct NotificationsListView: View {
     private func notificationRow(_ item: StoredAppNotification) -> some View {
         let kind = store.kind(for: item)
         let trip = item.tripID.flatMap { tripID in trips.first(where: { $0.id == tripID }) }
-        let showsOrphanActions = kind == .orphanStale && trip?.endedAt == nil
+        let showsOrphanActions = kind == .orphanStale
+            && trip?.endedAt == nil
+            && trip?.id != recordingService.activeTripID
 
         VStack(alignment: .leading, spacing: 8) {
             if let trip, !showsOrphanActions {
@@ -192,8 +194,10 @@ struct NotificationsListView: View {
                     .buttonStyle(.borderedProminent)
 
                     Button(role: .destructive) {
-                        TripRecoveryService.deleteOrphan(trip, in: modelContext)
-                        store.delete(item.id)
+                        if TripRecoveryService.deleteOrphan(trip, in: modelContext) {
+                            store.delete(item.id)
+                            store.reload()
+                        }
                     } label: {
                         Label(L10n.delete, systemImage: "trash")
                             .frame(maxWidth: .infinity)
@@ -264,6 +268,7 @@ struct NotificationsListView: View {
         case .tripDiscarded: .gray
         case .orphanStale: .orange
         case .recordingStopped: .red
+        case .recordingAwaitingGPS: .yellow
         }
     }
 

@@ -4,62 +4,93 @@ import SwiftData
 enum ModelContainerFactory {
     private static let storeFileName = "Carinho.store"
     private static let schemaVersionKey = "carinho.swiftdata.schemaVersion"
-    static let currentSchemaVersion = 7
+    private static let recoveryNoticeKey = "store.recovery.notice.shown"
+    private static let minimumBackupBytesForNotice: Int64 = 8_192
+    static let currentSchemaVersion = 8
 
     static var storeURL: URL {
         let directory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        let url = directory.appendingPathComponent(storeFileName)
-        applyFileProtectionIfNeeded(at: url)
-        return url
+        return directory.appendingPathComponent(storeFileName)
+    }
+
+    private static var liveSchema: Schema {
+        Schema([
+            Trip.self,
+            TripPoint.self,
+            SavedPlace.self,
+            TripStop.self,
+            UserCategory.self,
+            MatchedRoutePoint.self,
+            VehicleProfile.self,
+        ])
     }
 
     private static func applyFileProtectionIfNeeded(at url: URL) {
         guard FileManager.default.fileExists(atPath: url.path) else { return }
         try? FileManager.default.setAttributes(
-            [.protectionKey: FileProtectionType.complete],
+            [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
             ofItemAtPath: url.path
         )
     }
 
     static func makeSafe() -> ModelContainer {
-        if let container = try? makeWithMigration() {
-            markSchemaCurrent()
-            applyFileProtectionIfNeeded(at: storeURL)
+        if let container = openPersistedStore() {
             return container
         }
 
         #if DEBUG
-        print("SwiftData: migration open failed, attempting store recovery")
+        print("SwiftData: primary open failed, retrying after sidecar cleanup")
         #endif
-        deleteStoreFiles()
+        deleteStoreSidecars()
+        if let container = openPersistedStore() {
+            return container
+        }
 
-        if let container = try? makeWithMigration() {
+        switch resetStoreWithBackup() {
+        case .success(let result):
             markSchemaCurrent()
             applyFileProtectionIfNeeded(at: storeURL)
-            return container
+            notifyRecoveryIfNeeded(backupBytes: result.backupBytes)
+            return result.container
+        case .failure:
+            break
         }
 
+        #if DEBUG
+        print("SwiftData: disk store unavailable, using in-memory fallback")
+        #endif
+        Task { @MainActor in
+            AppErrorPresenter.shared.present(L10n.storeOpenFailedInMemory)
+        }
         if let container = try? makeInMemory() {
-            #if DEBUG
-            print("SwiftData: disk store başarısız, bellek içi store kullanılıyor.")
-            #endif
             return container
         }
-
         return emergencyContainer()
     }
 
-    static func makeWithMigration() throws -> ModelContainer {
-        let schema = Schema(versionedSchema: CarinhoSchemaV7.self)
-        let config = ModelConfiguration(schema: schema, url: storeURL)
-        return try ModelContainer(for: schema, configurations: config)
+    private static func openPersistedStore() -> ModelContainer? {
+        do {
+            let container = try makePersistedContainer()
+            markSchemaCurrent()
+            applyFileProtectionIfNeeded(at: storeURL)
+            return container
+        } catch {
+            #if DEBUG
+            print("SwiftData: open failed: \(error)")
+            #endif
+            return nil
+        }
+    }
+
+    static func makePersistedContainer() throws -> ModelContainer {
+        let config = ModelConfiguration(url: storeURL)
+        return try ModelContainer(for: liveSchema, configurations: config)
     }
 
     static func makeInMemory() throws -> ModelContainer {
-        let schema = Schema(versionedSchema: CarinhoSchemaV7.self)
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-        return try ModelContainer(for: schema, configurations: config)
+        let config = ModelConfiguration(schema: liveSchema, isStoredInMemoryOnly: true)
+        return try ModelContainer(for: liveSchema, configurations: config)
     }
 
     static func makeInMemoryV5() throws -> ModelContainer {
@@ -68,20 +99,73 @@ enum ModelContainerFactory {
         return try ModelContainer(for: schema, configurations: config)
     }
 
+    static func makeInMemoryWithMigrationPlan() throws -> ModelContainer {
+        let schema = Schema(versionedSchema: CarinhoSchemaV7.self)
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        return try ModelContainer(
+            for: schema,
+            migrationPlan: CarinhoMigrationPlan.self,
+            configurations: config
+        )
+    }
+
+    private struct ResetResult {
+        let container: ModelContainer
+        let backupBytes: Int64
+    }
+
     private static func markSchemaCurrent() {
         UserDefaults.standard.set(currentSchemaVersion, forKey: schemaVersionKey)
     }
 
-    private static func deleteStoreFiles() {
+    private static func deleteStoreSidecars() {
         let base = storeURL
-        for url in [base, URL(fileURLWithPath: base.path + "-shm"), URL(fileURLWithPath: base.path + "-wal")] {
+        for url in [
+            URL(fileURLWithPath: base.path + "-shm"),
+            URL(fileURLWithPath: base.path + "-wal")
+        ] {
             try? FileManager.default.removeItem(at: url)
         }
     }
 
+    private static func resetStoreWithBackup() -> Result<ResetResult, Error> {
+        let base = storeURL
+        var backupBytes: Int64 = 0
+        if FileManager.default.fileExists(atPath: base.path) {
+            backupBytes = fileSize(at: base)
+            let backup = base
+                .deletingLastPathComponent()
+                .appendingPathComponent("Carinho.store.backup-\(Int(Date().timeIntervalSince1970))")
+            do {
+                try FileManager.default.moveItem(at: base, to: backup)
+            } catch {
+                try? FileManager.default.removeItem(at: base)
+            }
+            deleteStoreSidecars()
+        }
+        do {
+            let container = try makePersistedContainer()
+            return .success(ResetResult(container: container, backupBytes: backupBytes))
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    private static func fileSize(at url: URL) -> Int64 {
+        (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int64) ?? 0
+    }
+
+    private static func notifyRecoveryIfNeeded(backupBytes: Int64) {
+        guard backupBytes >= minimumBackupBytesForNotice else { return }
+        guard !UserDefaults.standard.bool(forKey: recoveryNoticeKey) else { return }
+        UserDefaults.standard.set(true, forKey: recoveryNoticeKey)
+        Task { @MainActor in
+            AppErrorPresenter.shared.presentInfo(L10n.storeRecoveredAfterReset)
+        }
+    }
+
     private static func emergencyContainer() -> ModelContainer {
-        let schema = Schema(versionedSchema: CarinhoSchemaV7.self)
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-        return try! ModelContainer(for: schema, configurations: config)
+        let config = ModelConfiguration(schema: liveSchema, isStoredInMemoryOnly: true)
+        return try! ModelContainer(for: liveSchema, configurations: config)
     }
 }

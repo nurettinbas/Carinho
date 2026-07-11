@@ -86,7 +86,7 @@ final class AppRuntime {
         tripRecordingService.configure(modelContext: container.mainContext)
         VehicleConnectionCoordinator.shared.configure(recordingService: tripRecordingService)
         tripRecordingService.startServices()
-        wireVehicleConnectionHandlers()
+        wireVehicleConnectionHandlers(container: container)
         wireRecordingRequestHandlers()
         VehicleConnectionCoordinator.shared.handleCarPlaySnapshot(
             isConnected: CarPlayConnectionHandler.shared.isConnected
@@ -99,11 +99,11 @@ final class AppRuntime {
         guard !didFullBootstrap else { return }
         didFullBootstrap = true
 
-        TripNotificationService.requestAuthorizationIfNeeded()
         networkMonitor.startIfNeeded()
         CategorySeeder.seedIfNeeded(in: container.mainContext)
+        VehiclePairingService.seedDefaultVehicleIfNeeded(in: container.mainContext)
         VehiclePairingService.migrateLegacyPairingIfNeeded(in: container.mainContext)
-        locationService.requestPermission()
+        VehiclePairingService.repairStaleActivePairing(in: container.mainContext)
         TripStore.syncWidgetWeekDistance(in: container.mainContext)
         TripRecoveryService.finalizeStaleOrphans(in: container.mainContext)
         TripRecoveryService.scheduleOrphanStaleNotifications(
@@ -146,12 +146,21 @@ final class AppRuntime {
         tripRecordingService.stopIdleServices()
     }
 
-    private func wireVehicleConnectionHandlers() {
+    private func wireVehicleConnectionHandlers(container: ModelContainer) {
         bluetoothService.onRouteSnapshotChanged = { isConnected in
             VehicleConnectionCoordinator.shared.handleBluetoothSnapshot(isConnected: isConnected)
+            VehiclePairingService.syncLearnedBluetoothUID(in: container.mainContext)
+            VehiclePairingService.evaluateVehicleIdentityPrompt(
+                in: container.mainContext,
+                bluetoothService: self.bluetoothService
+            )
         }
         CarPlayConnectionHandler.shared.onConnectionSnapshotChanged = { isConnected in
             VehicleConnectionCoordinator.shared.handleCarPlaySnapshot(isConnected: isConnected)
+            VehiclePairingService.evaluateVehicleIdentityPrompt(
+                in: container.mainContext,
+                bluetoothService: self.bluetoothService
+            )
         }
     }
 

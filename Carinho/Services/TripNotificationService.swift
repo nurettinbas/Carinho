@@ -20,6 +20,25 @@ enum TripNotificationService {
         )
     }
 
+    static func notifyRecordingAwaitingGPS(sessionID: UUID) {
+        deliver(
+            identifier: awaitingGPSNotificationID(sessionID: sessionID),
+            kind: .recordingAwaitingGPS,
+            title: L10n.recordingAwaitingGPSTitle,
+            body: L10n.recordingAwaitingGPSBody
+        )
+    }
+
+    static func cancelRecordingAwaitingGPSNotification(sessionID: UUID) {
+        let identifier = awaitingGPSNotificationID(sessionID: sessionID)
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
+        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [identifier])
+    }
+
+    private static func awaitingGPSNotificationID(sessionID: UUID) -> String {
+        "carinho.recording.awaiting_gps.\(sessionID.uuidString)"
+    }
+
     static func notifyTripEnded(
         tripID: UUID,
         distanceMeters: Double,

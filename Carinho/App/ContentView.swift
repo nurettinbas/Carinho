@@ -1,65 +1,77 @@
+import SwiftData
 import SwiftUI
 
 struct ContentView: View {
     @Environment(AppLockService.self) private var appLockService
     @Environment(TripRecordingService.self) private var tripRecordingService
+    @Environment(BluetoothTriggerService.self) private var bluetoothService
+    @Environment(\.modelContext) private var modelContext
     @Bindable private var settings = AppSettings.shared
-
-    private var appLocale: Locale {
-        if let code = settings.preferredLanguageCode {
-            return Locale(identifier: code)
-        }
-        return Locale.current
-    }
-
-    private var isRTL: Bool {
-        settings.preferredLanguageCode == "ar"
-    }
+    @Bindable private var tabSelection = TabSelection.shared
 
     var body: some View {
         if !settings.hasCompletedOnboarding {
             OnboardingView()
-                .environment(\.locale, appLocale)
-                .environment(\.layoutDirection, isRTL ? .rightToLeft : .leftToRight)
         } else if settings.appLockEnabled && !appLockService.isUnlocked {
             AppLockView()
-                .environment(\.locale, appLocale)
-                .environment(\.layoutDirection, isRTL ? .rightToLeft : .leftToRight)
         } else {
-            TabView {
-                NavigationStack { TripListView() }
-                    .tabItem { Label(L10n.tabTrips, systemImage: "list.bullet") }
-                    .badge(tripRecordingService.state.isActiveSession ? "" : nil)
+            mainTabs
+        }
+    }
 
-                NavigationStack { StatsView() }
-                    .tabItem { Label(L10n.tabStats, systemImage: "chart.bar") }
+    private var mainTabs: some View {
+        TabView(selection: $tabSelection.selectedTab) {
+            NavigationStack { TripListView() }
+                .tabItem { Label(L10n.tabTrips, systemImage: "list.bullet") }
+                .badge(tripRecordingService.state.isActiveSession ? "" : nil)
+                .tag(AppTab.trips)
 
-                NavigationStack { SettingsView() }
-                    .tabItem { Label(L10n.tabSettings, systemImage: "gearshape") }
-            }
-            .environment(\.locale, appLocale)
-            .environment(\.layoutDirection, isRTL ? .rightToLeft : .leftToRight)
-            .task {
-                await authenticateOnLaunch()
+            NavigationStack { StatsView() }
+                .tabItem { Label(L10n.tabStats, systemImage: "chart.bar") }
+                .tag(AppTab.stats)
+
+            PairingTabView()
+                .tabItem { Label(L10n.tabPairing, systemImage: "link.circle") }
+                .tag(AppTab.pairing)
+
+            NavigationStack { SettingsView() }
+                .tabItem { Label(L10n.tabSettings, systemImage: "gearshape") }
+                .tag(AppTab.settings)
+        }
+        .task {
+            await authenticateOnLaunch()
+            processPendingRecordingRequests()
+        }
+        .onChange(of: appLockService.isUnlocked) { _, isUnlocked in
+            if isUnlocked {
                 processPendingRecordingRequests()
             }
-            .onChange(of: appLockService.isUnlocked) { _, isUnlocked in
-                if isUnlocked {
-                    processPendingRecordingRequests()
-                }
-            }
-            .alert(L10n.externalStartConfirmTitle, isPresented: externalStartConfirmationBinding) {
-                Button(L10n.externalStartConfirmAction) {
-                    tripRecordingService.confirmExternalStartRecording()
-                }
-                Button(L10n.cancel, role: .cancel) {
-                    tripRecordingService.cancelExternalStartRecording()
-                }
-            } message: {
-                Text(L10n.externalStartConfirmMessage)
-            }
-            .appErrorAlert()
         }
+        .onChange(of: tabSelection.selectedTab) { _, tab in
+            guard tab == .pairing else { return }
+            evaluateVehicleIdentityPrompt()
+        }
+        .alert(L10n.externalStartConfirmTitle, isPresented: externalStartConfirmationBinding) {
+            Button(L10n.externalStartConfirmAction) {
+                tripRecordingService.confirmExternalStartRecording()
+            }
+            Button(L10n.cancel, role: .cancel) {
+                tripRecordingService.cancelExternalStartRecording()
+            }
+        } message: {
+            Text(L10n.externalStartConfirmMessage)
+        }
+        .alert(L10n.vehicleIdentityPromptTitle, isPresented: vehicleIdentityConfirmationBinding) {
+            Button(L10n.pairingAutoStart) {
+                confirmVehicleIdentityFromPrompt()
+            }
+            Button(L10n.cancel, role: .cancel) {
+                dismissVehicleIdentityPrompt()
+            }
+        } message: {
+            Text(vehicleIdentityPromptMessage)
+        }
+        .appErrorAlert()
     }
 
     @MainActor
@@ -94,6 +106,56 @@ struct ContentView: View {
                     tripRecordingService.cancelExternalStartRecording()
                 }
             }
+        )
+    }
+
+    private var vehicleIdentityConfirmationBinding: Binding<Bool> {
+        Binding(
+            get: { settings.awaitingVehicleIdentityConfirmation },
+            set: { newValue in
+                if !newValue, settings.awaitingVehicleIdentityConfirmation {
+                    dismissVehicleIdentityPrompt()
+                }
+            }
+        )
+    }
+
+    private var vehicleIdentityPromptMessage: String {
+        let vehicleName = vehicleIdentityPromptVehicle?.name ?? L10n.vehicleDefaultName
+        let connection = settings.vehicleIdentityConfirmationConnectionLabel ?? ""
+        return L10n.vehicleIdentityPromptMessage(vehicleName: vehicleName, connection: connection)
+    }
+
+    private var vehicleIdentityPromptVehicle: VehicleProfile? {
+        guard let vehicleID = settings.vehicleIdentityConfirmationVehicleID else { return nil }
+        let vehicles = (try? modelContext.fetch(FetchDescriptor<VehicleProfile>())) ?? []
+        return vehicles.first { $0.id == vehicleID }
+    }
+
+    private func confirmVehicleIdentityFromPrompt() {
+        guard let vehicle = vehicleIdentityPromptVehicle else {
+            settings.clearVehicleIdentityPrompt()
+            return
+        }
+        let live = VehiclePairingService.detectLiveConnection(bluetoothService: bluetoothService)
+        VehiclePairingService.confirmLiveConnection(
+            vehicle: vehicle,
+            live: live,
+            in: modelContext
+        )
+        settings.skipCarSetup()
+        CarinhoHaptics.pairingSucceeded()
+    }
+
+    private func dismissVehicleIdentityPrompt() {
+        let live = VehiclePairingService.detectLiveConnection(bluetoothService: bluetoothService)
+        VehiclePairingService.dismissVehicleIdentityPrompt(live: live.isDetected ? live : nil)
+    }
+
+    private func evaluateVehicleIdentityPrompt() {
+        VehiclePairingService.evaluateVehicleIdentityPrompt(
+            in: modelContext,
+            bluetoothService: bluetoothService
         )
     }
 }

@@ -53,7 +53,6 @@
 		A10000000000000000000028 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000027 /* PrivacyInfo.xcprivacy */; };
 		A5667A7DE2024FB687E8DD43 /* CarinhoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86269EF985B34281B00F7FAC /* CarinhoTests.swift */; };
 		B10000000000000000000001 /* TripNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* TripNotificationService.swift */; };
-		B10000000000000000000002 /* CarPairingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000002 /* CarPairingSheet.swift */; };
 		A1ONBOARDING00000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2ONBOARDING00000000001 /* OnboardingView.swift */; };
 		A1PERMBANNER00000000001 /* PermissionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PERMBANNER00000000001 /* PermissionBanner.swift */; };
 		B10000000000000000000003 /* RecordingCarAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000003 /* RecordingCarAnimationView.swift */; };
@@ -61,8 +60,11 @@
 		B10000000000000000000008 /* RecordingControlBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000009 /* RecordingControlBridge.swift */; };
 		B10000000000000000000009 /* RecordingControlBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000009 /* RecordingControlBridge.swift */; };
 		A1APPNOTIFSTORE00000001 /* AppNotificationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2APPNOTIFSTORE00000001 /* AppNotificationStore.swift */; };
+		A1AUTOEVENTLOG00000001 /* AutoRecordingEventLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2AUTOEVENTLOG00000001 /* AutoRecordingEventLog.swift */; };
+		A1AUTOEVENTLOGVIEW001 /* AutoRecordingEventLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2AUTOEVENTLOGVIEW001 /* AutoRecordingEventLogView.swift */; };
 		A1NOTIFLISTVIEW00000001 /* NotificationsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2NOTIFLISTVIEW00000001 /* NotificationsListView.swift */; };
 		B10000000000000000000011 /* AppNotificationArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000011 /* AppNotificationArchive.swift */; };
+		B10000000000000000000026 /* AutoRecordingEventArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000026 /* AutoRecordingEventArchive.swift */; };
 		B10000000000000000000012 /* AppNotificationArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000011 /* AppNotificationArchive.swift */; };
 		B10000000000000000000014 /* DateFormatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000020 /* DateFormatters.swift */; };
 		B10000000000000000000015 /* DateFormatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000020 /* DateFormatters.swift */; };
@@ -103,11 +105,19 @@
 		A1FREQROUTES00000000001 /* FrequentRoutesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2FREQROUTES00000000001 /* FrequentRoutesService.swift */; };
 		A1ROUTEPRIVCLIP0000001 /* RoutePrivacyClipper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2ROUTEPRIVCLIP0000001 /* RoutePrivacyClipper.swift */; };
 		A1TRIPSHARECARD0000001 /* TripShareCardRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2TRIPSHARECARD0000001 /* TripShareCardRenderer.swift */; };
-		A1TRIPREPORTPDF000001 /* TripReportPDF.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2TRIPREPORTPDF000001 /* TripReportPDF.swift */; };
 		A1TODAYKMPROV00000001 /* TodayKmProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2TODAYKMPROV00000001 /* TodayKmProvider.swift */; };
-		A1VEHICLEMGMT00000001 /* VehicleManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2VEHICLEMGMT00000001 /* VehicleManagementView.swift */; };
 		A1VEHICLERESOLV000001 /* VehicleResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2VEHICLERESOLV000001 /* VehicleResolver.swift */; };
 		F7BF388123F5473D83A90998 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 983DA16F5A6E442FAAD35B73 /* ExportService.swift */; };
+		A1PAIRINGTAB000000001 /* PairingTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGTAB000000001 /* PairingTabView.swift */; };
+		A1PAIRINGEMPTY000001 /* PairingEmptyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGEMPTY000001 /* PairingEmptyState.swift */; };
+		A1PAIRINGEDIT000001 /* PairingVehicleEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGEDIT000001 /* PairingVehicleEditorView.swift */; };
+		A1TABSELECTION000001 /* TabSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2TABSELECTION000001 /* TabSelection.swift */; };
+		A1PAIRINGSTAT000001 /* PairingConnectionStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGSTAT000001 /* PairingConnectionStatus.swift */; };
+		A1BTROUTEMATCH00001 /* BluetoothRouteMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2BTROUTEMATCH00001 /* BluetoothRouteMatcher.swift */; };
+		A1PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift */; };
+		A1PAIRINGSTYLE000001 /* PairingCardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGSTYLE000001 /* PairingCardStyle.swift */; };
+		A1PAIRINGVEHROW00001 /* PairingVehicleRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGVEHROW00001 /* PairingVehicleRow.swift */; };
+		A1PAIRINGREADY000001 /* PairingReadinessChecklist.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGREADY000001 /* PairingReadinessChecklist.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -188,15 +198,17 @@
 		A30000000000000000000001 /* Carinho.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Carinho.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF0E09B4CEDD485E9B744E57 /* TripStop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripStop.swift; sourceTree = "<group>"; };
 		B20000000000000000000001 /* TripNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripNotificationService.swift; sourceTree = "<group>"; };
-		B20000000000000000000002 /* CarPairingSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPairingSheet.swift; sourceTree = "<group>"; };
 		A2ONBOARDING00000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A2PERMBANNER00000000001 /* PermissionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionBanner.swift; sourceTree = "<group>"; };
 		B20000000000000000000003 /* RecordingCarAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingCarAnimationView.swift; sourceTree = "<group>"; };
 		A2RECCARDSTYLE00000001 /* RecordingCardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingCardStyle.swift; sourceTree = "<group>"; };
 		B20000000000000000000004 /* TripRecordingAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripRecordingAttributes.swift; sourceTree = "<group>"; };
 		A2APPNOTIFSTORE00000001 /* AppNotificationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNotificationStore.swift; sourceTree = "<group>"; };
+		A2AUTOEVENTLOG00000001 /* AutoRecordingEventLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoRecordingEventLog.swift; sourceTree = "<group>"; };
+		A2AUTOEVENTLOGVIEW001 /* AutoRecordingEventLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoRecordingEventLogView.swift; sourceTree = "<group>"; };
 		A2NOTIFLISTVIEW00000001 /* NotificationsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsListView.swift; sourceTree = "<group>"; };
 		B20000000000000000000011 /* AppNotificationArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNotificationArchive.swift; sourceTree = "<group>"; };
+		B20000000000000000000026 /* AutoRecordingEventArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoRecordingEventArchive.swift; sourceTree = "<group>"; };
 		B20000000000000000000020 /* DateFormatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatters.swift; sourceTree = "<group>"; };
 		B20000000000000000000021 /* SharedL10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedL10n.swift; sourceTree = "<group>"; };
 		B20000000000000000000022 /* CarinhoBrandColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarinhoBrandColors.swift; sourceTree = "<group>"; };
@@ -231,10 +243,18 @@
 		A2FREQROUTES00000000001 /* FrequentRoutesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrequentRoutesService.swift; sourceTree = "<group>"; };
 		A2ROUTEPRIVCLIP0000001 /* RoutePrivacyClipper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutePrivacyClipper.swift; sourceTree = "<group>"; };
 		A2TRIPSHARECARD0000001 /* TripShareCardRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripShareCardRenderer.swift; sourceTree = "<group>"; };
-		A2TRIPREPORTPDF000001 /* TripReportPDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripReportPDF.swift; sourceTree = "<group>"; };
 		A2TODAYKMPROV00000001 /* TodayKmProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayKmProvider.swift; sourceTree = "<group>"; };
-		A2VEHICLEMGMT00000001 /* VehicleManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleManagementView.swift; sourceTree = "<group>"; };
 		A2VEHICLERESOLV000001 /* VehicleResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleResolver.swift; sourceTree = "<group>"; };
+		A2PAIRINGTAB000000001 /* PairingTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingTabView.swift; sourceTree = "<group>"; };
+		A2PAIRINGEMPTY000001 /* PairingEmptyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingEmptyState.swift; sourceTree = "<group>"; };
+		A2PAIRINGEDIT000001 /* PairingVehicleEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingVehicleEditorView.swift; sourceTree = "<group>"; };
+		A2TABSELECTION000001 /* TabSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelection.swift; sourceTree = "<group>"; };
+		A2PAIRINGSTAT000001 /* PairingConnectionStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingConnectionStatus.swift; sourceTree = "<group>"; };
+		A2BTROUTEMATCH00001 /* BluetoothRouteMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothRouteMatcher.swift; sourceTree = "<group>"; };
+		A2PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingLiveConnectionBanner.swift; sourceTree = "<group>"; };
+		A2PAIRINGSTYLE000001 /* PairingCardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingCardStyle.swift; sourceTree = "<group>"; };
+		A2PAIRINGVEHROW00001 /* PairingVehicleRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingVehicleRow.swift; sourceTree = "<group>"; };
+		A2PAIRINGREADY000001 /* PairingReadinessChecklist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingReadinessChecklist.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -361,6 +381,7 @@
 				A2TRIPRECOVERY0000000001 /* TripRecoveryService.swift */,
 				B20000000000000000000001 /* TripNotificationService.swift */,
 				A2APPNOTIFSTORE00000001 /* AppNotificationStore.swift */,
+				A2AUTOEVENTLOG00000001 /* AutoRecordingEventLog.swift */,
 				A20000000000000000000005 /* LocationService.swift */,
 				A20000000000000000000006 /* TripRecordingService.swift */,
 				A20000000000000000000007 /* GeocodingService.swift */,
@@ -389,6 +410,20 @@
 			path = ViewModels;
 			sourceTree = "<group>";
 		};
+		A5PAIRINGGRP00000000001 /* Pairing */ = {
+			isa = PBXGroup;
+			children = (
+				A2PAIRINGTAB000000001 /* PairingTabView.swift */,
+				A2PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift */,
+				A2PAIRINGVEHROW00001 /* PairingVehicleRow.swift */,
+				A2PAIRINGSTYLE000001 /* PairingCardStyle.swift */,
+				A2PAIRINGEMPTY000001 /* PairingEmptyState.swift */,
+				A2PAIRINGEDIT000001 /* PairingVehicleEditorView.swift */,
+				A2PAIRINGREADY000001 /* PairingReadinessChecklist.swift */,
+			);
+			path = Pairing;
+			sourceTree = "<group>";
+		};
 		A50000000000000000000008 /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -402,12 +437,12 @@
 				A20000000000000000000016 /* ActiveTripView.swift */,
 				A2ONBOARDING00000000001 /* OnboardingView.swift */,
 				A2NOTIFLISTVIEW00000001 /* NotificationsListView.swift */,
+				A2AUTOEVENTLOGVIEW001 /* AutoRecordingEventLogView.swift */,
 				A2PERMBANNER00000000001 /* PermissionBanner.swift */,
-				B20000000000000000000002 /* CarPairingSheet.swift */,
 				A2RECCARDSTYLE00000001 /* RecordingCardStyle.swift */,
+				A5PAIRINGGRP00000000001 /* Pairing */,
 				A20000000000000000000017 /* SettingsView.swift */,
 				A2CATMGMT00000000000001 /* CategoryManagementView.swift */,
-				A2VEHICLEMGMT00000001 /* VehicleManagementView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -426,6 +461,9 @@
 				A2CARINHOSOUNDS00000001 /* CarinhoSounds.swift */,
 				A20000000000000000000020 /* AppSettings.swift */,
 				A20000000000000000000021 /* PreviewData.swift */,
+				A2TABSELECTION000001 /* TabSelection.swift */,
+				A2PAIRINGSTAT000001 /* PairingConnectionStatus.swift */,
+				A2BTROUTEMATCH00001 /* BluetoothRouteMatcher.swift */,
 				A2TRIPSTORE000000000001 /* TripStore.swift */,
 				A2TRIPDATEGROUP000000001 /* TripDateGrouping.swift */,
 				A2TRIPMAPSNAP00000000001 /* TripMapSnapshotCache.swift */,
@@ -433,7 +471,6 @@
 				A2L10N00000000000000001 /* L10n.swift */,
 				A2ROUTEPRIVCLIP0000001 /* RoutePrivacyClipper.swift */,
 				A2TRIPSHARECARD0000001 /* TripShareCardRenderer.swift */,
-				A2TRIPREPORTPDF000001 /* TripReportPDF.swift */,
 				A2TODAYKMPROV00000001 /* TodayKmProvider.swift */,
 			);
 			path = Utilities;
@@ -457,6 +494,7 @@
 				B20000000000000000000003 /* RecordingCarAnimationView.swift */,
 				B20000000000000000000009 /* RecordingControlBridge.swift */,
 				B20000000000000000000011 /* AppNotificationArchive.swift */,
+				B20000000000000000000026 /* AutoRecordingEventArchive.swift */,
 			);
 			path = CarinhoShared;
 			sourceTree = "<group>";
@@ -670,11 +708,11 @@
 				A1FREQROUTES00000000001 /* FrequentRoutesService.swift in Sources */,
 				A1ROUTEPRIVCLIP0000001 /* RoutePrivacyClipper.swift in Sources */,
 				A1APPNOTIFSTORE00000001 /* AppNotificationStore.swift in Sources */,
+				A1AUTOEVENTLOG00000001 /* AutoRecordingEventLog.swift in Sources */,
+				A1AUTOEVENTLOGVIEW001 /* AutoRecordingEventLogView.swift in Sources */,
 				A1NOTIFLISTVIEW00000001 /* NotificationsListView.swift in Sources */,
 				A1TRIPSHARECARD0000001 /* TripShareCardRenderer.swift in Sources */,
-				A1TRIPREPORTPDF000001 /* TripReportPDF.swift in Sources */,
 				A1TODAYKMPROV00000001 /* TodayKmProvider.swift in Sources */,
-				A1VEHICLEMGMT00000001 /* VehicleManagementView.swift in Sources */,
 				A1VEHICLERESOLV000001 /* VehicleResolver.swift in Sources */,
 				9DEF992CAAFE49179A961E87 /* TripRecordingIntents.swift in Sources */,
 				C34CA953FA9445FC9738421B /* StatsViewModel.swift in Sources */,
@@ -683,15 +721,25 @@
 				4ED9865E047546A39C7E466C /* AppLockView.swift in Sources */,
 				B70278C1D5B446EC8DE991B4 /* TripFilterChips.swift in Sources */,
 				B10000000000000000000001 /* TripNotificationService.swift in Sources */,
-				B10000000000000000000002 /* CarPairingSheet.swift in Sources */,
 				B10000000000000000000003 /* RecordingCarAnimationView.swift in Sources */,
 				B10000000000000000000014 /* DateFormatters.swift in Sources */,
 				B10000000000000000000016 /* SharedL10n.swift in Sources */,
 				B10000000000000000000018 /* CarinhoBrandColors.swift in Sources */,
+				A1PAIRINGTAB000000001 /* PairingTabView.swift in Sources */,
+				A1PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift in Sources */,
+				A1PAIRINGVEHROW00001 /* PairingVehicleRow.swift in Sources */,
+				A1PAIRINGSTYLE000001 /* PairingCardStyle.swift in Sources */,
+				A1PAIRINGEMPTY000001 /* PairingEmptyState.swift in Sources */,
+				A1PAIRINGEDIT000001 /* PairingVehicleEditorView.swift in Sources */,
+				A1PAIRINGREADY000001 /* PairingReadinessChecklist.swift in Sources */,
+				A1TABSELECTION000001 /* TabSelection.swift in Sources */,
+				A1PAIRINGSTAT000001 /* PairingConnectionStatus.swift in Sources */,
+				A1BTROUTEMATCH00001 /* BluetoothRouteMatcher.swift in Sources */,
 				A1RECCARDSTYLE00000001 /* RecordingCardStyle.swift in Sources */,
 				B10000000000000000000004 /* TripRecordingAttributes.swift in Sources */,
 				B10000000000000000000008 /* RecordingControlBridge.swift in Sources */,
 				B10000000000000000000011 /* AppNotificationArchive.swift in Sources */,
+				B10000000000000000000026 /* AutoRecordingEventArchive.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

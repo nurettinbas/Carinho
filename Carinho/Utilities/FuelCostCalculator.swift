@@ -21,9 +21,6 @@ enum FuelCostCalculator {
     }
 
     static func estimateCost(for trip: Trip) -> Double {
-        if let vehicle = trip.vehicle {
-            return estimateCost(distanceMeters: trip.distanceMeters, vehicle: vehicle)
-        }
         if let cost = trip.estimatedFuelCost, cost > 0 {
             return cost
         }

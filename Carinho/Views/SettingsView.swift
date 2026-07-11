@@ -9,7 +9,6 @@ struct SettingsView: View {
     @Environment(LocationService.self) private var locationService
     @Environment(MotionActivityService.self) private var motionActivityService
     @Environment(TripRecordingService.self) private var tripRecordingService
-    @Environment(BluetoothTriggerService.self) private var bluetoothService
     @Environment(GeocodingRetryService.self) private var geocodingRetryService
     @Environment(AppLockService.self) private var appLockService
     @Query private var places: [SavedPlace]
@@ -18,8 +17,8 @@ struct SettingsView: View {
 
     @State private var exportURL: URL?
     @State private var showExportSheet = false
-    @State private var showCarPairing = false
     @State private var showAppLockUnavailableAlert = false
+    @State private var versionTapCount = 0
 
     @FocusState private var focusedField: SettingsFocusedField?
 
@@ -33,6 +32,9 @@ struct SettingsView: View {
             Section(L10n.settingsRecordingSection) {
                 Toggle(L10n.settingsAutoRecording, isOn: $settings.autoRecordingEnabled)
                     .onChange(of: settings.autoRecordingEnabled) { _, enabled in
+                        if enabled {
+                            motionActivityService.requestPermission()
+                        }
                         tripRecordingService.refreshAutoRecording(enabled: enabled)
                     }
                 Toggle(L10n.settingsRecordingSounds, isOn: $settings.recordingSoundsEnabled)
@@ -47,62 +49,92 @@ struct SettingsView: View {
             Section(L10n.settingsRecordingSensitivitySection) {
                 sensitivityRow(
                     title: L10n.settingsIdleTimeout,
-                    value: Int(settings.idleTimeoutSeconds),
+                    value: Binding(
+                        get: { Int(settings.idleTimeoutSeconds) },
+                        set: { settings.idleTimeoutSeconds = TimeInterval($0) }
+                    ),
                     range: 30...300,
                     step: 15
-                ) { settings.idleTimeoutSeconds = TimeInterval($0) }
+                )
 
                 sensitivityRow(
                     title: L10n.settingsLowSpeedStop,
-                    value: Int(settings.lowSpeedStopSeconds),
+                    value: Binding(
+                        get: { Int(settings.lowSpeedStopSeconds) },
+                        set: { settings.lowSpeedStopSeconds = TimeInterval($0) }
+                    ),
                     range: 30...300,
                     step: 15
-                ) { settings.lowSpeedStopSeconds = TimeInterval($0) }
+                )
 
                 sensitivityRow(
                     title: L10n.settingsRecordingStartSpeed,
-                    value: Int(settings.recordingStartSpeedKmh),
+                    value: Binding(
+                        get: { Int(settings.recordingStartSpeedKmh) },
+                        set: { settings.recordingStartSpeedKmh = Double($0) }
+                    ),
                     range: 5...40,
                     step: 1
-                ) { settings.recordingStartSpeedKmh = Double($0) }
+                )
 
                 sensitivityRow(
                     title: L10n.settingsRecordingStopSpeed,
-                    value: Int(settings.recordingStopSpeedKmh),
+                    value: Binding(
+                        get: { Int(settings.recordingStopSpeedKmh) },
+                        set: { settings.recordingStopSpeedKmh = Double($0) }
+                    ),
                     range: 2...20,
                     step: 1
-                ) { settings.recordingStopSpeedKmh = Double($0) }
+                )
 
                 sensitivityRow(
                     title: L10n.settingsStopSpeed,
-                    value: Int(settings.stopSpeedKmh),
+                    value: Binding(
+                        get: { Int(settings.stopSpeedKmh) },
+                        set: { settings.stopSpeedKmh = Double($0) }
+                    ),
                     range: 1...10,
                     step: 1
-                ) { settings.stopSpeedKmh = Double($0) }
+                )
 
                 sensitivityRow(
                     title: L10n.settingsStopMinimumDistance,
-                    value: Int(settings.stopMinimumDistanceMeters),
+                    value: Binding(
+                        get: { Int(settings.stopMinimumDistanceMeters) },
+                        set: { settings.stopMinimumDistanceMeters = Double($0) }
+                    ),
                     range: 50...1000,
                     step: 50
-                ) { settings.stopMinimumDistanceMeters = Double($0) }
+                )
 
                 sensitivityRow(
                     title: L10n.settingsStopMinimumDuration,
-                    value: Int(settings.stopMinimumDurationSeconds),
+                    value: Binding(
+                        get: { Int(settings.stopMinimumDurationSeconds) },
+                        set: { settings.stopMinimumDurationSeconds = TimeInterval($0) }
+                    ),
                     range: 60...600,
                     step: 30
-                ) { settings.stopMinimumDurationSeconds = TimeInterval($0) }
+                )
 
                 sensitivityRow(
                     title: L10n.settingsTripStopMinimumDuration,
-                    value: Int(settings.tripStopMinimumDurationSeconds),
+                    value: Binding(
+                        get: { Int(settings.tripStopMinimumDurationSeconds) },
+                        set: { settings.tripStopMinimumDurationSeconds = TimeInterval($0) }
+                    ),
                     range: 60...900,
                     step: 30
-                ) { settings.tripStopMinimumDurationSeconds = TimeInterval($0) }
+                )
             }
 
-            Section(L10n.settingsFavoritePlaces) {
+            Section {
+                if places.isEmpty {
+                    Text(L10n.settingsFavoritePlacesEmpty)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
                 ForEach(places) { place in
                     NavigationLink {
                         PlacePickerView(editingPlace: place)
@@ -123,79 +155,36 @@ struct SettingsView: View {
                 NavigationLink(L10n.settingsAddPlace) {
                     PlacePickerView()
                 }
-            }
-
-            Section(L10n.settingsVehiclePairingSection) {
-                if let activeVehicle = VehiclePairingService.activeVehicle(in: modelContext) {
-                    LabeledContent(L10n.settingsPairedVehicle, value: activeVehicle.name)
-                    LabeledContent(L10n.settingsConnectionType, value: connectionTypeLabel(for: activeVehicle))
-                    LabeledContent(L10n.settingsConnectionStatus) {
-                        let connected = isVehicleConnected(activeVehicle)
-                        Text(connected ? L10n.settingsConnected : L10n.settingsDisconnected)
-                            .foregroundStyle(connected ? .green : .secondary)
-                    }
-                    Button(L10n.settingsChangeVehicle) {
-                        showCarPairing = true
-                    }
-                    Button(L10n.settingsRemovePairing, role: .destructive) {
-                        VehiclePairingService.unpair(in: modelContext)
-                    }
-                } else if let carName = settings.pairedVehicleName {
-                    LabeledContent(L10n.settingsPairedVehicle, value: carName)
-                    if let type = settings.pairedVehicleType {
-                        LabeledContent(L10n.settingsConnectionType, value: type == .carPlay ? L10n.vehiclePairingCarPlay : L10n.vehiclePairingBluetooth)
-                    }
-                    LabeledContent(L10n.settingsConnectionStatus) {
-                        let connected = settings.pairedVehicleType == .carPlay
-                            ? CarPlayConnectionHandler.shared.isConnected
-                            : bluetoothService.isCarConnected
-                        Text(connected ? L10n.settingsConnected : L10n.settingsDisconnected)
-                            .foregroundStyle(connected ? .green : .secondary)
-                    }
-                    Button(L10n.settingsChangeVehicle) {
-                        showCarPairing = true
-                    }
-                    Button(L10n.settingsRemovePairing, role: .destructive) {
-                        VehiclePairingService.unpair(in: modelContext)
-                    }
-                } else {
-                    Text(L10n.settingsPairVehicleHint)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                    Button(L10n.settingsDefineVehicle) {
-                        showCarPairing = true
-                    }
-                }
+            } header: {
+                Text(L10n.settingsFavoritePlaces)
+            } footer: {
+                Text(L10n.settingsFavoritePlacesHint)
             }
 
             CategoryManagementView(focusedField: $focusedField)
 
-            VehicleManagementView(focusedField: $focusedField)
-
-            Section(L10n.settingsLanguageSection) {
-                Picker(L10n.settingsLanguagePicker, selection: Binding(
-                    get: { settings.preferredLanguageCode ?? "system" },
-                    set: { settings.preferredLanguageCode = $0 == "system" ? nil : $0 }
-                )) {
-                    Text(L10n.settingsLanguageSystem).tag("system")
-                    Text(L10n.settingsLanguageTurkish).tag("tr")
-                    Text(L10n.settingsLanguageEnglish).tag("en")
+            Section {
+                Button(L10n.settingsOpenSystemSettings) {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
                 }
+            } header: {
+                Text(L10n.settingsLanguageSection)
+            } footer: {
+                Text(L10n.settingsLanguageSystemHint)
             }
 
             Section(L10n.settingsFuelSection) {
-                LabeledContent(L10n.settingsFuelConsumption) {
-                    TextField("L/100km", value: $settings.fuelLitersPer100km, format: .number)
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-                        .focused($focusedField, equals: .fuelConsumption)
-                }
                 LabeledContent(L10n.settingsFuelPrice) {
                     TextField("TL", value: $settings.fuelPricePerLiter, format: .number)
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .focused($focusedField, equals: .fuelPrice)
                 }
+                Text(L10n.settingsFuelHint)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
 
             Section(L10n.settingsPrivacySection) {
@@ -218,7 +207,7 @@ struct SettingsView: View {
 
             Section(L10n.settingsPermissionsSection) {
                 LabeledContent(L10n.settingsLocationPermission) {
-                    Text(locationAuthLabel(locationService.authorizationState))
+                    LocationPermissionBadge(state: locationService.authorizationState)
                 }
                 if !locationService.canRecordInBackground {
                     Text(L10n.settingsBackgroundLocationHint)
@@ -237,25 +226,27 @@ struct SettingsView: View {
                 }
             }
 
-            Section(L10n.settingsCarPlaySection) {
-                LabeledContent(L10n.settingsCarPlayStatus) {
-                    Text(CarPlayConnectionHandler.shared.isConnected ? L10n.settingsConnected : L10n.settingsDisconnected)
-                }
-                Text(L10n.settingsCarPlayHint)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
 
             Section(L10n.settingsBackupSection) {
                 Button(L10n.settingsExportJSON) { export(format: .json) }
                 Button(L10n.settingsExportCSV) { export(format: .csv) }
                 Button(L10n.settingsExportGPX) { export(format: .gpx) }
                 Button(L10n.settingsExportKML) { export(format: .kml) }
-                Button(L10n.settingsExportMonthlyPDF) { exportMonthlyPDF() }
             }
 
             Section(L10n.settingsAboutSection) {
                 LabeledContent(L10n.settingsVersion, value: "1.1.0")
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        versionTapCount += 1
+                        if versionTapCount >= 5 {
+                            settings.developerModeEnabled.toggle()
+                            versionTapCount = 0
+                        }
+                    }
+                if settings.developerModeEnabled {
+                    Toggle(L10n.settingsDeveloperMode, isOn: $settings.developerModeEnabled)
+                }
                 Text(L10n.settingsAboutPrivacy)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -267,7 +258,6 @@ struct SettingsView: View {
         .keyboardDoneToolbar()
         .onAppear {
             motionActivityService.refreshAuthorizationStatus()
-            bluetoothService.refreshMonitoring()
             runCleanupIfNeeded()
             Task { await geocodingRetryService.retryPendingTrips(in: modelContext) }
         }
@@ -275,9 +265,6 @@ struct SettingsView: View {
             if let exportURL {
                 ExportActivityShareSheet(items: [exportURL])
             }
-        }
-        .sheet(isPresented: $showCarPairing) {
-            CarPairingSheet()
         }
         .alert(L10n.appLockUnavailableTitle, isPresented: $showAppLockUnavailableAlert) {
             Button(L10n.ok, role: .cancel) {}
@@ -320,49 +307,6 @@ struct SettingsView: View {
         }
     }
 
-    private func exportMonthlyPDF() {
-        let completed = trips.filter { $0.endedAt != nil }
-        let businessTrips = TripReportPDF.businessTrips(in: completed)
-        guard !businessTrips.isEmpty else {
-            AppErrorPresenter.shared.present(L10n.pdfNoBusinessTrips)
-            return
-        }
-        guard let data = TripReportPDF.generateMonthlyWorkReport(
-            trips: completed,
-            places: places,
-            privacyRadius: settings.privacyRadiusMeters
-        ) else {
-            AppErrorPresenter.shared.present(L10n.pdfGenerateFailed)
-            return
-        }
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("carinho-work-report.pdf")
-        do {
-            try data.write(to: url)
-            exportURL = url
-            showExportSheet = true
-        } catch {
-            AppErrorPresenter.shared.present(error.localizedDescription)
-        }
-    }
-
-    private func connectionTypeLabel(for vehicle: VehicleProfile) -> String {
-        switch vehicle.connectionKind {
-        case .carPlay: L10n.vehiclePairingCarPlay
-        case .bluetooth: L10n.vehiclePairingBluetooth
-        case .none: L10n.vehiclePairingNoConnection
-        }
-    }
-
-    private func isVehicleConnected(_ vehicle: VehicleProfile) -> Bool {
-        switch vehicle.connectionKind {
-        case .carPlay:
-            CarPlayConnectionHandler.shared.isConnected
-        case .bluetooth:
-            bluetoothService.isCarConnected
-        case .none:
-            false
-        }
-    }
 
     private func deletePlaces(at offsets: IndexSet) {
         for index in offsets {
@@ -379,36 +323,22 @@ struct SettingsView: View {
 
     private func sensitivityRow(
         title: String,
-        value: Int,
+        value: Binding<Int>,
         range: ClosedRange<Int>,
-        step: Int,
-        onChange: @escaping (Int) -> Void
+        step: Int
     ) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(title)
                 Spacer()
-                Text("\(value)")
+                Text("\(value.wrappedValue)")
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
             }
-            Stepper(value: Binding(
-                get: { value },
-                set: { onChange(min(max($0, range.lowerBound), range.upperBound)) }
-            ), in: range, step: step) {
+            Stepper(value: value, in: range, step: step) {
                 EmptyView()
             }
             .labelsHidden()
-        }
-    }
-
-    private func locationAuthLabel(_ state: LocationService.AuthorizationState) -> String {
-        switch state {
-        case .notDetermined: L10n.settingsLocationNotDetermined
-        case .authorizedWhenInUse: L10n.settingsLocationWhenInUse
-        case .authorizedAlways: L10n.settingsLocationAlways
-        case .denied: L10n.settingsLocationDenied
-        case .restricted: L10n.settingsLocationRestricted
         }
     }
 
@@ -443,7 +373,6 @@ struct ExportActivityShareSheet: UIViewControllerRepresentable {
         .environment(LocationService())
         .environment(MotionActivityService())
         .environment(PreviewData.shared.recordingService)
-        .environment(BluetoothTriggerService())
         .environment(GeocodingRetryService(geocodingService: GeocodingService()))
         .environment(AppLockService())
 }

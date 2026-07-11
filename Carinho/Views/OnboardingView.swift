@@ -1,88 +1,114 @@
 import SwiftUI
-import UserNotifications
 
 struct OnboardingView: View {
-    @Environment(LocationService.self) private var locationService
-    @Environment(MotionActivityService.self) private var motionActivityService
     @Bindable private var settings = AppSettings.shared
+    @Bindable private var tabSelection = TabSelection.shared
 
     @State private var page = 0
-    @State private var notificationsAuthorized = false
 
-    private let pageCount = 3
+    private let pageCount = 2
 
     var body: some View {
         VStack(spacing: 0) {
-            TabView(selection: $page) {
-                locationPage.tag(0)
-                motionPage.tag(1)
-                notificationsPage.tag(2)
+            Group {
+                switch page {
+                case 0:
+                    welcomePage
+                default:
+                    vehicleSetupPage
+                }
             }
-            .tabViewStyle(.page(indexDisplayMode: .always))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .animation(CarinhoMotion.gentle, value: page)
+
+            pageIndicator
+                .padding(.top, 8)
 
             bottomBar
                 .padding(.horizontal, 24)
                 .padding(.bottom, 32)
         }
         .background(Color(.systemGroupedBackground))
-        .onAppear {
-            motionActivityService.refreshAuthorizationStatus()
-            refreshNotificationStatus()
+    }
+
+    private var welcomePage: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            Image(systemName: "car.side.fill")
+                .font(.system(size: 56))
+                .foregroundStyle(CarinhoBrandColors.brandBottom)
+                .symbolRenderingMode(.hierarchical)
+
+            VStack(spacing: 12) {
+                Text(L10n.string("onboarding.welcome.title"))
+                    .font(.title2.bold())
+                    .multilineTextAlignment(.center)
+                Text(L10n.string("onboarding.welcome.message"))
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, 8)
+
+            Spacer()
+            Spacer()
+        }
+        .padding(.horizontal, 28)
+    }
+
+    private var vehicleSetupPage: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(alignment: .leading, spacing: 16) {
+                Text(L10n.string("onboarding.vehicle.title"))
+                    .font(.title2.bold())
+
+                Text(L10n.string("onboarding.vehicle.message"))
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Button(action: defineVehicleAndFinish) {
+                    Text(L10n.string("onboarding.vehicle.define"))
+                        .font(.body.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 4)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(CarinhoBrandColors.brandBottom)
+
+                Button(action: skipVehicleSetup) {
+                    Text(L10n.string("onboarding.vehicle.skip"))
+                        .font(.subheadline)
+                        .frame(maxWidth: .infinity)
+                }
+                .foregroundStyle(.secondary)
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
+            .padding(.horizontal, 24)
+
+            Spacer()
+            Spacer()
         }
     }
 
-    private var locationPage: some View {
-        OnboardingPermissionPage(
-            systemImage: "location.fill",
-            tint: .blue,
-            title: L10n.string("onboarding.location.title"),
-            message: L10n.string("onboarding.location.message"),
-            isGranted: locationService.authorizationState == .authorizedAlways,
-            actionTitle: {
-                switch locationService.authorizationState {
-                case .authorizedAlways:
-                    L10n.string("onboarding.permission.granted")
-                case .authorizedWhenInUse:
-                    L10n.string("onboarding.location.enable_always")
-                default:
-                    L10n.string("onboarding.permission.allow")
-                }
-            },
-            action: { locationService.requestPermission() }
-        )
-    }
-
-    private var motionPage: some View {
-        OnboardingPermissionPage(
-            systemImage: "figure.walk.motion",
-            tint: .purple,
-            title: L10n.string("onboarding.motion.title"),
-            message: L10n.string("onboarding.motion.message"),
-            isGranted: motionActivityService.isAuthorized,
-            actionTitle: {
-                motionActivityService.isAuthorized
-                    ? L10n.string("onboarding.permission.granted")
-                    : L10n.string("onboarding.permission.allow")
-            },
-            action: { motionActivityService.requestPermission() }
-        )
-    }
-
-    private var notificationsPage: some View {
-        OnboardingPermissionPage(
-            systemImage: "bell.badge.fill",
-            tint: .orange,
-            title: L10n.string("onboarding.notifications.title"),
-            message: L10n.string("onboarding.notifications.message"),
-            isGranted: notificationsAuthorized,
-            actionTitle: {
-                notificationsAuthorized
-                    ? L10n.string("onboarding.permission.granted")
-                    : L10n.string("onboarding.permission.allow")
-            },
-            action: { requestNotifications() }
-        )
+    private var pageIndicator: some View {
+        HStack(spacing: 8) {
+            ForEach(0..<pageCount, id: \.self) { index in
+                Circle()
+                    .fill(index == page ? Color.primary : Color.secondary.opacity(0.25))
+                    .frame(width: 8, height: 8)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Step \(page + 1) of \(pageCount)")
     }
 
     private var bottomBar: some View {
@@ -96,101 +122,37 @@ struct OnboardingView: View {
 
             Spacer()
 
-            Button(page == pageCount - 1 ? L10n.string("onboarding.finish") : L10n.string("onboarding.next")) {
-                if page == pageCount - 1 {
-                    settings.hasCompletedOnboarding = true
-                } else {
-                    page += 1
+            if page < pageCount - 1 {
+                Button(L10n.string("onboarding.next")) {
+                    withAnimation(CarinhoMotion.gentle) {
+                        page += 1
+                    }
                 }
-            }
-            .buttonStyle(.borderedProminent)
-        }
-    }
-
-    private func refreshNotificationStatus() {
-        UNUserNotificationCenter.current().getNotificationSettings { notificationSettings in
-            let isAuthorized = notificationSettings.authorizationStatus == .authorized
-            Task { @MainActor in
-                notificationsAuthorized = isAuthorized
-            }
-        }
-    }
-
-    private func requestNotifications() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
-            Task { @MainActor in
-                notificationsAuthorized = granted
-            }
-        }
-    }
-}
-
-private struct OnboardingPermissionPage: View {
-    let systemImage: String
-    let tint: Color
-    let title: String
-    let message: String
-    let isGranted: Bool
-    let actionTitle: () -> String
-    let action: () -> Void
-
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var iconScale: CGFloat = 1
-
-    var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
-
-            Image(systemName: systemImage)
-                .font(.system(size: 56))
-                .foregroundStyle(tint)
-                .symbolRenderingMode(.hierarchical)
-                .scaleEffect(iconScale)
-
-            VStack(spacing: 12) {
-                Text(title)
-                    .font(.title2.bold())
-                    .multilineTextAlignment(.center)
-                Text(message)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 8)
-            }
-
-            if isGranted {
-                Label(L10n.string("onboarding.permission.granted"), systemImage: "checkmark.circle.fill")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.green)
-                    .transition(.scale.combined(with: .opacity))
+                .buttonStyle(.borderedProminent)
             } else {
-                Button(actionTitle(), action: action)
-                    .buttonStyle(.borderedProminent)
-                    .tint(tint)
+                Button(L10n.string("onboarding.finish")) {
+                    skipVehicleSetup()
+                }
+                .buttonStyle(.borderedProminent)
             }
+        }
+    }
 
-            Spacer()
-            Spacer()
+    private func defineVehicleAndFinish() {
+        settings.completeOnboarding()
+        CarinhoHaptics.selection()
+        DispatchQueue.main.async {
+            tabSelection.openPairing()
         }
-        .padding(.horizontal, 28)
-        .animation(reduceMotion ? nil : CarinhoMotion.cardSpring, value: isGranted)
-        .onChange(of: isGranted) { wasGranted, isNowGranted in
-            guard !wasGranted, isNowGranted else { return }
-            CarinhoHaptics.selection()
-            if !reduceMotion {
-                withAnimation(CarinhoMotion.cardSpring) {
-                    iconScale = 1.08
-                }
-                withAnimation(CarinhoMotion.cardSpring.delay(0.15)) {
-                    iconScale = 1
-                }
-            }
-        }
+    }
+
+    private func skipVehicleSetup() {
+        settings.completeOnboarding()
+        settings.skipCarSetup()
+        CarinhoHaptics.selection()
     }
 }
 
 #Preview {
     OnboardingView()
-        .environment(LocationService())
-        .environment(MotionActivityService())
 }

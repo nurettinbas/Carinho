@@ -5,6 +5,7 @@ struct TripListView: View {
     @Query(sort: \Trip.startedAt, order: .reverse) private var trips: [Trip]
     @Query private var places: [SavedPlace]
     @Query(sort: \UserCategory.sortOrder) private var categories: [UserCategory]
+    @Query private var vehicles: [VehicleProfile]
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -17,7 +18,8 @@ struct TripListView: View {
     @State private var selectedCategoryID: String?
     @State private var mergeSelection = Set<UUID>()
     @State private var isMergeMode = false
-    @State private var showCarPairing = false
+    @Bindable private var tabSelection = TabSelection.shared
+
     @State private var orphanTrips: [TripRecoveryService.OrphanTrip] = []
     @State private var showMergeConfirm = false
     @State private var searchText = ""
@@ -57,6 +59,16 @@ struct TripListView: View {
         return L10n.weekSummary(stats.totalDistanceText)
     }
 
+    private var showsVehicleSetupPrompt: Bool {
+        !settings.hasCompletedCarSetup && vehicles.isEmpty
+    }
+
+    private var visibleOrphan: TripRecoveryService.OrphanTrip? {
+        orphanTrips.first { orphan in
+            !orphan.isStale && orphan.id != recordingService.activeTripID
+        }
+    }
+
     var body: some View {
         List {
             Section {
@@ -66,7 +78,7 @@ struct TripListView: View {
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
 
-            if settings.pairedVehicleID == nil && !settings.hasCompletedCarSetup {
+            if showsVehicleSetupPrompt {
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(L10n.tripListSetupVehicleTitle)
@@ -75,12 +87,12 @@ struct TripListView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Button(L10n.settingsDefineVehicle) {
-                            showCarPairing = true
+                            tabSelection.openPairing()
                         }
                         .buttonStyle(.borderedProminent)
 
                         Button(L10n.vehiclePairingSkip) {
-                            settings.hasCompletedCarSetup = true
+                            settings.skipCarSetup()
                         }
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -89,23 +101,31 @@ struct TripListView: View {
                 }
             }
 
-            if let orphan = orphanTrips.first(where: { !$0.isStale }) {
+            if let orphan = visibleOrphan {
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Yarım kalan kayıt")
+                        Text(L10n.orphanBannerTitle)
                             .font(.headline)
-                        Text("Önceki oturumda tamamlanmamış bir kayıt bulundu.")
+                        Text(L10n.orphanBannerMessage)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         HStack {
-                            Button("Devam et") {
-                                TripRecoveryService.resumeOrphan(orphan.trip, recordingService: recordingService)
-                                refreshOrphans()
+                            Button(L10n.orphanResume) {
+                                if TripRecoveryService.resumeOrphan(orphan.trip, recordingService: recordingService) {
+                                    refreshOrphans()
+                                }
                             }
                             .buttonStyle(.borderedProminent)
+                            Button(L10n.orphanSave) {
+                                if TripRecoveryService.finalizeOrphan(orphan.trip, in: modelContext, saveTrip: true) {
+                                    refreshOrphans()
+                                }
+                            }
+                            .buttonStyle(.bordered)
                             Button(L10n.delete, role: .destructive) {
-                                TripRecoveryService.deleteOrphan(orphan.trip, in: modelContext)
-                                refreshOrphans()
+                                if TripRecoveryService.deleteOrphan(orphan.trip, in: modelContext) {
+                                    refreshOrphans()
+                                }
                             }
                         }
                     }
@@ -174,9 +194,6 @@ struct TripListView: View {
             }
         }
         .searchable(text: $searchText, prompt: L10n.searchTrips)
-        .sheet(isPresented: $showCarPairing) {
-            CarPairingSheet()
-        }
         .navigationDestination(for: UUID.self) { tripID in
             if let trip = trips.first(where: { $0.id == tripID }) {
                 TripDetailView(trip: trip)
@@ -192,6 +209,14 @@ struct TripListView: View {
             refreshOrphans()
             notificationStore.reload()
         }
+        .onAppear {
+            refreshOrphans()
+        }
+        .onChange(of: recordingService.state) { _, newState in
+            if !newState.isActiveSession {
+                refreshOrphans()
+            }
+        }
         .alert("Yolculukları birleştir", isPresented: $showMergeConfirm) {
             Button("Birleştir") { performMerge() }
             Button("İptal", role: .cancel) {}
@@ -201,22 +226,33 @@ struct TripListView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 if isMergeMode {
-                    Button("Birleştir") {
+                    Button(L10n.actionMerge) {
                         showMergeConfirm = true
                     }
                     .disabled(mergeSelection.count < 2)
-                } else {
-                    Button("Birleştir") { isMergeMode = true }
+                } else if !recordingService.state.isActiveSession {
+                    Button { _ = recordingService.startManualRecording() } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "record.circle")
+                            Text(L10n.string("action.start"))
+                        }
+                    }
+                    .transition(.scale.combined(with: .opacity))
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
                 if isMergeMode {
-                    Button("İptal") {
+                    Button(L10n.cancel) {
                         isMergeMode = false
                         mergeSelection.removeAll()
                     }
                 } else {
                     HStack(spacing: 16) {
+                        Button { isMergeMode = true } label: {
+                            Image(systemName: "arrow.triangle.merge")
+                        }
+                        .accessibilityLabel(L10n.actionMerge)
+
                         NavigationLink {
                             NotificationsListView()
                         } label: {
@@ -233,18 +269,11 @@ struct TripListView: View {
                             }
                         }
                         .accessibilityLabel(L10n.notificationsTitle)
-
-                        if !recordingService.state.isActiveSession {
-                            Button { _ = recordingService.startManualRecording() } label: {
-                                Label("Başlat", systemImage: "record.circle")
-                            }
-                            .transition(.scale.combined(with: .opacity))
-                        }
                     }
-                    .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: recordingService.state.isActiveSession)
                 }
             }
         }
+        .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: recordingService.state.isActiveSession)
     }
 
     @ViewBuilder
@@ -339,11 +368,11 @@ struct TripListView: View {
         let selected = completedTrips.filter { mergeSelection.contains($0.id) }
         do {
             if let merged = try TripMergeService.merge(trips: selected, into: modelContext) {
-                let tripID = merged.persistentModelID
+                let tripUUID = merged.id
                 let container = modelContext.container
                 Task { @MainActor in
                     await TripPostProcessor.process(
-                        tripID: tripID,
+                        tripUUID: tripUUID,
                         container: container
                     )
                 }

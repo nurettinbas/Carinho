@@ -68,7 +68,7 @@ struct PlacePickerView: View {
         }
       }
 
-      Section(L10n.string("place.info.section")) {
+      Section {
         TextField(L10n.string("place.name.field"), text: $name)
           .focused($isNameFocused)
           .submitLabel(.done)
@@ -80,6 +80,10 @@ struct PlacePickerView: View {
           }
         }
         Toggle(L10n.string("place.privacy_zone"), isOn: $isPrivacyZone)
+      } header: {
+        Text(L10n.string("place.info.section"))
+      } footer: {
+        Text(L10n.placePrivacyZoneHint)
       }
 
       Section(L10n.string("place.location.section")) {

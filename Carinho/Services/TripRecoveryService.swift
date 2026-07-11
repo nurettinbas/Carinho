@@ -50,25 +50,69 @@ enum TripRecoveryService {
     }
 
     @MainActor
-    static func finalizeOrphan(_ trip: Trip, in context: ModelContext, saveTrip: Bool) {
+    @discardableResult
+    static func finalizeOrphan(_ trip: Trip, in context: ModelContext, saveTrip: Bool) -> Bool {
         TripNotificationService.cancelOrphanStaleNotification(tripID: trip.id)
+        if trip.endedAt != nil {
+            return true
+        }
         trip.endedAt = trip.sortedPoints.last?.timestamp ?? Date()
-        if !saveTrip {
+        if saveTrip {
+            trip.geocodeStatus = .pending
+        } else {
             context.delete(trip)
         }
-        try? context.save()
+        do {
+            try context.save()
+            if saveTrip {
+                let tripUUID = trip.id
+                let container = context.container
+                Task { @MainActor in
+                    await TripPostProcessor.process(tripUUID: tripUUID, container: container)
+                }
+                TripStore.syncWidgetWeekDistance(in: context)
+            }
+            return true
+        } catch {
+            AppErrorPresenter.shared.present(L10n.orphanSaveFailed(error.localizedDescription))
+            return false
+        }
     }
 
     @MainActor
-    static func deleteOrphan(_ trip: Trip, in context: ModelContext) {
+    @discardableResult
+    static func deleteOrphan(_ trip: Trip, in context: ModelContext) -> Bool {
+        if trip.endedAt != nil {
+            TripNotificationService.cancelOrphanStaleNotification(tripID: trip.id)
+            return true
+        }
         TripNotificationService.cancelOrphanStaleNotification(tripID: trip.id)
         context.delete(trip)
-        try? context.save()
+        do {
+            try context.save()
+            return true
+        } catch {
+            AppErrorPresenter.shared.present(L10n.orphanDeleteFailed(error.localizedDescription))
+            return false
+        }
     }
 
     @MainActor
-    static func resumeOrphan(_ trip: Trip, recordingService: TripRecordingService) {
+    @discardableResult
+    static func resumeOrphan(_ trip: Trip, recordingService: TripRecordingService) -> Bool {
+        if trip.endedAt != nil {
+            return false
+        }
+        guard recordingService.state == .idle else {
+            AppErrorPresenter.shared.present(L10n.orphanResumeBusy)
+            return false
+        }
         TripNotificationService.cancelOrphanStaleNotification(tripID: trip.id)
         recordingService.resumeRecording(trip: trip)
+        guard recordingService.state == .recording else {
+            AppErrorPresenter.shared.present(L10n.orphanResumeFailed)
+            return false
+        }
+        return true
     }
 }

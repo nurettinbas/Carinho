@@ -2,12 +2,8 @@ import CoreLocation
 import Foundation
 
 public enum DateFormatters {
-    private static let preferredLanguageKey = "preferredLanguageCode"
     public static var currentLocale: Locale {
-        if let code = RecordingControlBridge.sharedDefaults().string(forKey: preferredLanguageKey) {
-            return Locale(identifier: code)
-        }
-        return .current
+        .current
     }
 
     public static func tripDateFormatter() -> DateFormatter {

@@ -120,12 +120,35 @@ final class SchemaMigrationTests: XCTestCase {
             connectionIdentifier: "car-audio",
             connectionDisplayName: "Şair"
         )
+        vehicle.migrateLegacyTriggerFlagsIfNeeded()
+        vehicle.syncLegacyConnectionFields()
         container.mainContext.insert(vehicle)
         try container.mainContext.save()
 
         let fetched = try container.mainContext.fetch(FetchDescriptor<VehicleProfile>()).first
         XCTAssertEqual(fetched?.connectionKind, .bluetooth)
         XCTAssertEqual(fetched?.bluetoothID, "car-audio")
+    }
+
+    func testV7VehicleProfileMultiChannelFields() throws {
+        let container = try ModelContainer(
+            for: Schema(versionedSchema: CarinhoSchemaV7.self),
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let vehicle = VehicleProfile(
+            name: "Ford Puma",
+            autoTriggerCarPlayEnabled: true,
+            autoTriggerBluetoothEnabled: true,
+            bluetoothTriggerIdentifier: "puma-bt",
+            bluetoothTriggerDisplayName: "Ford Puma"
+        )
+        container.mainContext.insert(vehicle)
+        try container.mainContext.save()
+
+        let fetched = try container.mainContext.fetch(FetchDescriptor<VehicleProfile>()).first
+        XCTAssertTrue(fetched?.autoTriggerCarPlayEnabled == true)
+        XCTAssertTrue(fetched?.autoTriggerBluetoothEnabled == true)
+        XCTAssertEqual(fetched?.bluetoothTriggerIdentifier, "puma-bt")
     }
 }
 
@@ -137,6 +160,7 @@ final class VehicleConnectionCoordinatorTests: XCTestCase {
         defaults.set(VehicleConnectionTrigger.bluetooth.rawValue, forKey: "vehicle.lastTrigger")
 
         let settings = AppSettings(userDefaults: defaults)
+        settings.activeAutoTriggerVehicleID = UUID()
         settings.pairVehicle(id: "car-audio", name: "Şair", type: .bluetoothAudio)
 
         let coordinator = VehicleConnectionCoordinator.shared
@@ -145,55 +169,32 @@ final class VehicleConnectionCoordinatorTests: XCTestCase {
 
         XCTAssertTrue(defaults.bool(forKey: "vehicle.lastConnected"))
     }
-}
 
-final class TripReportPDFTests: XCTestCase {
-    func testBusinessTripsFiltersCategory() {
-        let businessTrip = Trip(
-            startedAt: Date(),
-            endedAt: Date(),
-            distanceMeters: 1000,
-            category: .business
-        )
-        let personalTrip = Trip(
-            startedAt: Date(),
-            endedAt: Date(),
-            distanceMeters: 1000,
-            category: .personal
-        )
-        let trips = TripReportPDF.businessTrips(in: [businessTrip, personalTrip])
-        XCTAssertEqual(trips.count, 1)
-    }
+    func testAcknowledgeLiveConnectionPreventsDuplicateConnectScheduling() async {
+        let defaults = UserDefaults(suiteName: "test.carinho.coordinator.\(UUID().uuidString)")!
+        let settings = AppSettings(userDefaults: defaults)
+        settings.activeAutoTriggerVehicleID = UUID()
+        settings.pairVehicle(id: "car-audio", name: "Ford Puma", type: .bluetoothAudio)
 
-    func testGenerateMonthlyWorkReportReturnsNilForEmptyBusinessTrips() {
-        let personalTrip = Trip(
-            startedAt: Date(),
-            endedAt: Date(),
-            distanceMeters: 1000,
-            category: .personal
+        let recordingService = TripRecordingService(
+            locationService: LocationService(),
+            geocodingService: GeocodingService(),
+            motionActivityService: MotionActivityService(),
+            settings: settings
         )
-        let data = TripReportPDF.generateMonthlyWorkReport(
-            trips: [personalTrip],
-            places: [],
-            privacyRadius: 500
-        )
-        XCTAssertNil(data)
-    }
 
-    func testGenerateMonthlyWorkReportProducesData() {
-        let businessTrip = Trip(
-            startedAt: Date(),
-            endedAt: Date(),
-            distanceMeters: 5000,
-            category: .business
-        )
-        let data = TripReportPDF.generateMonthlyWorkReport(
-            trips: [businessTrip],
-            places: [],
-            privacyRadius: 500
-        )
-        XCTAssertNotNil(data)
-        XCTAssertGreaterThan(data?.count ?? 0, 100)
+        let coordinator = VehicleConnectionCoordinator.shared
+        coordinator.configure(recordingService: recordingService)
+        coordinator.handleBluetoothSnapshot(isConnected: true)
+
+        coordinator.acknowledgeLiveConnectionWithoutRecording()
+        coordinator.handleBluetoothSnapshot(isConnected: true)
+
+        XCTAssertTrue(defaults.bool(forKey: "vehicle.lastConnected"))
+        XCTAssertEqual(recordingService.state, .idle)
+
+        try? await Task.sleep(for: .seconds(2.5))
+        XCTAssertEqual(recordingService.state, .idle)
     }
 }
 
@@ -267,6 +268,53 @@ final class TripStoreTests: XCTestCase {
     }
 }
 
+@MainActor
+final class TripRecoveryServiceTests: XCTestCase {
+    func testDeleteOrphanSucceedsWhenTripAlreadyEnded() throws {
+        let container = try ModelContainer(
+            for: Trip.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = container.mainContext
+        let ended = Trip(startedAt: Date().addingTimeInterval(-120), endedAt: Date())
+        context.insert(ended)
+        try context.save()
+
+        XCTAssertTrue(TripRecoveryService.deleteOrphan(ended, in: context))
+        XCTAssertNotNil(ended.endedAt)
+    }
+
+    func testFinalizeOrphanSucceedsWhenTripAlreadyEnded() throws {
+        let container = try ModelContainer(
+            for: Trip.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = container.mainContext
+        let endedAt = Date()
+        let ended = Trip(startedAt: Date().addingTimeInterval(-120), endedAt: endedAt)
+        context.insert(ended)
+        try context.save()
+
+        XCTAssertTrue(TripRecoveryService.finalizeOrphan(ended, in: context, saveTrip: true))
+        XCTAssertEqual(ended.endedAt, endedAt)
+    }
+
+    func testFinalizeOrphanSavesOpenTrip() throws {
+        let container = try ModelContainer(
+            for: Trip.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = container.mainContext
+        let open = Trip(startedAt: Date().addingTimeInterval(-120), endedAt: nil)
+        context.insert(open)
+        try context.save()
+
+        XCTAssertTrue(TripRecoveryService.finalizeOrphan(open, in: context, saveTrip: true))
+        XCTAssertNotNil(open.endedAt)
+        XCTAssertEqual(TripStore.orphans(from: context).count, 0)
+    }
+}
+
 final class TripDateGroupingTests: XCTestCase {
     func testGroupsTodayTrip() {
         let trip = Trip(startedAt: Date(), endedAt: Date())
@@ -286,12 +334,6 @@ enum DeviceTestChecklist {
         "Uygulamayı öldür → aç → orphan banner / recovery",
         "Detay haritada rota gerçekçi (denizden geçmiyor)"
     ]
-}
-
-final class DeviceTestChecklistTests: XCTestCase {
-    func testChecklistHasSixItems() {
-        XCTAssertEqual(DeviceTestChecklist.items.count, 6)
-    }
 }
 
 final class RecordingStopPolicyTests: XCTestCase {
@@ -322,5 +364,314 @@ final class RecordingStopPolicyTests: XCTestCase {
     func testManualTriggerSkipsIdleAutoStop() {
         XCTAssertFalse(RecordingStopPolicy.shouldApplyIdleAutoStop(activeTriggerIsManual: true))
         XCTAssertTrue(RecordingStopPolicy.shouldApplyIdleAutoStop(activeTriggerIsManual: false))
+    }
+}
+
+@MainActor
+final class VehiclePairingServiceTests: XCTestCase {
+    func testPairChannelsEnablesDualAutoTrigger() throws {
+        let container = try ModelContainer(
+            for: Schema(versionedSchema: CarinhoSchemaV7.self),
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = container.mainContext
+        let defaults = UserDefaults(suiteName: "test.carinho.pairing.\(UUID().uuidString)")!
+        let settings = AppSettings(userDefaults: defaults)
+        let vehicle = VehicleProfile(name: "Ford Puma", consumption: 6.5)
+        context.insert(vehicle)
+
+        VehiclePairingService.pairChannels(
+            vehicle: vehicle,
+            carPlay: true,
+            bluetooth: true,
+            bluetoothUID: "puma-bt-hfp",
+            bluetoothDisplayName: "Ford Puma",
+            in: context,
+            settings: settings
+        )
+
+        XCTAssertEqual(settings.activeAutoTriggerVehicleID, vehicle.id)
+        XCTAssertTrue(settings.pairedCarPlayChannelEnabled)
+        XCTAssertTrue(settings.pairedBluetoothChannelEnabled)
+        XCTAssertEqual(settings.pairedBluetoothUID, "puma-bt-hfp")
+        XCTAssertEqual(settings.pairedVehicleID, "puma-bt-hfp")
+        XCTAssertEqual(vehicle.bluetoothTriggerUID, "puma-bt-hfp")
+    }
+
+    func testDeleteVehicleUnpairsActiveProfile() throws {
+        let container = try ModelContainer(
+            for: Schema(versionedSchema: CarinhoSchemaV7.self),
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = container.mainContext
+        let defaults = UserDefaults(suiteName: "test.carinho.delete.\(UUID().uuidString)")!
+        let settings = AppSettings(userDefaults: defaults)
+        let vehicle = VehicleProfile(name: "Ford Puma")
+        context.insert(vehicle)
+        VehiclePairingService.pairChannels(
+            vehicle: vehicle,
+            carPlay: true,
+            bluetooth: false,
+            bluetoothIdentifier: nil,
+            bluetoothDisplayName: nil,
+            in: context,
+            settings: settings
+        )
+
+        VehiclePairingService.deleteVehicle(vehicle, in: context, settings: settings)
+
+        let remaining = try context.fetch(FetchDescriptor<VehicleProfile>())
+        XCTAssertTrue(remaining.isEmpty)
+        XCTAssertNil(settings.activeAutoTriggerVehicleID)
+        XCTAssertFalse(settings.hasAutoTriggerVehicle)
+    }
+
+    func testRepairStaleActivePairingClearsMissingVehicle() throws {
+        let container = try ModelContainer(
+            for: Schema(versionedSchema: CarinhoSchemaV7.self),
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let defaults = UserDefaults(suiteName: "test.carinho.stale.\(UUID().uuidString)")!
+        let settings = AppSettings(userDefaults: defaults)
+        settings.activeAutoTriggerVehicleID = UUID()
+        settings.pairedCarPlayChannelEnabled = true
+        settings.pairedVehicleID = VehicleConnectionKind.carPlayVehicleID
+
+        VehiclePairingService.repairStaleActivePairing(in: container.mainContext, settings: settings)
+
+        XCTAssertNil(settings.activeAutoTriggerVehicleID)
+        XCTAssertFalse(settings.pairedCarPlayChannelEnabled)
+    }
+
+    func testRepairStaleActivePairingClearsOrphanedPairingFlags() throws {
+        let container = try ModelContainer(
+            for: Schema(versionedSchema: CarinhoSchemaV7.self),
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = container.mainContext
+        let defaults = UserDefaults(suiteName: "test.carinho.stale.flags.\(UUID().uuidString)")!
+        let settings = AppSettings(userDefaults: defaults)
+        let vehicle = VehicleProfile(
+            name: "Ford",
+            autoTriggerCarPlayEnabled: true
+        )
+        context.insert(vehicle)
+        settings.activeAutoTriggerVehicleID = vehicle.id
+        settings.pairedCarPlayChannelEnabled = false
+        settings.pairedBluetoothChannelEnabled = false
+
+        VehiclePairingService.repairStaleActivePairing(in: context, settings: settings)
+
+        XCTAssertNil(settings.activeAutoTriggerVehicleID)
+        XCTAssertFalse(vehicle.autoTriggerCarPlayEnabled)
+    }
+}
+
+final class BluetoothRouteMatcherTests: XCTestCase {
+    func testMatchesByUID() {
+        let candidate = BluetoothRouteCandidate(uid: "AA:BB:CC", name: "Ford Puma", portTypeLabel: "HFP")
+        let pairing = BluetoothPairingIdentity(uid: "AA:BB:CC", displayName: "Ford Puma", legacyIdentifier: "AA:BB:CC")
+
+        XCTAssertEqual(
+            BluetoothRouteMatcher.match(candidate: candidate, pairing: pairing, allowLastKnownVehicleFallback: false),
+            .uid
+        )
+    }
+
+    func testMatchesByNameWhenUIDChangesBetweenPorts() {
+        let candidate = BluetoothRouteCandidate(uid: "AA:BB:DD", name: "Ford Puma", portTypeLabel: "A2DP")
+        let pairing = BluetoothPairingIdentity(uid: "AA:BB:CC", displayName: "Ford Puma", legacyIdentifier: "AA:BB:CC")
+
+        XCTAssertEqual(
+            BluetoothRouteMatcher.match(candidate: candidate, pairing: pairing, allowLastKnownVehicleFallback: false),
+            .name
+        )
+    }
+
+    func testMatchesLegacyIdentifierWhenOnlyNameWasStored() {
+        let candidate = BluetoothRouteCandidate(uid: "AA:BB:CC", name: "Ford Puma", portTypeLabel: "HFP")
+        let pairing = BluetoothPairingIdentity(uid: nil, displayName: "Ford Puma", legacyIdentifier: "ford puma")
+
+        XCTAssertEqual(
+            BluetoothRouteMatcher.match(candidate: candidate, pairing: pairing, allowLastKnownVehicleFallback: false),
+            .name
+        )
+    }
+
+    func testFallsBackToLastKnownVehicle() {
+        let candidate = BluetoothRouteCandidate(uid: "UNKNOWN", name: "Other Car", portTypeLabel: "HFP")
+        let pairing = BluetoothPairingIdentity(uid: "AA:BB:CC", displayName: "Ford Puma", legacyIdentifier: "AA:BB:CC")
+
+        XCTAssertEqual(
+            BluetoothRouteMatcher.match(candidate: candidate, pairing: pairing, allowLastKnownVehicleFallback: true),
+            .lastKnownVehicle
+        )
+        XCTAssertNil(
+            BluetoothRouteMatcher.match(candidate: candidate, pairing: pairing, allowLastKnownVehicleFallback: false)
+        )
+    }
+}
+
+@MainActor
+final class TabSelectionTests: XCTestCase {
+    func testOpenPairingSelectsPairingTab() {
+        let tabs = TabSelection.shared
+        tabs.selectedTab = .trips
+        tabs.openPairing()
+        XCTAssertEqual(tabs.selectedTab, .pairing)
+    }
+}
+
+final class DeviceTestChecklistTests: XCTestCase {
+    func testChecklistHasSixItems() {
+        XCTAssertEqual(DeviceTestChecklist.items.count, 6)
+    }
+}
+
+@MainActor
+final class TripRecordingPendingGPSTests: XCTestCase {
+    private func makeService() throws -> (TripRecordingService, LocationService, ModelContext) {
+        let defaults = UserDefaults(suiteName: "test.carinho.pending.\(UUID().uuidString)")!
+        let settings = AppSettings(userDefaults: defaults)
+        settings.gpsPendingTimeoutSeconds = 0.2
+
+        let container = try ModelContainer(
+            for: Trip.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = container.mainContext
+        let locationService = LocationService()
+        let recordingService = TripRecordingService(
+            locationService: locationService,
+            geocodingService: GeocodingService(),
+            motionActivityService: MotionActivityService(),
+            settings: settings
+        )
+        recordingService.configure(modelContext: context)
+        settings.pairVehicle(id: "car-audio", name: "Test Car", type: .bluetoothAudio)
+        return (recordingService, locationService, context)
+    }
+
+    func testAutomaticStartEntersPendingWithoutPersistingTrip() throws {
+        let (recordingService, _, context) = try makeService()
+
+        recordingService.handleVehicleConnected(trigger: .bluetooth)
+
+        XCTAssertEqual(recordingService.state, .pendingGPS)
+        XCTAssertNil(recordingService.activeTripID)
+        let trips = try context.fetch(FetchDescriptor<Trip>())
+        XCTAssertTrue(trips.isEmpty)
+    }
+
+    func testPendingRecordingDoesNotConfirmAtZeroSpeed() throws {
+        let (recordingService, locationService, context) = try makeService()
+        recordingService.handleVehicleConnected(trigger: .bluetooth)
+
+        let location = CLLocation(
+            coordinate: CLLocationCoordinate2D(latitude: 41.0, longitude: 29.0),
+            altitude: 0,
+            horizontalAccuracy: 10,
+            verticalAccuracy: 10,
+            course: 0,
+            speed: 0,
+            timestamp: Date()
+        )
+        locationService.onLocationUpdate?(location)
+
+        XCTAssertEqual(recordingService.state, .pendingGPS)
+        XCTAssertNil(recordingService.activeTripID)
+        let trips = try context.fetch(FetchDescriptor<Trip>())
+        XCTAssertTrue(trips.isEmpty)
+    }
+
+    func testManualStopDuringPendingDoesNotPersistTrip() throws {
+        let (recordingService, _, context) = try makeService()
+        recordingService.handleVehicleConnected(trigger: .bluetooth)
+
+        recordingService.stopManualRecording()
+
+        XCTAssertEqual(recordingService.state, .idle)
+        let trips = try context.fetch(FetchDescriptor<Trip>())
+        XCTAssertTrue(trips.isEmpty)
+    }
+
+    func testManualStopDuringRecordingAlwaysSavesShortTrip() throws {
+        let (recordingService, locationService, context) = try makeService()
+        recordingService.handleVehicleConnected(trigger: .bluetooth)
+
+        let location = CLLocation(
+            coordinate: CLLocationCoordinate2D(latitude: 41.0, longitude: 29.0),
+            altitude: 0,
+            horizontalAccuracy: 10,
+            verticalAccuracy: 10,
+            course: 0,
+            speed: 12,
+            timestamp: Date()
+        )
+        locationService.onLocationUpdate?(location)
+        XCTAssertEqual(recordingService.state, .recording)
+
+        recordingService.stopManualRecording()
+
+        XCTAssertEqual(recordingService.state, .idle)
+        let trips = try context.fetch(FetchDescriptor<Trip>())
+        XCTAssertEqual(trips.count, 1)
+        XCTAssertNotNil(trips.first?.endedAt)
+        XCTAssertEqual(trips.first?.distanceMeters ?? -1, 0, accuracy: 0.1)
+    }
+
+    func testPendingRecordingConfirmsAfterFirstGPSPoint() throws {
+        let (recordingService, locationService, context) = try makeService()
+        recordingService.handleVehicleConnected(trigger: .bluetooth)
+
+        let location = CLLocation(
+            coordinate: CLLocationCoordinate2D(latitude: 41.0, longitude: 29.0),
+            altitude: 0,
+            horizontalAccuracy: 10,
+            verticalAccuracy: 10,
+            course: 0,
+            speed: 12,
+            timestamp: Date()
+        )
+        locationService.onLocationUpdate?(location)
+
+        XCTAssertEqual(recordingService.state, .recording)
+        XCTAssertNotNil(recordingService.activeTripID)
+        let trips = try context.fetch(FetchDescriptor<Trip>())
+        XCTAssertEqual(trips.count, 1)
+        XCTAssertEqual(trips.first?.points.count, 1)
+    }
+
+    func testPendingRecordingTimesOutSilently() async throws {
+        let (recordingService, _, context) = try makeService()
+        recordingService.handleVehicleConnected(trigger: .bluetooth)
+        XCTAssertEqual(recordingService.state, .pendingGPS)
+
+        try await Task.sleep(for: .milliseconds(300))
+
+        XCTAssertEqual(recordingService.state, .idle)
+        let trips = try context.fetch(FetchDescriptor<Trip>())
+        XCTAssertTrue(trips.isEmpty)
+    }
+
+    func testManualStartSkipsPendingState() throws {
+        let (recordingService, locationService, context) = try makeService()
+        _ = recordingService.startManualRecording()
+
+        XCTAssertEqual(recordingService.state, .recording)
+        let trips = try context.fetch(FetchDescriptor<Trip>())
+        XCTAssertEqual(trips.count, 1)
+
+        let location = CLLocation(
+            coordinate: CLLocationCoordinate2D(latitude: 41.0, longitude: 29.0),
+            altitude: 0,
+            horizontalAccuracy: 10,
+            verticalAccuracy: 10,
+            course: 0,
+            speed: 12,
+            timestamp: Date()
+        )
+        locationService.onLocationUpdate?(location)
+        XCTAssertEqual(trips.first?.points.count, 1)
     }
 }

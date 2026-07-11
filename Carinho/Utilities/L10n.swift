@@ -27,6 +27,10 @@ enum L10n {
     static var pause: String { string("action.pause") }
     static var resume: String { string("action.resume") }
     static var recordingPaused: String { string("recording.paused") }
+    static var recordingAwaitingGPS: String { string("recording.awaiting_gps") }
+    static var recordingAwaitingGPSTitle: String { string("recording.awaiting_gps.title") }
+    static var recordingAwaitingGPSBody: String { string("recording.awaiting_gps.body") }
+    static var recordingPendingCancelled: String { string("recording.pending_cancelled") }
     static var settingsRecordingSection: String { string("settings.recording.section") }
     static var settingsAutoRecording: String { string("settings.recording.auto") }
     static var settingsRecordingSounds: String { string("settings.recording.sounds") }
@@ -102,7 +106,10 @@ enum L10n {
     static var placePickerEditTitle: String { string("place.picker.edit_title") }
     static var placePickerNewTitle: String { string("place.picker.new_title") }
     static var placePickerSave: String { string("place.picker.save") }
+    static var placePrivacyZoneHint: String { string("place.privacy_zone.hint") }
     static var settingsFavoritePlaces: String { string("settings.favorite_places") }
+    static var settingsFavoritePlacesHint: String { string("settings.favorite_places.hint") }
+    static var settingsFavoritePlacesEmpty: String { string("settings.favorite_places.empty") }
     static var settingsAddPlace: String { string("settings.add_place") }
 
     static var actionRefresh: String { string("action.refresh") }
@@ -118,13 +125,11 @@ enum L10n {
     static var settingsPairVehicleHint: String { string("settings.vehicle_pairing.hint") }
     static var settingsDefineVehicle: String { string("settings.vehicle_pairing.define") }
     static var settingsLanguageSection: String { string("settings.language.section") }
-    static var settingsLanguagePicker: String { string("settings.language.picker") }
-    static var settingsLanguageSystem: String { string("settings.language.system") }
-    static var settingsLanguageTurkish: String { string("settings.language.turkish") }
-    static var settingsLanguageEnglish: String { string("settings.language.english") }
+    static var settingsLanguageSystemHint: String { string("settings.language.system_hint") }
     static var settingsFuelSection: String { string("settings.fuel.section") }
     static var settingsFuelConsumption: String { string("settings.fuel.consumption") }
     static var settingsFuelPrice: String { string("settings.fuel.price") }
+    static var settingsFuelHint: String { string("settings.fuel.hint") }
     static var settingsPrivacySection: String { string("settings.privacy.section") }
     static var settingsAppLock: String { string("settings.privacy.app_lock") }
     static var settingsPrivacyRadius: String { string("settings.privacy.radius") }
@@ -148,10 +153,10 @@ enum L10n {
     static var settingsExportCSV: String { string("settings.backup.csv") }
     static var settingsExportGPX: String { string("settings.backup.gpx") }
     static var settingsExportKML: String { string("settings.backup.kml") }
-    static var settingsExportMonthlyPDF: String { string("settings.backup.pdf") }
     static var settingsShareFile: String { string("settings.backup.share") }
     static var settingsAboutSection: String { string("settings.about.section") }
     static var settingsVersion: String { string("settings.about.version") }
+    static var settingsDeveloperMode: String { string("settings.developer_mode") }
     static var settingsAboutPrivacy: String { string("settings.about.privacy") }
     static var settingsLocationNotDetermined: String { string("settings.location.not_determined") }
     static var settingsLocationWhenInUse: String { string("settings.location.when_in_use") }
@@ -167,6 +172,11 @@ enum L10n {
     static var vehiclePairingSavedVehicles: String { string("vehicle.pairing.saved_vehicles") }
     static var vehiclePairingConnectedDevice: String { string("vehicle.pairing.connected_device") }
     static var vehiclePairingConfirm: String { string("vehicle.pairing.confirm") }
+    static var vehicleIdentityPromptTitle: String { string("vehicle.identity.prompt.title") }
+    static func vehicleIdentityPromptMessage(vehicleName: String, connection: String) -> String {
+        String(format: string("vehicle.identity.prompt.message"), connection, vehicleName)
+    }
+    static var vehiclePairingBluetoothSetupHint: String { string("vehicle.pairing.bluetooth_setup_hint") }
     static var vehiclePairingWaitingBluetooth: String { string("vehicle.pairing.waiting_bluetooth") }
     static var vehiclePairingCarPlayConnected: String { string("vehicle.pairing.carplay_connected") }
     static var vehiclePairingCarPlayHint: String { string("vehicle.pairing.carplay_hint") }
@@ -187,25 +197,120 @@ enum L10n {
     static var externalStartConfirmAction: String { string("recording.external_start.confirm") }
     static var cancel: String { string("action.cancel") }
     static var ok: String { string("action.ok") }
-    static var pdfWorkReportTitle: String { string("pdf.work_report.title") }
-    static var pdfColumnDate: String { string("pdf.column.date") }
-    static var pdfColumnRoute: String { string("pdf.column.route") }
-    static var pdfColumnDistance: String { string("pdf.column.distance") }
-    static var pdfColumnDuration: String { string("pdf.column.duration") }
-    static var pdfColumnCost: String { string("pdf.column.cost") }
-    static var pdfNoBusinessTrips: String { string("pdf.no_business_trips") }
-    static var pdfGenerateFailed: String { string("pdf.generate_failed") }
     static var settingsSiriShortcutsHint: String { string("settings.siri.shortcuts_hint") }
     static var settingsSiriShortcutsLink: String { string("settings.siri.shortcuts_link") }
     static var tabTrips: String { string("tab.trips") }
     static var tabStats: String { string("tab.stats") }
+    static var tabPairing: String { string("tab.pairing") }
     static var tabSettings: String { string("tab.settings") }
 
-    static func pdfWorkReportSummary(distance: String, tripCount: Int, fuelCost: String) -> String {
-        let format = string("pdf.work_report.summary")
-        return String(format: format, distance, tripCount, fuelCost)
+    static var pairingTabTitle: String { string("pairing.tab.title") }
+    static var pairingTabHeroTitle: String { string("pairing.tab.hero.title") }
+    static var pairingTabStatusConnected: String { string("pairing.tab.status.connected") }
+    static var pairingTabStatusDisconnected: String { string("pairing.tab.status.disconnected") }
+    static var pairingTabRefreshing: String { string("pairing.tab.refreshing") }
+    static var pairingTabRefreshUpdated: String { string("pairing.tab.refresh.updated") }
+    static var pairingTabRemovePairing: String { string("pairing.tab.remove_pairing") }
+    static var pairingTabDeleteVehicleTitle: String { string("pairing.tab.delete_vehicle.title") }
+    static var pairingTabDeleteVehicleMessage: String { string("pairing.tab.delete_vehicle.message") }
+    static var pairingTabDeleteVehicleMessageActive: String { string("pairing.tab.delete_vehicle.message_active") }
+    static var pairingTabAddVehicle: String { string("pairing.tab.add_vehicle") }
+    static var pairingTabAddFirstVehicle: String { string("pairing.tab.add_first_vehicle") }
+    static var pairingTabSavedVehicles: String { string("pairing.tab.saved_vehicles") }
+    static var pairingTabActivePairing: String { string("pairing.tab.active_pairing") }
+    static var pairingTabActiveBadge: String { string("pairing.tab.active_badge") }
+    static var pairingTabSetupTitle: String { string("pairing.tab.setup.title") }
+    static var pairingTabSetupSubtitle: String { string("pairing.tab.setup.subtitle") }
+    static var pairingTabSelectVehicle: String { string("pairing.tab.select_vehicle") }
+    static var pairingTabCarPlaySetupTitle: String { string("pairing.tab.carplay_setup.title") }
+    static var pairingTabBluetoothSetupTitle: String { string("pairing.tab.bluetooth_setup.title") }
+    static var pairingTabRecordingStatus: String { string("pairing.tab.recording_status") }
+    static var pairingReadinessTitle: String { string("pairing.tab.readiness.title") }
+    static var pairingReadinessLocationAlways: String { string("pairing.tab.readiness.location_always") }
+    static var pairingReadinessMotion: String { string("pairing.tab.readiness.motion") }
+    static var pairingReadinessVehiclePaired: String { string("pairing.tab.readiness.vehicle_paired") }
+    static var pairingReadinessConnectionDetected: String { string("pairing.tab.readiness.connection_detected") }
+    static var pairingReadinessAutoRecording: String { string("pairing.tab.readiness.auto_recording") }
+    static var pairingReadinessReady: String { string("pairing.tab.readiness.ready") }
+    static var pairingReadinessNotReady: String { string("pairing.tab.readiness.not_ready") }
+    static var pairingTabDefineVehicle: String { string("pairing.tab.define_vehicle") }
+    static var pairingTabConnectionNow: String { string("pairing.tab.connection_now") }
+    static var pairingTabConnectionDetected: String { string("pairing.tab.connection_detected") }
+    static var pairingTabConnectionNotDetected: String { string("pairing.tab.connection_not_detected") }
+    static var pairingTabPairNow: String { string("pairing.tab.pair_now") }
+    static var pairingTabPairedSuccess: String { string("pairing.tab.paired_success") }
+    static var pairingTabWaitingConnection: String { string("pairing.tab.wait_connection") }
+    static var pairingTabConfirmVehicleHint: String { string("pairing.tab.confirm_vehicle_hint") }
+    static var pairingTabAdvanced: String { string("pairing.tab.advanced") }
+    static var pairingTabPickChannelHint: String { string("pairing.tab.pick_channel_hint") }
+    static func pairingTabDebugDevice(_ device: String) -> String {
+        String(format: string("pairing.tab.debug.device"), device)
+    }
+    static func pairingTabDebugUID(_ uid: String) -> String {
+        String(format: string("pairing.tab.debug.uid"), uid)
+    }
+    static func pairingTabDebugMatchMethod(_ method: String) -> String {
+        String(format: string("pairing.tab.debug.match_method"), method)
+    }
+    static var pairingTabDebugMatchUID: String { string("pairing.tab.debug.match.uid") }
+    static var pairingTabDebugMatchName: String { string("pairing.tab.debug.match.name") }
+    static var pairingTabDebugMatchLegacy: String { string("pairing.tab.debug.match.legacy") }
+    static var pairingTabDebugMatchLastKnown: String { string("pairing.tab.debug.match.last_known") }
+    static var pairingTabFirstSetupHint: String { string("pairing.tab.first_setup_hint") }
+    static var pairingTabEmptyTitle: String { string("pairing.tab.empty.title") }
+    static var pairingTabEmptyMessage: String { string("pairing.tab.empty.message") }
+    static var pairingTabVehicleSection: String { string("pairing.tab.vehicle.section") }
+    static var pairingTabVehicleName: String { string("pairing.tab.vehicle.name") }
+    static var pairingTabVehicleNotFound: String { string("pairing.tab.vehicle.not_found") }
+    static var pairingTabFuelType: String { string("pairing.tab.vehicle.fuel_type") }
+    static var pairingTabChargePrice: String { string("pairing.tab.vehicle.charge_price") }
+    static var pairingTabDefaultVehicle: String { string("pairing.tab.vehicle.default") }
+    static var pairingTabEditorPairingHint: String { string("pairing.tab.editor.pairing_hint") }
+    static var pairingTabSave: String { string("pairing.tab.save") }
+    static var pairingTabNewVehicleName: String { string("pairing.tab.new_vehicle_name") }
+    static var pairingTabMissingConnection: String { string("pairing.tab.missing_connection") }
+    static var pairingTabWaitingBluetooth: String { string("pairing.tab.waiting_bluetooth") }
+    static var pairingAutoStart: String { string("pairing.auto_start") }
+    static var pairingAutoStartHint: String { string("pairing.auto_start.hint") }
+    static var pairingLiveConnectionTitle: String { string("pairing.live_connection.title") }
+    static var pairingLiveConnectionNone: String { string("pairing.live_connection.none") }
+    static var pairingConnectionCarPlay: String { string("pairing.connection.carplay") }
+    static func pairingConnectionBluetooth(_ name: String, _ portType: String) -> String {
+        String(format: string("pairing.connection.bluetooth"), name, portType)
     }
 
+    static var orphanBannerTitle: String { string("orphan.banner.title") }
+    static var orphanBannerMessage: String { string("orphan.banner.message") }
+    static var orphanResume: String { string("orphan.banner.resume") }
+    static var orphanSave: String { string("orphan.banner.save") }
+    static var orphanAlreadyEnded: String { string("orphan.error.already_ended") }
+    static var orphanResumeBusy: String { string("orphan.error.resume_busy") }
+    static var orphanResumeFailed: String { string("orphan.error.resume_failed") }
+
+    static func orphanSaveFailed(_ detail: String) -> String {
+        String(format: string("orphan.error.save_failed"), detail)
+    }
+
+    static func orphanDeleteFailed(_ detail: String) -> String {
+        String(format: string("orphan.error.delete_failed"), detail)
+    }
+
+    static func storeOpenFailed(_ detail: String) -> String {
+        String(format: string("store.open_failed"), detail)
+    }
+
+    static var storeRecoveredAfterReset: String { string("store.recovered_after_reset") }
+    static var storeOpenFailedInMemory: String { string("store.open_failed_in_memory") }
+    static var errorTitle: String { string("alert.error.title") }
+    static var infoTitle: String { string("alert.info.title") }
+
+    static func pairingTabSaveFailed(_ detail: String) -> String {
+        String(format: string("pairing.tab.save_failed"), detail)
+    }
+
+    static func pairingTabDeleteFailed(_ detail: String) -> String {
+        String(format: string("pairing.tab.delete_failed"), detail)
+    }
 
     static func placeSuggestionVisits(_ count: Int) -> String {
         let format = string("place.suggestion.visits")
@@ -224,5 +329,73 @@ enum L10n {
     static func maxSpeedDetail(_ speed: String) -> String {
         let format = string("Maks. hız: %@")
         return String(format: format, speed)
+    }
+
+    static var locationBadgeAlways: String { string("location.badge.always") }
+    static var locationBadgeWhenInUse: String { string("location.badge.when_in_use") }
+    static var locationBadgeDenied: String { string("location.badge.denied") }
+    static var pairingLocationWarning: String { string("pairing.location.warning") }
+    static var locationBannerGrant: String { string("location.banner.grant") }
+    static var locationBannerSettings: String { string("location.banner.settings") }
+
+    static var autoLogSectionTitle: String { string("auto_log.section.title") }
+    static var autoLogSectionHint: String { string("auto_log.section.hint") }
+    static var autoLogEmpty: String { string("auto_log.empty") }
+    static var autoLogClear: String { string("auto_log.clear") }
+
+    static func autoLogBluetoothConnectedStarted(_ time: String, _ vehicle: String?, _ delay: Int) -> String {
+        String(format: string("auto_log.bt.connected.started"), time, vehicle ?? "—", delay)
+    }
+
+    static func autoLogBluetoothConnectedAwaitingGPS(_ time: String, _ vehicle: String?, _ delay: Int) -> String {
+        String(format: string("auto_log.bt.connected.awaiting_gps"), time, vehicle ?? "—", delay)
+    }
+
+    static func autoLogBluetoothConnectedCancelled(_ time: String, _ vehicle: String?) -> String {
+        String(format: string("auto_log.bt.connected.cancelled"), time, vehicle ?? "—")
+    }
+
+    static func autoLogBluetoothConnectedSkipped(_ time: String, _ vehicle: String?) -> String {
+        String(format: string("auto_log.bt.connected.skipped"), time, vehicle ?? "—")
+    }
+
+    static func autoLogBluetoothDisconnectedStopped(_ time: String, _ delay: Int, _ distance: String) -> String {
+        String(format: string("auto_log.bt.disconnected.stopped"), time, delay, distance)
+    }
+
+    static func autoLogBluetoothDisconnectedSkipped(_ time: String) -> String {
+        String(format: string("auto_log.bt.disconnected.skipped"), time)
+    }
+
+    static func autoLogCarPlayConnectedStarted(_ time: String, _ vehicle: String?, _ delay: Int) -> String {
+        String(format: string("auto_log.carplay.connected.started"), time, vehicle ?? "—", delay)
+    }
+
+    static func autoLogCarPlayConnectedAwaitingGPS(_ time: String, _ vehicle: String?, _ delay: Int) -> String {
+        String(format: string("auto_log.carplay.connected.awaiting_gps"), time, vehicle ?? "—", delay)
+    }
+
+    static func autoLogCarPlayConnectedCancelled(_ time: String, _ vehicle: String?) -> String {
+        String(format: string("auto_log.carplay.connected.cancelled"), time, vehicle ?? "—")
+    }
+
+    static func autoLogCarPlayConnectedSkipped(_ time: String, _ vehicle: String?) -> String {
+        String(format: string("auto_log.carplay.connected.skipped"), time, vehicle ?? "—")
+    }
+
+    static func autoLogCarPlayDisconnectedStopped(_ time: String, _ delay: Int, _ distance: String) -> String {
+        String(format: string("auto_log.carplay.disconnected.stopped"), time, delay, distance)
+    }
+
+    static func autoLogCarPlayDisconnectedSkipped(_ time: String) -> String {
+        String(format: string("auto_log.carplay.disconnected.skipped"), time)
+    }
+
+    static func autoLogMotionStarted(_ time: String) -> String {
+        String(format: string("auto_log.motion.started"), time)
+    }
+
+    static func autoLogMotionStopped(_ time: String, _ distance: String) -> String {
+        String(format: string("auto_log.motion.stopped"), time, distance)
     }
 }

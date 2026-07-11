@@ -58,200 +58,64 @@ struct TripDetailView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            ZStack(alignment: .topTrailing) {
-                tripMapView(style: mapStyle, interactive: true)
-                    .onTapGesture {
-                        dismissNoteKeyboard()
-                    }
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                ZStack(alignment: .topTrailing) {
+                    tripMapView(style: mapStyle, interactive: true)
+                        .onTapGesture {
+                            dismissNoteKeyboard()
+                        }
 
-                VStack(alignment: .trailing, spacing: 8) {
-                    if !networkMonitor.isConnected {
-                        Text("Harita karoları için internet gerekir. Rota kayıtlı veriden çizilir.")
-                            .font(.caption)
-                            .padding(8)
-                            .background(.ultraThinMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
+                    VStack(alignment: .trailing, spacing: 8) {
+                        if !networkMonitor.isConnected {
+                            Text("Harita karoları için internet gerekir. Rota kayıtlı veriden çizilir.")
+                                .font(.caption2)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Capsule())
+                        }
 
-                    speedLegend
+                        compactSpeedLegend
 
-                    Button {
-                        showFullscreenMap = true
-                    } label: {
-                        Image(systemName: "arrow.up.left.and.arrow.down.right")
-                            .font(.body.weight(.semibold))
-                            .padding(10)
-                            .background(.ultraThinMaterial, in: Circle())
+                        Button {
+                            showFullscreenMap = true
+                        } label: {
+                            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                                .font(.subheadline.weight(.semibold))
+                                .frame(width: 34, height: 34)
+                                .background(.ultraThinMaterial, in: Circle())
+                        }
+                        .accessibilityLabel(L10n.mapFullscreen)
                     }
-                    .accessibilityLabel(L10n.mapFullscreen)
+                    .padding(12)
                 }
-                .padding()
+                .frame(height: geometry.size.height * 0.48)
+
+                detailPanel
+                    .frame(maxHeight: .infinity)
             }
-            .frame(maxHeight: .infinity)
-
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    summaryCard
-
-                    if !viewModel.speedSamples.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(L10n.tripSpeedChart)
-                                .font(.subheadline.bold())
-
-                            Chart(viewModel.speedSamples, id: \.id) { sample in
-                                AreaMark(
-                                    x: .value("Zaman", sample.date),
-                                    y: .value("Hız", sample.speedKmh)
-                                )
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [Color.blue.opacity(0.35), Color.blue.opacity(0.05)],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
-                                )
-
-                                LineMark(
-                                    x: .value("Zaman", sample.date),
-                                    y: .value("Hız", sample.speedKmh)
-                                )
-                                .foregroundStyle(Color.blue)
-                                .lineStyle(StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
-                            }
-                            .chartYScale(domain: 0...viewModel.speedChartMaxKmh)
-                            .chartYAxisLabel(L10n.speedKmh)
-                        }
-                        .padding(12)
-                        .background(Color(.secondarySystemBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-
-                    if !sortedStops.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(L10n.tripStopsSection)
-                                .font(.subheadline.bold())
-
-                            ForEach(sortedStops, id: \.persistentModelID) { stop in
-                                TripStopEditRow(stop: stop)
-                            }
-                        }
-                        .padding(12)
-                        .background(Color(.secondarySystemBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(L10n.tripEditTimesSection)
-                            .font(.subheadline.bold())
-
-                        DatePicker(L10n.tripStartedAt, selection: $editedStartedAt)
-
-                        if trip.endedAt != nil {
-                            DatePicker(L10n.tripEndedAt, selection: $editedEndedAt)
-                        }
-                    }
-                    .padding(12)
-                    .background(Color(.secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(L10n.tripTrimPointsSection)
-                            .font(.subheadline.bold())
-
-                        Stepper(L10n.tripTrimHead, value: $trimHeadCount, in: 0...maxTrimHead)
-                        Stepper(L10n.tripTrimTail, value: $trimTailCount, in: 0...maxTrimTail)
-                    }
-                    .padding(12)
-                    .background(Color(.secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(L10n.tripLocationOverrides)
-                            .font(.subheadline.bold())
-                        TextField(L10n.tripStartPlaceName, text: $startPlaceNameText)
-                            .textFieldStyle(.roundedBorder)
-                        TextField(L10n.tripEndPlaceName, text: $endPlaceNameText)
-                            .textFieldStyle(.roundedBorder)
-                        TextField(L10n.tripStartAddress, text: $startAddressText)
-                            .textFieldStyle(.roundedBorder)
-                        TextField(L10n.tripEndAddress, text: $endAddressText)
-                            .textFieldStyle(.roundedBorder)
-                    }
-                    .padding(12)
-                    .background(Color(.secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                    Picker("Kategori", selection: $selectedCategoryID) {
-                        ForEach(categories) { category in
-                            Label(category.name, systemImage: category.systemImage)
-                                .tag(category.id.uuidString)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .onChange(of: selectedCategoryID) { _, _ in
-                        dismissNoteKeyboard()
-                    }
-
-                    Picker("Etiket", selection: $selectedLabel) {
-                        Text("Yok").tag("")
-                        ForEach(TripLabelOption.allCases, id: \.rawValue) { option in
-                            Text(option.rawValue).tag(option.rawValue)
-                        }
-                    }
-                    .onChange(of: selectedLabel) { _, _ in
-                        dismissNoteKeyboard()
-                    }
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Not")
-                            .font(.subheadline.bold())
-
-                        TextField("Not ekle…", text: $noteText, axis: .vertical)
-                            .lineLimit(2...4)
-                            .focused($noteFocused)
-                            .submitLabel(.done)
-                            .onSubmit { dismissNoteKeyboard() }
-                            .textFieldStyle(.roundedBorder)
-                    }
-                    .padding(12)
-                    .background(Color(.secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                    Button("Değişiklikleri kaydet") {
-                        saveEdits()
-                        dismissNoteKeyboard()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .frame(maxWidth: .infinity)
-
-                    Button {
-                        Task { await renderShareCard() }
-                    } label: {
-                        Group {
-                            if isRenderingShareCard {
-                                ProgressView()
-                                    .frame(maxWidth: .infinity)
-                            } else {
-                                Label(L10n.share, systemImage: "square.and.arrow.up")
-                                    .frame(maxWidth: .infinity)
-                            }
-                        }
-                    }
-                    .buttonStyle(.bordered)
-                    .disabled(isRenderingShareCard)
-                }
-                .padding()
-            }
-            .frame(maxHeight: 360)
-            .background(.ultraThinMaterial)
-            .dismissKeyboardOnScroll()
         }
         .opacity(didAppear ? 1 : 0)
         .offset(y: didAppear ? 0 : 12)
         .dismissKeyboardOnTap(focus: $noteFocused)
         .navigationTitle("Yolculuk")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    Task { await renderShareCard() }
+                } label: {
+                    if isRenderingShareCard {
+                        ProgressView()
+                    } else {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                }
+                .disabled(isRenderingShareCard)
+                .accessibilityLabel(L10n.share)
+            }
+        }
         .sheet(isPresented: $showFullscreenMap) {
             fullscreenMapSheet
         }
@@ -285,71 +149,239 @@ struct TripDetailView: View {
         }
     }
 
+    private var detailPanel: some View {
+        VStack(spacing: 0) {
+            Capsule()
+                .fill(Color.secondary.opacity(0.28))
+                .frame(width: 36, height: 4)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    tripHeader
+
+                    statsStrip
+
+                    if !viewModel.speedSamples.isEmpty {
+                        speedChartCard
+                    }
+
+                    if !sortedStops.isEmpty {
+                        detailSection(title: L10n.tripStopsSection) {
+                            ForEach(Array(sortedStops.enumerated()), id: \.element.persistentModelID) { index, stop in
+                                TripStopEditRow(stop: stop)
+                                if index < sortedStops.count - 1 {
+                                    Divider()
+                                }
+                            }
+                        }
+                    }
+
+                    detailSection(title: L10n.tripEditTimesSection) {
+                        DatePicker(L10n.tripStartedAt, selection: $editedStartedAt)
+                            .font(.subheadline)
+
+                        if trip.endedAt != nil {
+                            DatePicker(L10n.tripEndedAt, selection: $editedEndedAt)
+                                .font(.subheadline)
+                        }
+                    }
+
+                    detailSection(title: L10n.tripTrimPointsSection) {
+                        Stepper(L10n.tripTrimHead, value: $trimHeadCount, in: 0...maxTrimHead)
+                        Stepper(L10n.tripTrimTail, value: $trimTailCount, in: 0...maxTrimTail)
+                    }
+
+                    detailSection(title: L10n.tripLocationOverrides) {
+                        compactTextField(L10n.tripStartPlaceName, text: $startPlaceNameText)
+                        compactTextField(L10n.tripEndPlaceName, text: $endPlaceNameText)
+                        compactTextField(L10n.tripStartAddress, text: $startAddressText)
+                        compactTextField(L10n.tripEndAddress, text: $endAddressText)
+                    }
+
+                    detailSection(title: "Kategori ve etiket") {
+                        Picker("Kategori", selection: $selectedCategoryID) {
+                            ForEach(categories) { category in
+                                Label(category.name, systemImage: category.systemImage)
+                                    .tag(category.id.uuidString)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .onChange(of: selectedCategoryID) { _, _ in
+                            dismissNoteKeyboard()
+                        }
+
+                        Picker("Etiket", selection: $selectedLabel) {
+                            Text("Yok").tag("")
+                            ForEach(TripLabelOption.allCases, id: \.rawValue) { option in
+                                Text(option.rawValue).tag(option.rawValue)
+                            }
+                        }
+                        .onChange(of: selectedLabel) { _, _ in
+                            dismissNoteKeyboard()
+                        }
+                    }
+
+                    detailSection(title: "Not") {
+                        TextField("Not ekle…", text: $noteText, axis: .vertical)
+                            .lineLimit(2...4)
+                            .focused($noteFocused)
+                            .submitLabel(.done)
+                            .onSubmit { dismissNoteKeyboard() }
+                    }
+
+                    Button("Değişiklikleri kaydet") {
+                        saveEdits()
+                        dismissNoteKeyboard()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(CarinhoBrandColors.brandBottom)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 4)
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 20)
+            }
+            .dismissKeyboardOnScroll()
+        }
+        .background {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.08), radius: 16, y: -4)
+                .ignoresSafeArea(edges: .bottom)
+        }
+    }
+
+    private var tripHeader: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(viewModel.routeSummary)
+                .font(.headline)
+                .lineLimit(2)
+
+            Text(viewModel.dateText)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var statsStrip: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(Array(viewModel.summaryItems.enumerated()), id: \.offset) { _, item in
+                    VStack(alignment: .leading, spacing: 2) {
+                        Label(item.title, systemImage: item.icon)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .labelStyle(.titleAndIcon)
+                        Text(item.value)
+                            .font(.subheadline.weight(.semibold))
+                            .lineLimit(1)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Color(.secondarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+            }
+        }
+    }
+
+    private var speedChartCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(L10n.tripSpeedChart)
+                .font(.subheadline.weight(.semibold))
+
+            Chart(viewModel.speedSamples, id: \.id) { sample in
+                AreaMark(
+                    x: .value("Zaman", sample.date),
+                    y: .value("Hız", sample.speedKmh)
+                )
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [CarinhoBrandColors.brandBottom.opacity(0.28), CarinhoBrandColors.brandBottom.opacity(0.04)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+
+                LineMark(
+                    x: .value("Zaman", sample.date),
+                    y: .value("Hız", sample.speedKmh)
+                )
+                .foregroundStyle(CarinhoBrandColors.brandBottom)
+                .lineStyle(StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+            }
+            .chartYScale(domain: 0...viewModel.speedChartMaxKmh)
+            .chartYAxisLabel(L10n.speedKmh)
+            .frame(height: 120)
+        }
+        .padding(12)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private func detailSection<Content: View>(
+        title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+
+            VStack(alignment: .leading, spacing: 10) {
+                content()
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+    }
+
+    private func compactTextField(_ title: String, text: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            TextField(title, text: text)
+                .font(.subheadline)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(Color(.tertiarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+    }
+
+    private var compactSpeedLegend: some View {
+        HStack(spacing: 8) {
+            legendChip(color: .green, text: L10n.speedLegendSlow)
+            legendChip(color: .yellow, text: L10n.speedLegendMedium)
+            legendChip(color: .red, text: L10n.speedLegendFast)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(.ultraThinMaterial)
+        .clipShape(Capsule())
+    }
+
+    private func legendChip(color: Color, text: String) -> some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(color)
+                .frame(width: 6, height: 6)
+            Text(text)
+                .font(.caption2)
+        }
+    }
+
     private var maxTrimHead: Int {
         max(0, trip.sortedPoints.count - trimTailCount - 2)
     }
 
     private var maxTrimTail: Int {
         max(0, trip.sortedPoints.count - trimHeadCount - 2)
-    }
-
-    private var summaryCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(L10n.tripSummary)
-                .font(.headline)
-
-            Text(viewModel.dateText)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            Text(viewModel.routeSummary)
-                .font(.subheadline.weight(.semibold))
-
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                ForEach(Array(viewModel.summaryItems.enumerated()), id: \.offset) { _, item in
-                    HStack(spacing: 8) {
-                        Image(systemName: item.icon)
-                            .foregroundStyle(.secondary)
-                            .frame(width: 18)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(item.title)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(item.value)
-                                .font(.subheadline.weight(.medium))
-                        }
-                        Spacer(minLength: 0)
-                    }
-                    .padding(10)
-                    .background(Color(.tertiarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                }
-            }
-        }
-        .padding(12)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-    }
-
-    private var speedLegend: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            legendRow(color: .green, text: L10n.speedLegendSlow)
-            legendRow(color: .yellow, text: L10n.speedLegendMedium)
-            legendRow(color: .red, text: L10n.speedLegendFast)
-        }
-        .font(.caption2)
-        .padding(8)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-    }
-
-    private func legendRow(color: Color, text: String) -> some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(color)
-                .frame(width: 8, height: 8)
-            Text(text)
-        }
     }
 
     @ViewBuilder
@@ -406,7 +438,7 @@ struct TripDetailView: View {
                 tripMapView(style: mapStyle, interactive: true)
 
                 VStack(alignment: .trailing, spacing: 8) {
-                    speedLegend
+                    compactSpeedLegend
 
                     Picker("Harita stili", selection: $mapStyle) {
                         Text(L10n.mapStyleLight).tag(TripMapStyle.standard)

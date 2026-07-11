@@ -1,5 +1,106 @@
 import SwiftUI
 
+struct LocationPermissionBadge: View {
+  let state: LocationService.AuthorizationState
+
+  var body: some View {
+    HStack(spacing: 4) {
+      Image(systemName: icon)
+        .font(.caption2)
+      Text(label)
+        .font(.caption2.weight(.semibold))
+    }
+    .foregroundStyle(color)
+    .padding(.horizontal, 8)
+    .padding(.vertical, 4)
+    .background(color.opacity(0.15))
+    .clipShape(Capsule())
+    .accessibilityLabel(label)
+  }
+
+  private var icon: String {
+    switch state {
+    case .authorizedAlways: "location.fill"
+    case .authorizedWhenInUse: "location.circle"
+    case .denied, .restricted: "location.slash.fill"
+    case .notDetermined: "location"
+    }
+  }
+
+  private var label: String {
+    switch state {
+    case .authorizedAlways: L10n.locationBadgeAlways
+    case .authorizedWhenInUse: L10n.locationBadgeWhenInUse
+    case .denied, .restricted, .notDetermined: L10n.locationBadgeDenied
+    }
+  }
+
+  private var color: Color {
+    switch state {
+    case .authorizedAlways: .green
+    case .authorizedWhenInUse: .orange
+    case .denied, .restricted, .notDetermined: .red
+    }
+  }
+}
+
+extension ToolbarContent {
+  @ToolbarContentBuilder
+  func hideSharedToolbarBackgroundIfAvailable() -> some ToolbarContent {
+    if #available(iOS 26.0, *) {
+      sharedBackgroundVisibility(.hidden)
+    } else {
+      self
+    }
+  }
+}
+
+struct LocationAlwaysRequiredBanner: View {
+  @Environment(LocationService.self) private var locationService
+
+  var body: some View {
+    if locationService.authorizationState == .authorizedAlways {
+      EmptyView()
+    } else {
+      HStack(alignment: .top, spacing: 10) {
+        Image(systemName: "exclamationmark.triangle.fill")
+          .foregroundStyle(.orange)
+        VStack(alignment: .leading, spacing: 6) {
+          Text(L10n.pairingLocationWarning)
+            .font(.caption)
+            .foregroundStyle(.primary)
+            .fixedSize(horizontal: false, vertical: true)
+          locationAction
+        }
+      }
+      .padding(12)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(Color.orange.opacity(0.12))
+      .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+  }
+
+  @ViewBuilder
+  private var locationAction: some View {
+    switch locationService.authorizationState {
+    case .notDetermined, .authorizedWhenInUse:
+      Button(L10n.locationBannerGrant) {
+        locationService.requestPermission()
+      }
+      .font(.caption.bold())
+    case .denied, .restricted:
+      Button(L10n.locationBannerSettings) {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+          UIApplication.shared.open(url)
+        }
+      }
+      .font(.caption.bold())
+    case .authorizedAlways:
+      EmptyView()
+    }
+  }
+}
+
 struct LocationPermissionBanner: View {
   @Environment(LocationService.self) private var locationService
 

@@ -30,6 +30,10 @@ final class CarPlayConnectionHandler: NSObject {
         onConnectionSnapshotChanged?(false)
     }
 
+    func refreshConnectionSnapshot() {
+        onConnectionSnapshotChanged?(isConnected)
+    }
+
     func refreshCarPlayUI() {
         guard let interfaceController, let service = tripRecordingService else { return }
 
@@ -41,6 +45,7 @@ final class CarPlayConnectionHandler: NSObject {
         let statusDetail: String = switch service.state {
         case .recording: L10n.carPlayRecording
         case .paused: L10n.recordingPaused
+        case .pendingGPS: L10n.recordingAwaitingGPS
         case .idle: L10n.carPlayIdle
         }
 
@@ -52,7 +57,15 @@ final class CarPlayConnectionHandler: NSObject {
 
         let template = CPInformationTemplate(title: "Carinho", layout: .twoColumn, items: items, actions: [])
 
-        if isRecording {
+        if service.state == .pendingGPS {
+            let stopAction = CPTextButton(title: L10n.stop, textStyle: .confirm) { _ in
+                service.stopManualRecording()
+                Task { @MainActor in
+                    self.refreshCarPlayUI()
+                }
+            }
+            template.actions = [stopAction]
+        } else if isRecording {
             let pauseAction = CPTextButton(title: L10n.pause, textStyle: .normal) { _ in
                 service.pauseRecording()
                 Task { @MainActor in
