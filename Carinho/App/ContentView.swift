@@ -4,8 +4,6 @@ import SwiftUI
 struct ContentView: View {
     @Environment(AppLockService.self) private var appLockService
     @Environment(TripRecordingService.self) private var tripRecordingService
-    @Environment(BluetoothTriggerService.self) private var bluetoothService
-    @Environment(\.modelContext) private var modelContext
     @Bindable private var settings = AppSettings.shared
     @Bindable private var tabSelection = TabSelection.shared
 
@@ -47,10 +45,6 @@ struct ContentView: View {
                 processPendingRecordingRequests()
             }
         }
-        .onChange(of: tabSelection.selectedTab) { _, tab in
-            guard tab == .pairing else { return }
-            evaluateVehicleIdentityPrompt()
-        }
         .alert(L10n.externalStartConfirmTitle, isPresented: externalStartConfirmationBinding) {
             Button(L10n.externalStartConfirmAction) {
                 tripRecordingService.confirmExternalStartRecording()
@@ -60,16 +54,6 @@ struct ContentView: View {
             }
         } message: {
             Text(L10n.externalStartConfirmMessage)
-        }
-        .alert(L10n.vehicleIdentityPromptTitle, isPresented: vehicleIdentityConfirmationBinding) {
-            Button(L10n.pairingAutoStart) {
-                confirmVehicleIdentityFromPrompt()
-            }
-            Button(L10n.cancel, role: .cancel) {
-                dismissVehicleIdentityPrompt()
-            }
-        } message: {
-            Text(vehicleIdentityPromptMessage)
         }
         .appErrorAlert()
     }
@@ -109,55 +93,6 @@ struct ContentView: View {
         )
     }
 
-    private var vehicleIdentityConfirmationBinding: Binding<Bool> {
-        Binding(
-            get: { settings.awaitingVehicleIdentityConfirmation },
-            set: { newValue in
-                if !newValue, settings.awaitingVehicleIdentityConfirmation {
-                    dismissVehicleIdentityPrompt()
-                }
-            }
-        )
-    }
-
-    private var vehicleIdentityPromptMessage: String {
-        let vehicleName = vehicleIdentityPromptVehicle?.name ?? L10n.vehicleDefaultName
-        let connection = settings.vehicleIdentityConfirmationConnectionLabel ?? ""
-        return L10n.vehicleIdentityPromptMessage(vehicleName: vehicleName, connection: connection)
-    }
-
-    private var vehicleIdentityPromptVehicle: VehicleProfile? {
-        guard let vehicleID = settings.vehicleIdentityConfirmationVehicleID else { return nil }
-        let vehicles = (try? modelContext.fetch(FetchDescriptor<VehicleProfile>())) ?? []
-        return vehicles.first { $0.id == vehicleID }
-    }
-
-    private func confirmVehicleIdentityFromPrompt() {
-        guard let vehicle = vehicleIdentityPromptVehicle else {
-            settings.clearVehicleIdentityPrompt()
-            return
-        }
-        let live = VehiclePairingService.detectLiveConnection(bluetoothService: bluetoothService)
-        VehiclePairingService.confirmLiveConnection(
-            vehicle: vehicle,
-            live: live,
-            in: modelContext
-        )
-        settings.skipCarSetup()
-        CarinhoHaptics.pairingSucceeded()
-    }
-
-    private func dismissVehicleIdentityPrompt() {
-        let live = VehiclePairingService.detectLiveConnection(bluetoothService: bluetoothService)
-        VehiclePairingService.dismissVehicleIdentityPrompt(live: live.isDetected ? live : nil)
-    }
-
-    private func evaluateVehicleIdentityPrompt() {
-        VehiclePairingService.evaluateVehicleIdentityPrompt(
-            in: modelContext,
-            bluetoothService: bluetoothService
-        )
-    }
 }
 
 #Preview {
@@ -165,7 +100,6 @@ struct ContentView: View {
         .modelContainer(PreviewData.shared.container)
         .environment(PreviewData.shared.recordingService)
         .environment(LocationService())
-        .environment(MotionActivityService())
         .environment(AppLockService())
         .environment(BluetoothTriggerService())
         .environment(GeocodingRetryService(geocodingService: GeocodingService()))

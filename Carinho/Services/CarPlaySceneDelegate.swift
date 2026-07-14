@@ -30,8 +30,38 @@ final class CarPlayConnectionHandler: NSObject {
         onConnectionSnapshotChanged?(false)
     }
 
+    @discardableResult
+    func readCarPlayConnectionState() -> Bool {
+        let probed = probeCarPlaySessionConnected()
+        isConnected = probed
+        return probed
+    }
+
+    @discardableResult
+    func probeAndSyncConnection() -> Bool {
+        let probed = readCarPlayConnectionState()
+        onConnectionSnapshotChanged?(probed)
+        return probed
+    }
+
     func refreshConnectionSnapshot() {
-        onConnectionSnapshotChanged?(isConnected)
+        _ = probeAndSyncConnection()
+    }
+
+    private func probeCarPlaySessionConnected() -> Bool {
+        if interfaceController != nil {
+            return true
+        }
+
+        return UIApplication.shared.connectedScenes.contains { scene in
+            guard scene is CPTemplateApplicationScene else { return false }
+            switch scene.activationState {
+            case .foregroundActive, .foregroundInactive, .background:
+                return true
+            default:
+                return false
+            }
+        }
     }
 
     func refreshCarPlayUI() {
@@ -45,7 +75,6 @@ final class CarPlayConnectionHandler: NSObject {
         let statusDetail: String = switch service.state {
         case .recording: L10n.carPlayRecording
         case .paused: L10n.recordingPaused
-        case .pendingGPS: L10n.recordingAwaitingGPS
         case .idle: L10n.carPlayIdle
         }
 
@@ -57,15 +86,7 @@ final class CarPlayConnectionHandler: NSObject {
 
         let template = CPInformationTemplate(title: "Carinho", layout: .twoColumn, items: items, actions: [])
 
-        if service.state == .pendingGPS {
-            let stopAction = CPTextButton(title: L10n.stop, textStyle: .confirm) { _ in
-                service.stopManualRecording()
-                Task { @MainActor in
-                    self.refreshCarPlayUI()
-                }
-            }
-            template.actions = [stopAction]
-        } else if isRecording {
+        if isRecording {
             let pauseAction = CPTextButton(title: L10n.pause, textStyle: .normal) { _ in
                 service.pauseRecording()
                 Task { @MainActor in

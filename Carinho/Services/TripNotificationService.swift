@@ -3,6 +3,11 @@ import SwiftData
 import UserNotifications
 
 enum TripNotificationService {
+    /// userInfo key carried on notifications that should deep-link somewhere on tap.
+    static let actionUserInfoKey = "carinho.action"
+    /// Action value that opens the Pairing tab when the notification is tapped.
+    static let openPairingAction = "openPairing"
+
     static func requestAuthorizationIfNeeded() {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
             guard settings.authorizationStatus == .notDetermined else { return }
@@ -18,25 +23,6 @@ enum TripNotificationService {
             body: L10n.tripStartedBody,
             tripID: tripID
         )
-    }
-
-    static func notifyRecordingAwaitingGPS(sessionID: UUID) {
-        deliver(
-            identifier: awaitingGPSNotificationID(sessionID: sessionID),
-            kind: .recordingAwaitingGPS,
-            title: L10n.recordingAwaitingGPSTitle,
-            body: L10n.recordingAwaitingGPSBody
-        )
-    }
-
-    static func cancelRecordingAwaitingGPSNotification(sessionID: UUID) {
-        let identifier = awaitingGPSNotificationID(sessionID: sessionID)
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
-        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [identifier])
-    }
-
-    private static func awaitingGPSNotificationID(sessionID: UUID) -> String {
-        "carinho.recording.awaiting_gps.\(sessionID.uuidString)"
     }
 
     static func notifyTripEnded(
@@ -115,6 +101,18 @@ enum TripNotificationService {
         )
     }
 
+    /// Nudge shown when the phone connects to a car but no auto-start vehicle is
+    /// configured yet. Tapping opens the Pairing tab so the user can set it up.
+    static func notifyVehiclePairingSuggestion() {
+        deliver(
+            identifier: "carinho.pairing.suggestion",
+            kind: .pairingSuggestion,
+            title: L10n.pairingSuggestionTitle,
+            body: L10n.pairingSuggestionBody,
+            action: openPairingAction
+        )
+    }
+
     private static func orphanNotificationID(tripID: UUID) -> String {
         "carinho.trip.orphan.\(tripID.uuidString)"
     }
@@ -124,7 +122,8 @@ enum TripNotificationService {
         kind: AppNotificationKind,
         title: String,
         body: String,
-        tripID: UUID? = nil
+        tripID: UUID? = nil,
+        action: String? = nil
     ) {
         Task { @MainActor in
             AppNotificationStore.shared.record(
@@ -147,7 +146,11 @@ enum TripNotificationService {
             content.title = title
             content.body = body
             content.sound = .default
-            content.userInfo = ["carinho.inboxRecorded": true]
+            var userInfo: [String: Any] = ["carinho.inboxRecorded": true]
+            if let action {
+                userInfo[actionUserInfoKey] = action
+            }
+            content.userInfo = userInfo
 
             let request = UNNotificationRequest(
                 identifier: identifier,

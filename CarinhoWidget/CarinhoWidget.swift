@@ -16,7 +16,6 @@ private enum WidgetL10n {
     static var recording: String { text("live_activity.recording") }
     static var noRecording: String { text("widget.no_recording") }
     static var thisWeek: String { text("section.this_week") }
-    static var liveRecording: String { text("widget.live_recording") }
     static var displayName: String { text("widget.display_name") }
     static var description: String { text("widget.description") }
 }
@@ -204,13 +203,15 @@ struct CarinhoWidgetEntry: TimelineEntry {
     let elapsed: TimeInterval
     let distanceMeters: Double
     let weekDistanceMeters: Double
+    let monthDistanceMeters: Double
 
     static func preview(
         isRecording: Bool = true,
         isPaused: Bool = false,
         elapsed: TimeInterval = 3_723,
         distanceMeters: Double = 12_400,
-        weekDistanceMeters: Double = 45_200
+        weekDistanceMeters: Double = 45_200,
+        monthDistanceMeters: Double = 182_000
     ) -> CarinhoWidgetEntry {
         CarinhoWidgetEntry(
             date: .now,
@@ -218,7 +219,8 @@ struct CarinhoWidgetEntry: TimelineEntry {
             isPaused: isPaused,
             elapsed: elapsed,
             distanceMeters: distanceMeters,
-            weekDistanceMeters: weekDistanceMeters
+            weekDistanceMeters: weekDistanceMeters,
+            monthDistanceMeters: monthDistanceMeters
         )
     }
 }
@@ -251,7 +253,8 @@ struct CarinhoWidgetProvider: TimelineProvider {
             isPaused: defaults?.bool(forKey: "recording.isPaused") ?? false,
             elapsed: defaults?.double(forKey: "recording.elapsed") ?? 0,
             distanceMeters: defaults?.double(forKey: "recording.distance") ?? 0,
-            weekDistanceMeters: defaults?.double(forKey: "stats.weekDistance") ?? 0
+            weekDistanceMeters: defaults?.double(forKey: "stats.weekDistance") ?? 0,
+            monthDistanceMeters: defaults?.double(forKey: "stats.monthDistance") ?? 0
         )
     }
 }
@@ -612,6 +615,7 @@ struct CarinhoLiveActivity: Widget {
 struct CarinhoWidgetBundle: WidgetBundle {
     var body: some Widget {
         CarinhoWidget()
+        CarinhoLockScreenWidget()
         CarinhoLiveActivity()
     }
 }

@@ -2,13 +2,9 @@ import SwiftData
 import SwiftUI
 
 enum SettingsFocusedField: Hashable {
-    case fuelConsumption
     case fuelPrice
     case privacyRadius
     case newCategory
-    case newVehicle
-    case vehicleConsumption
-    case evChargePrice
 }
 
 struct CategoryManagementView: View {

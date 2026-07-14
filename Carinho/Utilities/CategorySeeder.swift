@@ -18,14 +18,4 @@ enum CategorySeeder {
         }
         try? context.save()
     }
-
-    static func displayName(for categoryRaw: String, categories: [UserCategory]) -> String {
-        if let match = categories.first(where: { $0.storageKey == categoryRaw || $0.id.uuidString == categoryRaw }) {
-            return match.name
-        }
-        if let legacy = TripCategory(rawValue: categoryRaw) {
-            return legacy.displayName
-        }
-        return categoryRaw
-    }
 }

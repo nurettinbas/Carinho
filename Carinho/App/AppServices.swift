@@ -10,8 +10,4 @@ enum AppServices {
     static func bootstrapRecordingIfNeeded() {
         runtime.bootstrapRecording(container: modelContainer)
     }
-
-    static func bootstrapFullIfNeeded() {
-        runtime.bootstrap(container: modelContainer)
-    }
 }

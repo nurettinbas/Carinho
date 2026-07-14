@@ -41,24 +41,4 @@ public enum AppNotificationArchive {
         guard let data = try? JSONEncoder().encode(trimmed) else { return }
         RecordingControlBridge.sharedDefaults().set(data, forKey: storageKey)
     }
-
-    public static func append(
-        kind: String,
-        title: String,
-        body: String,
-        tripID: UUID? = nil,
-        createdAt: Date = Date()
-    ) {
-        var items = load()
-        let record = StoredAppNotification(
-            kind: kind,
-            title: title,
-            body: body,
-            createdAt: createdAt,
-            tripID: tripID
-        )
-        items.insert(record, at: 0)
-        save(items)
-    }
-
 }

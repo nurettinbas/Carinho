@@ -22,15 +22,8 @@ struct ActiveTripView: View {
         DateFormatters.formatDistance(recordingService.currentDistanceMeters)
     }
 
-    private var isPendingGPS: Bool {
-        recordingService.state == .pendingGPS
-    }
-
     private var statusText: String {
-        if isPendingGPS {
-            return L10n.recordingAwaitingGPS
-        }
-        return isPaused ? L10n.recordingPaused : L10n.recordingStarted
+        isPaused ? L10n.recordingPaused : L10n.recordingStarted
     }
 
     var body: some View {
@@ -45,10 +38,10 @@ struct ActiveTripView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 HStack(spacing: 6) {
-                    Image(systemName: pendingStatusIcon)
+                    Image(systemName: statusIcon)
                         .font(.subheadline)
-                        .foregroundStyle(pendingStatusColor)
-                        .symbolEffect(.pulse, options: .repeating, isActive: !isPaused && !isPendingGPS && !reduceMotion)
+                        .foregroundStyle(statusColor)
+                        .symbolEffect(.pulse, options: .repeating, isActive: !isPaused && !reduceMotion)
                     Text(statusText)
                         .font(.subheadline.weight(.bold))
                         .foregroundStyle(.white)
@@ -60,13 +53,7 @@ struct ActiveTripView: View {
             }
             .animation(reduceMotion ? nil : CarinhoMotion.gentle, value: statusText)
 
-            RecordingCarAnimationView(compact: true, isAnimating: !isPaused && !isPendingGPS)
-
-            if isPendingGPS {
-                Text(L10n.recordingAwaitingGPSBody)
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.85))
-            }
+            RecordingCarAnimationView(compact: true, isAnimating: !isPaused)
 
             HStack(alignment: .top, spacing: 8) {
                 statPill(icon: "clock.fill", label: L10n.duration, text: elapsedText)
@@ -75,22 +62,20 @@ struct ActiveTripView: View {
             }
 
             HStack(spacing: 8) {
-                if !isPendingGPS {
-                    Button {
-                        if isPaused {
-                            recordingService.resumeRecording()
-                        } else {
-                            recordingService.pauseRecording()
-                        }
-                    } label: {
-                        Label(isPaused ? L10n.resume : L10n.pause, systemImage: isPaused ? "play.fill" : "pause.fill")
-                            .font(.subheadline.weight(.semibold))
-                            .frame(maxWidth: .infinity)
+                Button {
+                    if isPaused {
+                        recordingService.resumeRecording()
+                    } else {
+                        recordingService.pauseRecording()
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .tint(.white)
+                } label: {
+                    Label(isPaused ? L10n.resume : L10n.pause, systemImage: isPaused ? "play.fill" : "pause.fill")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity)
                 }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .tint(.white)
 
                 Button(role: .destructive) {
                     recordingService.stopManualRecording()
@@ -113,14 +98,12 @@ struct ActiveTripView: View {
         .accessibilityLabel(accessibilitySummary)
     }
 
-    private var pendingStatusIcon: String {
-        if isPendingGPS { return "location.circle.fill" }
-        return isPaused ? "pause.circle.fill" : "record.circle.fill"
+    private var statusIcon: String {
+        isPaused ? "pause.circle.fill" : "record.circle.fill"
     }
 
-    private var pendingStatusColor: Color {
-        if isPendingGPS { return .yellow }
-        return isPaused ? .yellow : .red
+    private var statusColor: Color {
+        isPaused ? .yellow : .red
     }
 
     private var accessibilitySummary: String {

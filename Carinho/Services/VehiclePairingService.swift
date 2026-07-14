@@ -97,6 +97,18 @@ enum VehiclePairingService {
             try? context.save()
             return
         }
+
+        vehicle.autoTriggerCarPlayEnabled = true
+        vehicle.autoTriggerBluetoothEnabled = true
+        if vehicle.bluetoothTriggerDisplayName == nil {
+            vehicle.bluetoothTriggerDisplayName = vehicle.name
+        }
+        if vehicle.bluetoothTriggerIdentifier == nil {
+            vehicle.bluetoothTriggerIdentifier = BluetoothRouteCandidate.normalize(vehicle.name)
+        }
+        vehicle.syncLegacyConnectionFields()
+        mirrorVehicleToSettings(vehicle, settings: settings)
+        try? context.save()
     }
 
     static func mergeDuplicateCarPlayProfiles(in context: ModelContext, settings: AppSettings = .shared) {
@@ -152,10 +164,6 @@ enum VehiclePairingService {
             AppErrorPresenter.shared.present(L10n.pairingTabMissingConnection)
             return
         }
-        if bluetooth, bluetoothDisplayName == nil, bluetoothUID == nil {
-            AppErrorPresenter.shared.present(L10n.pairingTabMissingConnection)
-            return
-        }
 
         clearAutoTrigger(from: fetchVehicles(in: context), except: vehicle.id)
 
@@ -163,8 +171,7 @@ enum VehiclePairingService {
         vehicle.autoTriggerBluetoothEnabled = bluetooth
         if bluetooth {
             let displayName = bluetoothDisplayName ?? vehicle.name
-            let identifier = bluetoothUID
-                ?? BluetoothRouteCandidate.normalize(displayName)
+            let identifier = bluetoothUID ?? BluetoothRouteCandidate.normalize(displayName)
             vehicle.bluetoothTriggerUID = bluetoothUID
             vehicle.bluetoothTriggerIdentifier = identifier
             vehicle.bluetoothTriggerDisplayName = displayName
@@ -200,40 +207,6 @@ enum VehiclePairingService {
         )
     }
 
-    static func pair(
-        vehicle: VehicleProfile,
-        kind: VehicleConnectionKind,
-        identifier: String,
-        displayName: String,
-        in context: ModelContext,
-        settings: AppSettings = .shared
-    ) {
-        switch kind {
-        case .carPlay:
-            pairChannels(
-                vehicle: vehicle,
-                carPlay: true,
-                bluetooth: false,
-                bluetoothIdentifier: nil,
-                bluetoothDisplayName: nil,
-                in: context,
-                settings: settings
-            )
-        case .bluetooth:
-            pairChannels(
-                vehicle: vehicle,
-                carPlay: false,
-                bluetooth: true,
-                bluetoothUID: identifier,
-                bluetoothDisplayName: displayName,
-                in: context,
-                settings: settings
-            )
-        case .none:
-            break
-        }
-    }
-
     static func unpair(
         in context: ModelContext,
         settings: AppSettings = .shared
@@ -247,8 +220,6 @@ enum VehiclePairingService {
         }
         settings.clearPairedVehicle()
         settings.activeAutoTriggerVehicleID = nil
-        settings.dismissedVehicleIdentityFingerprint = nil
-        settings.clearVehicleIdentityPrompt()
         try? context.save()
         reloadConnectionMonitoring()
     }
@@ -271,12 +242,6 @@ enum VehiclePairingService {
         } catch {
             AppErrorPresenter.shared.present(L10n.pairingTabDeleteFailed(error.localizedDescription))
         }
-    }
-
-    static func activeVehicle(in context: ModelContext, settings: AppSettings = .shared) -> VehicleProfile? {
-        guard settings.hasAutoTriggerVehicle,
-              let activeID = settings.activeAutoTriggerVehicleID else { return nil }
-        return fetchVehicles(in: context).first { $0.id == activeID }
     }
 
     static func isActivelyPaired(vehicleID: UUID, settings: AppSettings = .shared) -> Bool {
@@ -360,8 +325,9 @@ enum VehiclePairingService {
     }
 
     private static func reloadConnectionMonitoring() {
-        VehicleConnectionCoordinator.shared.reloadConfiguration()
+        CarPlayConnectionHandler.shared.refreshConnectionSnapshot()
         AppServices.runtime.bluetoothService.syncRouteSnapshot()
+        AppServices.runtime.tripRecordingService.startServices()
     }
 
     private static func matchesBluetoothVehicle(
@@ -406,7 +372,11 @@ struct LiveVehicleConnection: Equatable {
             parts.append(L10n.pairingConnectionCarPlay)
         }
         if let candidate = bluetoothCandidate {
-            parts.append(L10n.pairingConnectionBluetooth(candidate.name, candidate.portTypeLabel))
+            if candidate.portTypeLabel == "CarAudio" {
+                parts.append(L10n.pairingConnectionCarPlayWired)
+            } else {
+                parts.append(L10n.pairingConnectionBluetooth(candidate.name, candidate.portTypeLabel))
+            }
         }
         return parts.joined(separator: " · ")
     }
@@ -415,7 +385,7 @@ struct LiveVehicleConnection: Equatable {
 extension VehiclePairingService {
     static func detectLiveConnection(bluetoothService: BluetoothTriggerService) -> LiveVehicleConnection {
         LiveVehicleConnection(
-            carPlay: PairingConnectionStatus.isCarPlayConnected(),
+            carPlay: PairingConnectionStatus.isCarPlayConnected(bluetoothService: bluetoothService),
             bluetoothCandidate: bluetoothService.connectedCarCandidate()
         )
     }
@@ -430,62 +400,19 @@ extension VehiclePairingService {
             AppErrorPresenter.shared.present(L10n.pairingTabWaitingConnection)
             return
         }
+        // Capture whatever is physically connected right now and store its unique
+        // ID. Enable only the channels actually present so a scene-only wireless
+        // CarPlay does not create a bogus Bluetooth identifier.
+        let candidate = live.bluetoothCandidate
         pairChannels(
             vehicle: vehicle,
             carPlay: live.carPlay,
-            bluetooth: live.bluetoothCandidate != nil,
-            bluetoothUID: live.bluetoothCandidate?.uid,
-            bluetoothDisplayName: live.bluetoothCandidate?.name,
+            bluetooth: candidate != nil,
+            bluetoothUID: candidate?.uid,
+            bluetoothDisplayName: candidate?.name,
             in: context,
             settings: settings
         )
-        settings.dismissedVehicleIdentityFingerprint = nil
-        settings.clearVehicleIdentityPrompt()
-    }
-
-    static func evaluateVehicleIdentityPrompt(
-        in context: ModelContext,
-        bluetoothService: BluetoothTriggerService,
-        preferredVehicleID: UUID? = nil,
-        settings: AppSettings = .shared
-    ) {
-        let live = detectLiveConnection(bluetoothService: bluetoothService)
-        guard live.isDetected else {
-            settings.clearVehicleIdentityPrompt()
-            return
-        }
-
-        let vehicles = fetchVehicles(in: context)
-        guard !vehicles.isEmpty else { return }
-
-        let vehicle = preferredVehicleID.flatMap { id in vehicles.first(where: { $0.id == id }) }
-            ?? vehicles.first(where: \.isDefault)
-            ?? vehicles.first!
-
-        if PairingConnectionStatus.isVehicleChannelConnected(
-            vehicle: vehicle,
-            settings: settings,
-            bluetoothService: bluetoothService
-        ) {
-            settings.clearVehicleIdentityPrompt()
-            return
-        }
-
-        if settings.dismissedVehicleIdentityFingerprint == live.fingerprint {
-            return
-        }
-
-        settings.vehicleIdentityConfirmationVehicleID = vehicle.id
-        settings.vehicleIdentityConfirmationConnectionLabel = live.displayLabel()
-        settings.awaitingVehicleIdentityConfirmation = true
-    }
-
-    static func dismissVehicleIdentityPrompt(
-        live: LiveVehicleConnection?,
-        settings: AppSettings = .shared
-    ) {
-        settings.dismissedVehicleIdentityFingerprint = live?.fingerprint
-        settings.clearVehicleIdentityPrompt()
     }
 
     static func seedDefaultVehicleIfNeeded(

@@ -33,7 +33,7 @@ enum VehicleResolver {
                }) {
                 return match
             }
-        case .manual, .automatic:
+        case .manual:
             break
         }
 
@@ -75,7 +75,6 @@ enum VehicleResolver {
 
 enum VehicleRecordingTrigger {
     case manual
-    case automatic
     case carPlay
     case bluetooth
 }

@@ -13,7 +13,7 @@ final class LocationService: NSObject {
 
     enum TrackingMode {
         case off
-        case lowPower
+        case vehicleConnection
         case full
     }
 
@@ -36,9 +36,12 @@ final class LocationService: NSObject {
     }
 
     var onLocationUpdate: ((CLLocation) -> Void)?
+    /// Fires on background location wakes while monitoring for vehicle triggers.
+    var onMonitoringWake: (() -> Void)?
 
     private let manager = CLLocationManager()
     private var isUpdating = false
+    private var isMonitoringSignificantChanges = false
 
     var canRecordInBackground: Bool {
         manager.authorizationStatus == .authorizedAlways
@@ -65,29 +68,47 @@ final class LocationService: NSObject {
         }
     }
 
-    func startLowPowerMonitoring() {
+    /// Keeps the process alive in the background so Bluetooth/CarPlay route changes can be handled.
+    func startVehicleConnectionMonitoring() {
         guard trackingMode != .full else { return }
-        trackingMode = .lowPower
+        trackingMode = .vehicleConnection
+        manager.pausesLocationUpdatesAutomatically = false
         manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
-        manager.distanceFilter = 50
+        manager.distanceFilter = 25
         startIfNeeded()
+        startSignificantLocationMonitoringIfAuthorized()
     }
 
     func startTracking() {
         trackingMode = .full
+        stopSignificantLocationMonitoring()
         manager.pausesLocationUpdatesAutomatically = false
-        manager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
-        manager.distanceFilter = 10
+        manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
+        manager.distanceFilter = 5
         startIfNeeded()
     }
 
     func stopTracking() {
         trackingMode = .off
         manager.pausesLocationUpdatesAutomatically = true
+        stopSignificantLocationMonitoring()
         applyBackgroundConfiguration()
         guard isUpdating else { return }
         isUpdating = false
         manager.stopUpdatingLocation()
+    }
+
+    private func startSignificantLocationMonitoringIfAuthorized() {
+        guard manager.authorizationStatus == .authorizedAlways else { return }
+        guard !isMonitoringSignificantChanges else { return }
+        manager.startMonitoringSignificantLocationChanges()
+        isMonitoringSignificantChanges = true
+    }
+
+    private func stopSignificantLocationMonitoring() {
+        guard isMonitoringSignificantChanges else { return }
+        manager.stopMonitoringSignificantLocationChanges()
+        isMonitoringSignificantChanges = false
     }
 
     private func startIfNeeded() {
@@ -127,8 +148,14 @@ final class LocationService: NSObject {
 
     private func isLocationUsable(_ location: CLLocation) -> Bool {
         guard location.horizontalAccuracy >= 0 else { return false }
-        if trackingMode == .full, location.horizontalAccuracy > 100 { return false }
-        if Date().timeIntervalSince(location.timestamp) > 30 { return false }
+        if trackingMode == .full, location.horizontalAccuracy > 250 { return false }
+        if trackingMode == .vehicleConnection, location.horizontalAccuracy > 500 { return false }
+        let maxAge: TimeInterval = switch trackingMode {
+        case .full: 60
+        case .vehicleConnection: 120
+        default: 30
+        }
+        if Date().timeIntervalSince(location.timestamp) > maxAge { return false }
         return true
     }
 }
@@ -137,9 +164,16 @@ extension LocationService: CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         updateAuthorizationState(from: manager.authorizationStatus)
         applyBackgroundConfiguration()
+        if trackingMode == .vehicleConnection {
+            startSignificantLocationMonitoringIfAuthorized()
+        }
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if trackingMode != .off {
+            onMonitoringWake?()
+        }
+
         guard let location = locations.last else { return }
         guard isLocationUsable(location) else { return }
         lastLocation = location

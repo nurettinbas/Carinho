@@ -7,7 +7,6 @@ import UniformTypeIdentifiers
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(LocationService.self) private var locationService
-    @Environment(MotionActivityService.self) private var motionActivityService
     @Environment(TripRecordingService.self) private var tripRecordingService
     @Environment(GeocodingRetryService.self) private var geocodingRetryService
     @Environment(AppLockService.self) private var appLockService
@@ -30,13 +29,6 @@ struct SettingsView: View {
             .listRowBackground(Color.clear)
 
             Section(L10n.settingsRecordingSection) {
-                Toggle(L10n.settingsAutoRecording, isOn: $settings.autoRecordingEnabled)
-                    .onChange(of: settings.autoRecordingEnabled) { _, enabled in
-                        if enabled {
-                            motionActivityService.requestPermission()
-                        }
-                        tripRecordingService.refreshAutoRecording(enabled: enabled)
-                    }
                 Toggle(L10n.settingsRecordingSounds, isOn: $settings.recordingSoundsEnabled)
                 Text(L10n.settingsSiriShortcutsHint)
                     .font(.footnote)
@@ -47,46 +39,6 @@ struct SettingsView: View {
             }
 
             Section(L10n.settingsRecordingSensitivitySection) {
-                sensitivityRow(
-                    title: L10n.settingsIdleTimeout,
-                    value: Binding(
-                        get: { Int(settings.idleTimeoutSeconds) },
-                        set: { settings.idleTimeoutSeconds = TimeInterval($0) }
-                    ),
-                    range: 30...300,
-                    step: 15
-                )
-
-                sensitivityRow(
-                    title: L10n.settingsLowSpeedStop,
-                    value: Binding(
-                        get: { Int(settings.lowSpeedStopSeconds) },
-                        set: { settings.lowSpeedStopSeconds = TimeInterval($0) }
-                    ),
-                    range: 30...300,
-                    step: 15
-                )
-
-                sensitivityRow(
-                    title: L10n.settingsRecordingStartSpeed,
-                    value: Binding(
-                        get: { Int(settings.recordingStartSpeedKmh) },
-                        set: { settings.recordingStartSpeedKmh = Double($0) }
-                    ),
-                    range: 5...40,
-                    step: 1
-                )
-
-                sensitivityRow(
-                    title: L10n.settingsRecordingStopSpeed,
-                    value: Binding(
-                        get: { Int(settings.recordingStopSpeedKmh) },
-                        set: { settings.recordingStopSpeedKmh = Double($0) }
-                    ),
-                    range: 2...20,
-                    step: 1
-                )
-
                 sensitivityRow(
                     title: L10n.settingsStopSpeed,
                     value: Binding(
@@ -214,11 +166,7 @@ struct SettingsView: View {
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
-                LabeledContent(L10n.settingsMotionPermission) {
-                    Text(motionActivityService.isAuthorized ? L10n.settingsPermissionGranted : L10n.settingsPermissionRequired)
-                }
                 Button(L10n.settingsRequestLocationPermission) { locationService.requestPermission() }
-                Button(L10n.settingsRequestMotionPermission) { motionActivityService.requestPermission() }
                 Button(L10n.settingsOpenSystemSettings) {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(url)
@@ -257,7 +205,6 @@ struct SettingsView: View {
         .dismissKeyboardOnScroll()
         .keyboardDoneToolbar()
         .onAppear {
-            motionActivityService.refreshAuthorizationStatus()
             runCleanupIfNeeded()
             Task { await geocodingRetryService.retryPendingTrips(in: modelContext) }
         }
@@ -371,7 +318,6 @@ struct ExportActivityShareSheet: UIViewControllerRepresentable {
     NavigationStack { SettingsView() }
         .modelContainer(PreviewData.shared.container)
         .environment(LocationService())
-        .environment(MotionActivityService())
         .environment(PreviewData.shared.recordingService)
         .environment(GeocodingRetryService(geocodingService: GeocodingService()))
         .environment(AppLockService())

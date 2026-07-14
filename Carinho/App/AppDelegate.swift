@@ -16,6 +16,13 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         return true
     }
 
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        Task { @MainActor in
+            AppServices.bootstrapRecordingIfNeeded()
+            AppServices.runtime.refreshVehicleConnections()
+        }
+    }
+
     func application(
         _ application: UIApplication,
         configurationForConnecting connectingSceneSession: UISceneSession,
@@ -61,7 +68,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
-        if !isAlreadyRecordedInInbox(response.notification.request.content.userInfo) {
+        let userInfo = response.notification.request.content.userInfo
+        if !isAlreadyRecordedInInbox(userInfo) {
             let title = response.notification.request.content.title
             let body = response.notification.request.content.body
             let identifier = response.notification.request.identifier
@@ -73,6 +81,12 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         } else {
             Task { @MainActor in
                 AppNotificationStore.shared.reload()
+            }
+        }
+
+        if userInfo[TripNotificationService.actionUserInfoKey] as? String == TripNotificationService.openPairingAction {
+            Task { @MainActor in
+                TabSelection.shared.openPairing()
             }
         }
         completionHandler()

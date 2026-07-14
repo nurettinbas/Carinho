@@ -47,6 +47,13 @@ enum TripStore {
         let defaults = UserDefaults(suiteName: "group.com.carinho.app")
         defaults?.set(stats.totalDistanceMeters, forKey: "stats.weekDistance")
 
+        let monthAgo = Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date()
+        let monthTrips = StatsViewModel.trips(
+            in: DateInterval(start: monthAgo, end: Date()),
+            from: completedSince(monthAgo, from: context)
+        )
+        defaults?.set(StatsViewModel.stats(for: monthTrips).totalDistanceMeters, forKey: "stats.monthDistance")
+
         let startOfDay = Calendar.current.startOfDay(for: Date())
         let todayTrips = completedSince(startOfDay, from: context)
         let todayDistance = todayTrips.reduce(0) { $0 + $1.distanceMeters }

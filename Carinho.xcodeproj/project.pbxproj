@@ -26,7 +26,6 @@
 		A10000000000000000000005 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* LocationService.swift */; };
 		A10000000000000000000006 /* TripRecordingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* TripRecordingService.swift */; };
 		A10000000000000000000007 /* GeocodingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* GeocodingService.swift */; };
-		A10000000000000000000008 /* MotionActivityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* MotionActivityService.swift */; };
 		A10000000000000000000009 /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* CarPlaySceneDelegate.swift */; };
 		A10000000000000000000011 /* TripListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* TripListViewModel.swift */; };
 		A10000000000000000000012 /* TripDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* TripDetailViewModel.swift */; };
@@ -74,6 +73,7 @@
 		B10000000000000000000019 /* CarinhoBrandColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000022 /* CarinhoBrandColors.swift */; };
 		B10000000000000000000013 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A2LOCALIZABLE00000000001 /* Localizable.xcstrings */; };
 		A1RECCARDSTYLE00000001 /* RecordingCardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2RECCARDSTYLE00000001 /* RecordingCardStyle.swift */; };
+		B1000000000000000000001A /* CarinhoLockScreenWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000023 /* CarinhoLockScreenWidget.swift */; };
 		B10000000000000000000005 /* CarinhoWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000005 /* CarinhoWidget.swift */; };
 		B10000000000000000000006 /* WidgetRecordingIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000006 /* WidgetRecordingIntents.swift */; };
 		B10000000000000000000007 /* TripRecordingAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000004 /* TripRecordingAttributes.swift */; };
@@ -117,7 +117,6 @@
 		A1PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift */; };
 		A1PAIRINGSTYLE000001 /* PairingCardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGSTYLE000001 /* PairingCardStyle.swift */; };
 		A1PAIRINGVEHROW00001 /* PairingVehicleRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGVEHROW00001 /* PairingVehicleRow.swift */; };
-		A1PAIRINGREADY000001 /* PairingReadinessChecklist.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGREADY000001 /* PairingReadinessChecklist.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -168,7 +167,6 @@
 		A20000000000000000000005 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
 		A20000000000000000000006 /* TripRecordingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripRecordingService.swift; sourceTree = "<group>"; };
 		A20000000000000000000007 /* GeocodingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeocodingService.swift; sourceTree = "<group>"; };
-		A20000000000000000000008 /* MotionActivityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionActivityService.swift; sourceTree = "<group>"; };
 		A20000000000000000000009 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
 		A20000000000000000000011 /* TripListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripListViewModel.swift; sourceTree = "<group>"; };
 		A20000000000000000000012 /* TripDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripDetailViewModel.swift; sourceTree = "<group>"; };
@@ -220,6 +218,7 @@
 		A2RECSTOPPOLICY00000001 /* RecordingStopPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingStopPolicy.swift; sourceTree = "<group>"; };
 		A2RECSYNCCOORD00000001 /* RecordingSyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingSyncCoordinator.swift; sourceTree = "<group>"; };
 		A2APPERRORPRES0000001 /* AppErrorPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppErrorPresenter.swift; sourceTree = "<group>"; };
+		B20000000000000000000023 /* CarinhoLockScreenWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarinhoLockScreenWidget.swift; sourceTree = "<group>"; };
 		B20000000000000000000005 /* CarinhoWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarinhoWidget.swift; sourceTree = "<group>"; };
 		B20000000000000000000006 /* WidgetRecordingIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetRecordingIntents.swift; sourceTree = "<group>"; };
 		B20000000000000000000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -254,7 +253,6 @@
 		A2PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingLiveConnectionBanner.swift; sourceTree = "<group>"; };
 		A2PAIRINGSTYLE000001 /* PairingCardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingCardStyle.swift; sourceTree = "<group>"; };
 		A2PAIRINGVEHROW00001 /* PairingVehicleRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingVehicleRow.swift; sourceTree = "<group>"; };
-		A2PAIRINGREADY000001 /* PairingReadinessChecklist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingReadinessChecklist.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -385,7 +383,6 @@
 				A20000000000000000000005 /* LocationService.swift */,
 				A20000000000000000000006 /* TripRecordingService.swift */,
 				A20000000000000000000007 /* GeocodingService.swift */,
-				A20000000000000000000008 /* MotionActivityService.swift */,
 				A20000000000000000000009 /* CarPlaySceneDelegate.swift */,
 			);
 			path = Services;
@@ -419,7 +416,6 @@
 				A2PAIRINGSTYLE000001 /* PairingCardStyle.swift */,
 				A2PAIRINGEMPTY000001 /* PairingEmptyState.swift */,
 				A2PAIRINGEDIT000001 /* PairingVehicleEditorView.swift */,
-				A2PAIRINGREADY000001 /* PairingReadinessChecklist.swift */,
 			);
 			path = Pairing;
 			sourceTree = "<group>";
@@ -503,6 +499,7 @@
 			isa = PBXGroup;
 			children = (
 				B20000000000000000000005 /* CarinhoWidget.swift */,
+				B20000000000000000000023 /* CarinhoLockScreenWidget.swift */,
 				B20000000000000000000006 /* WidgetRecordingIntents.swift */,
 				B20000000000000000000007 /* Info.plist */,
 				B20000000000000000000008 /* CarinhoWidget.entitlements */,
@@ -654,7 +651,6 @@
 				A10000000000000000000005 /* LocationService.swift in Sources */,
 				A10000000000000000000006 /* TripRecordingService.swift in Sources */,
 				A10000000000000000000007 /* GeocodingService.swift in Sources */,
-				A10000000000000000000008 /* MotionActivityService.swift in Sources */,
 				A10000000000000000000009 /* CarPlaySceneDelegate.swift in Sources */,
 				A10000000000000000000011 /* TripListViewModel.swift in Sources */,
 				A10000000000000000000012 /* TripDetailViewModel.swift in Sources */,
@@ -731,7 +727,6 @@
 				A1PAIRINGSTYLE000001 /* PairingCardStyle.swift in Sources */,
 				A1PAIRINGEMPTY000001 /* PairingEmptyState.swift in Sources */,
 				A1PAIRINGEDIT000001 /* PairingVehicleEditorView.swift in Sources */,
-				A1PAIRINGREADY000001 /* PairingReadinessChecklist.swift in Sources */,
 				A1TABSELECTION000001 /* TabSelection.swift in Sources */,
 				A1PAIRINGSTAT000001 /* PairingConnectionStatus.swift in Sources */,
 				A1BTROUTEMATCH00001 /* BluetoothRouteMatcher.swift in Sources */,
@@ -748,6 +743,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B10000000000000000000005 /* CarinhoWidget.swift in Sources */,
+				B1000000000000000000001A /* CarinhoLockScreenWidget.swift in Sources */,
 				B10000000000000000000006 /* WidgetRecordingIntents.swift in Sources */,
 				B10000000000000000000015 /* DateFormatters.swift in Sources */,
 				B10000000000000000000017 /* SharedL10n.swift in Sources */,
@@ -905,7 +901,6 @@
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Face ID is used to protect your trip history.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Location access is required for background trip recording.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to record your trips.";
-				INFOPLIST_KEY_NSMotionUsageDescription = "Motion detection helps start and stop recording automatically when you drive.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "Yolculuk başladığında ve bittiğinde bildirim göndermek için kullanılır.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -946,7 +941,6 @@
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Face ID is used to protect your trip history.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Location access is required for background trip recording.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to record your trips.";
-				INFOPLIST_KEY_NSMotionUsageDescription = "Motion detection helps start and stop recording automatically when you drive.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "Yolculuk başladığında ve bittiğinde bildirim göndermek için kullanılır.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

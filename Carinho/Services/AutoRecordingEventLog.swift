@@ -40,24 +40,6 @@ final class AutoRecordingEventLog {
         pendingDisconnect = PendingTrigger(at: Date(), channel: channel, vehicleName: nil)
     }
 
-    func recordConnectAwaitingGPS(channel: AutoRecordingEventChannel, vehicleName: String?) {
-        let trigger = pendingConnect ?? PendingTrigger(at: Date(), channel: channel, vehicleName: vehicleName)
-        if pendingConnect == nil {
-            pendingConnect = trigger
-        }
-        let actionAt = Date()
-        append(
-            StoredAutoRecordingEvent(
-                triggerAt: trigger.at,
-                kind: .connectAwaitingGPS,
-                channel: trigger.channel,
-                vehicleName: trigger.vehicleName ?? vehicleName,
-                actionAt: actionAt,
-                delaySeconds: delaySeconds(from: trigger.at, to: actionAt)
-            )
-        )
-    }
-
     func recordConnectStarted(channel: AutoRecordingEventChannel, vehicleName: String?) {
         let trigger = pendingConnect ?? PendingTrigger(at: Date(), channel: channel, vehicleName: vehicleName)
         let actionAt = Date()
@@ -65,22 +47,6 @@ final class AutoRecordingEventLog {
             StoredAutoRecordingEvent(
                 triggerAt: trigger.at,
                 kind: .connectStarted,
-                channel: trigger.channel,
-                vehicleName: trigger.vehicleName ?? vehicleName,
-                actionAt: actionAt,
-                delaySeconds: delaySeconds(from: trigger.at, to: actionAt)
-            )
-        )
-        pendingConnect = nil
-    }
-
-    func recordConnectCancelled(channel: AutoRecordingEventChannel, vehicleName: String?) {
-        let trigger = pendingConnect ?? PendingTrigger(at: Date(), channel: channel, vehicleName: vehicleName)
-        let actionAt = Date()
-        append(
-            StoredAutoRecordingEvent(
-                triggerAt: trigger.at,
-                kind: .connectCancelled,
                 channel: trigger.channel,
                 vehicleName: trigger.vehicleName ?? vehicleName,
                 actionAt: actionAt,
@@ -129,33 +95,6 @@ final class AutoRecordingEventLog {
             )
         )
         pendingDisconnect = nil
-    }
-
-    func recordMotionStarted() {
-        let now = Date()
-        append(
-            StoredAutoRecordingEvent(
-                triggerAt: now,
-                kind: .motionStarted,
-                channel: .motion,
-                actionAt: now,
-                delaySeconds: 0
-            )
-        )
-    }
-
-    func recordMotionStopped(distanceMeters: Double) {
-        let now = Date()
-        append(
-            StoredAutoRecordingEvent(
-                triggerAt: now,
-                kind: .motionStopped,
-                channel: .motion,
-                actionAt: now,
-                delaySeconds: 0,
-                distanceMeters: distanceMeters
-            )
-        )
     }
 
     private func append(_ event: StoredAutoRecordingEvent) {

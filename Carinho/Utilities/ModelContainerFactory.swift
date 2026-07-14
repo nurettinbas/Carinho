@@ -93,22 +93,6 @@ enum ModelContainerFactory {
         return try ModelContainer(for: liveSchema, configurations: config)
     }
 
-    static func makeInMemoryV5() throws -> ModelContainer {
-        let schema = Schema(versionedSchema: CarinhoSchemaV5.self)
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-        return try ModelContainer(for: schema, configurations: config)
-    }
-
-    static func makeInMemoryWithMigrationPlan() throws -> ModelContainer {
-        let schema = Schema(versionedSchema: CarinhoSchemaV7.self)
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        return try ModelContainer(
-            for: schema,
-            migrationPlan: CarinhoMigrationPlan.self,
-            configurations: config
-        )
-    }
-
     private struct ResetResult {
         let container: ModelContainer
         let backupBytes: Int64

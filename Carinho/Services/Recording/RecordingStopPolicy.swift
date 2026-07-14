@@ -3,7 +3,7 @@ import SwiftData
 
 enum RecordingStopPolicy {
     enum StopReason {
-        case manual, automatic, carPlay, bluetooth, idle
+        case manual, carPlay, bluetooth
     }
 
     static func shouldSaveTrip(
@@ -17,9 +17,5 @@ enum RecordingStopPolicy {
         guard saveTrip else { return false }
         if reason == .manual { return true }
         return duration >= minimumDurationSeconds && distanceMeters >= minimumDistanceMeters
-    }
-
-    static func shouldApplyIdleAutoStop(activeTriggerIsManual: Bool) -> Bool {
-        !activeTriggerIsManual
     }
 }

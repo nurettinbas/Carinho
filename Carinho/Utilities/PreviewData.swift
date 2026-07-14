@@ -7,16 +7,12 @@ final class PreviewData {
     static let shared = PreviewData()
 
     let locationService = LocationService()
-    let motionService = MotionActivityService()
-    let geocodingService = GeocodingService()
     let recordingService: TripRecordingService
     let container: ModelContainer
 
     private init() {
         recordingService = TripRecordingService(
-            locationService: locationService,
-            geocodingService: geocodingService,
-            motionActivityService: motionService
+            locationService: locationService
         )
 
         let container = try! ModelContainerFactory.makeInMemory()

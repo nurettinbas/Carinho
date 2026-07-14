@@ -401,7 +401,7 @@ struct TripDetailView: View {
                     .stroke(.blue, lineWidth: 4)
             }
 
-            if let start = viewModel.coordinates.first {
+            if let start = viewModel.routeStartCoordinate {
                 Annotation("Başlangıç", coordinate: start) {
                     Image(systemName: "flag.fill")
                         .padding(6)
@@ -410,7 +410,7 @@ struct TripDetailView: View {
                 }
             }
 
-            if let end = viewModel.coordinates.last, viewModel.coordinates.count > 1 {
+            if let end = viewModel.routeEndCoordinate {
                 Annotation("Bitiş", coordinate: end) {
                     Image(systemName: "mappin.circle.fill")
                         .padding(6)

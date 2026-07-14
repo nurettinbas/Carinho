@@ -6,7 +6,6 @@ struct PairingTabView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(BluetoothTriggerService.self) private var bluetoothService
     @Environment(LocationService.self) private var locationService
-    @Environment(MotionActivityService.self) private var motionActivityService
     @Bindable private var settings = AppSettings.shared
     @Query private var vehicles: [VehicleProfile]
 
@@ -104,12 +103,10 @@ struct PairingTabView: View {
             .hideSharedToolbarBackgroundIfAvailable()
         }
         .onAppear {
-            motionActivityService.refreshAuthorizationStatus()
             refreshConnectionState()
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
-                motionActivityService.refreshAuthorizationStatus()
                 refreshConnectionState()
             }
         }
@@ -176,11 +173,6 @@ struct PairingTabView: View {
         bluetoothService.refreshMonitoring()
         CarPlayConnectionHandler.shared.refreshConnectionSnapshot()
         VehicleConnectionCoordinator.shared.reloadConfiguration()
-        VehiclePairingService.evaluateVehicleIdentityPrompt(
-            in: modelContext,
-            bluetoothService: bluetoothService,
-            preferredVehicleID: VehiclePairingService.activeVehicle(in: modelContext)?.id
-        )
         refreshToken &+= 1
     }
 
@@ -270,6 +262,5 @@ struct PairingTabView: View {
         .modelContainer(PreviewData.shared.container)
         .environment(BluetoothTriggerService())
         .environment(LocationService())
-        .environment(MotionActivityService())
         .environment(PreviewData.shared.recordingService)
 }

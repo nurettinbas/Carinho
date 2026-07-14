@@ -42,6 +42,20 @@ struct TripDetailViewModel {
         )
     }
 
+    /// Start/end markers must sit at the ends of the drawn route (which uses the
+    /// full recorded points), not the privacy-clipped coordinates — otherwise the
+    /// pins appear pushed inward from where the route actually begins/ends.
+    var routeStartCoordinate: CLLocationCoordinate2D? {
+        trip.sortedPoints.first?.coordinate ?? coordinates.first
+    }
+
+    var routeEndCoordinate: CLLocationCoordinate2D? {
+        if trip.sortedPoints.count > 1 {
+            return trip.sortedPoints.last?.coordinate
+        }
+        return coordinates.count > 1 ? coordinates.last : nil
+    }
+
     var speedSamples: [(id: Int, date: Date, speedKmh: Double)] {
         trip.sortedPoints.enumerated().compactMap { index, point in
             guard let speedMps = point.speedMps, speedMps > 0 else { return nil }

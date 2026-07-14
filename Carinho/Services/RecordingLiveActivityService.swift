@@ -6,18 +6,35 @@ enum RecordingLiveActivityService {
     nonisolated(unsafe) private static var lastPublishedIsPaused: Bool?
     private static let minimumUpdateInterval: TimeInterval = 2
 
-    static func start(startedAt: Date) {
+    /// Ends orphan Live Activities left over from a prior process (e.g. Xcode debug restart).
+    @MainActor
+    static func reconcileAfterLaunch(hasActiveSession: Bool) async {
+        guard !hasActiveSession else { return }
+        guard !Activity<TripRecordingAttributes>.activities.isEmpty else { return }
+        await endAllImmediately()
+    }
+
+    static func start(
+        startedAt: Date,
+        elapsed: TimeInterval = 0,
+        distanceMeters: Double = 0,
+        currentSpeedKmh: Int = 0,
+        isPaused: Bool = false
+    ) {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
-        let attributes = TripRecordingAttributes(startedAt: startedAt)
-        let state = TripRecordingAttributes.ContentState(
-            elapsedSeconds: 0,
-            distanceMeters: 0,
-            currentSpeedKmh: 0,
-            isPaused: false
-        )
-        _ = try? Activity.request(attributes: attributes, content: .init(state: state, staleDate: nil))
-        lastUpdateAt = nil
-        lastPublishedIsPaused = false
+        Task { @MainActor in
+            await endAllImmediately()
+            let attributes = TripRecordingAttributes(startedAt: startedAt)
+            let state = TripRecordingAttributes.ContentState(
+                elapsedSeconds: Int(elapsed.rounded()),
+                distanceMeters: distanceMeters,
+                currentSpeedKmh: currentSpeedKmh,
+                isPaused: isPaused
+            )
+            _ = try? Activity.request(attributes: attributes, content: .init(state: state, staleDate: nil))
+            lastUpdateAt = nil
+            lastPublishedIsPaused = isPaused
+        }
     }
 
     static func update(
@@ -47,7 +64,7 @@ enum RecordingLiveActivityService {
             isPaused: isPaused
         )
         let content = ActivityContent(state: state, staleDate: nil)
-        Task {
+        Task { @MainActor in
             for activity in Activity<TripRecordingAttributes>.activities {
                 await activity.update(content)
             }
@@ -57,8 +74,15 @@ enum RecordingLiveActivityService {
     static func stop() {
         lastUpdateAt = nil
         lastPublishedIsPaused = nil
-        Task {
-            await RecordingControlBridge.endAllLiveActivitiesImmediately()
+        Task { @MainActor in
+            await endAllImmediately()
+        }
+    }
+
+    @MainActor
+    private static func endAllImmediately() async {
+        for activity in Activity<TripRecordingAttributes>.activities {
+            await activity.end(nil, dismissalPolicy: .immediate)
         }
     }
 }

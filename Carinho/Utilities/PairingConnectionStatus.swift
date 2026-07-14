@@ -2,33 +2,17 @@ import Foundation
 
 @MainActor
 enum PairingConnectionStatus {
-    static func isCarPlayConnected() -> Bool {
-        CarPlayConnectionHandler.shared.isConnected
-    }
-
-    static func isBluetoothRouteMatched(settings: AppSettings = .shared, bluetoothService: BluetoothTriggerService) -> Bool {
-        guard settings.pairedBluetoothChannelEnabled else { return false }
-        guard let candidate = bluetoothService.connectedCarCandidate() else { return false }
-        return BluetoothRouteMatcher.matches(
-            candidate: candidate,
-            pairing: settings.bluetoothPairingIdentity,
-            allowLastKnownVehicleFallback: settings.activeAutoTriggerVehicleID != nil
-        )
+    /// CarPlay is considered connected if the CarPlay app scene is live OR a
+    /// `.carAudio` audio route is present (covers wired and wireless CarPlay
+    /// even when the Carinho CarPlay app has not been opened in the car).
+    static func isCarPlayConnected(bluetoothService: BluetoothTriggerService? = nil) -> Bool {
+        if CarPlayConnectionHandler.shared.readCarPlayConnectionState() { return true }
+        if let bluetoothService, bluetoothService.connectedCarPlayAudioCandidate() != nil { return true }
+        return false
     }
 
     static func isBluetoothAudioDetected(bluetoothService: BluetoothTriggerService) -> Bool {
         bluetoothService.connectedCarCandidate() != nil
-    }
-
-    /// Pairing UI: audio route detected, or already paired and matched.
-    static func isBluetoothReadyForPairing(
-        settings: AppSettings = .shared,
-        bluetoothService: BluetoothTriggerService
-    ) -> Bool {
-        if isBluetoothRouteMatched(settings: settings, bluetoothService: bluetoothService) {
-            return true
-        }
-        return isBluetoothAudioDetected(bluetoothService: bluetoothService)
     }
 
     static func connectionSummary(for vehicle: VehicleProfile) -> String {
@@ -50,12 +34,13 @@ enum PairingConnectionStatus {
                 bluetoothService: bluetoothService
             )
         }
-        return isCarPlayConnected() || isBluetoothAudioDetected(bluetoothService: bluetoothService)
+        return isCarPlayConnected(bluetoothService: bluetoothService)
+            || isBluetoothAudioDetected(bluetoothService: bluetoothService)
     }
 
     static func detectedChannels(bluetoothService: BluetoothTriggerService) -> (carPlay: Bool, bluetooth: Bool) {
         (
-            carPlay: isCarPlayConnected(),
+            carPlay: isCarPlayConnected(bluetoothService: bluetoothService),
             bluetooth: isBluetoothAudioDetected(bluetoothService: bluetoothService)
         )
     }
@@ -70,7 +55,7 @@ enum PairingConnectionStatus {
         settings: AppSettings = .shared,
         bluetoothService: BluetoothTriggerService
     ) -> Bool {
-        let carPlay = vehicle.autoTriggerCarPlayEnabled && isCarPlayConnected()
+        let carPlay = vehicle.autoTriggerCarPlayEnabled && isCarPlayConnected(bluetoothService: bluetoothService)
         let bluetooth = vehicle.autoTriggerBluetoothEnabled
             && isBluetoothLinkedToVehicle(vehicle, settings: settings, bluetoothService: bluetoothService)
         if vehicle.autoTriggerCarPlayEnabled && vehicle.autoTriggerBluetoothEnabled {
@@ -97,8 +82,7 @@ enum PairingConnectionStatus {
         )
         return BluetoothRouteMatcher.matches(
             candidate: candidate,
-            pairing: identity,
-            allowLastKnownVehicleFallback: false
+            pairing: identity
         )
     }
 
@@ -108,6 +92,10 @@ enum PairingConnectionStatus {
         bluetoothService: BluetoothTriggerService
     ) -> Bool {
         guard isAnyConnectionDetected(bluetoothService: bluetoothService) else { return false }
+        if settings.hasAutoTriggerVehicle,
+           settings.activeAutoTriggerVehicleID != vehicle.id {
+            return false
+        }
         return !isVehicleChannelConnected(
             vehicle: vehicle,
             settings: settings,

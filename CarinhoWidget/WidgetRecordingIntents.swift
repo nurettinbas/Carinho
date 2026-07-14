@@ -1,18 +1,6 @@
 @preconcurrency import AppIntents
 import Foundation
 
-struct WidgetStartRecordingIntent: AppIntent {
-    static let title: LocalizedStringResource = "Kaydı başlat"
-    static let openAppWhenRun = true
-    static var isDiscoverable: Bool { false }
-
-    @MainActor
-    func perform() async throws -> some IntentResult {
-        await RecordingControlBridge.handleStartButtonPressed()
-        return .result()
-    }
-}
-
 struct WidgetStopRecordingIntent: AppIntent {
     static let title: LocalizedStringResource = "Kaydı durdur"
     static let openAppWhenRun = false

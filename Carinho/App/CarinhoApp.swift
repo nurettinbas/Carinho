@@ -1,11 +1,11 @@
 import SwiftData
 import SwiftUI
+import WidgetKit
 
 @MainActor
 @Observable
 final class AppRuntime {
     private var location: LocationService?
-    private var motion: MotionActivityService?
     private var geocoding: GeocodingService?
     private var geocodingRetry: GeocodingRetryService?
     private var recording: TripRecordingService?
@@ -21,13 +21,6 @@ final class AppRuntime {
         if let location { return location }
         let service = LocationService()
         location = service
-        return service
-    }
-
-    var motionActivityService: MotionActivityService {
-        if let motion { return motion }
-        let service = MotionActivityService()
-        motion = service
         return service
     }
 
@@ -48,9 +41,7 @@ final class AppRuntime {
     var tripRecordingService: TripRecordingService {
         if let recording { return recording }
         let service = TripRecordingService(
-            locationService: locationService,
-            geocodingService: geocodingService,
-            motionActivityService: motionActivityService
+            locationService: locationService
         )
         recording = service
         CarPlayConnectionHandler.shared.tripRecordingService = service
@@ -84,14 +75,35 @@ final class AppRuntime {
 
         bluetoothService.activate()
         tripRecordingService.configure(modelContext: container.mainContext)
-        VehicleConnectionCoordinator.shared.configure(recordingService: tripRecordingService)
+        VehicleConnectionCoordinator.shared.configure(
+            recordingService: tripRecordingService,
+            bluetoothService: bluetoothService
+        )
         tripRecordingService.startServices()
         wireVehicleConnectionHandlers(container: container)
+        wireMonitoringWake()
         wireRecordingRequestHandlers()
-        VehicleConnectionCoordinator.shared.handleCarPlaySnapshot(
-            isConnected: CarPlayConnectionHandler.shared.isConnected
-        )
+        CarPlayConnectionHandler.shared.probeAndSyncConnection()
         bluetoothService.syncRouteSnapshot()
+        reconcileRecordingStateAfterLaunch()
+    }
+
+    private func reconcileRecordingStateAfterLaunch() {
+        let recordingService = tripRecordingService
+        guard !recordingService.state.isActiveSession else { return }
+
+        AppSettings.shared.syncRecordingState(
+            isRecording: false,
+            isPaused: false,
+            elapsed: 0,
+            distanceMeters: 0,
+            currentSpeedKmh: 0
+        )
+
+        Task { @MainActor in
+            await RecordingLiveActivityService.reconcileAfterLaunch(hasActiveSession: false)
+            WidgetCenter.shared.reloadAllTimelines()
+        }
     }
 
     func bootstrap(container: ModelContainer) {
@@ -131,14 +143,19 @@ final class AppRuntime {
         return tripRecordingService.state.isActiveSession
             || settings.isPairedBluetoothVehicle
             || settings.isPairedCarPlayVehicle
-            || settings.autoRecordingEnabled
     }
 
     func resumeMonitoringIfNeeded() {
         if shouldKeepVehicleMonitoring {
             tripRecordingService.startServices()
-            bluetoothService.syncRouteSnapshot()
+            refreshVehicleConnections()
         }
+    }
+
+    func refreshVehicleConnections() {
+        CarPlayConnectionHandler.shared.readCarPlayConnectionState()
+        bluetoothService.readConnectionState()
+        VehicleConnectionCoordinator.shared.refreshLiveSnapshots()
     }
 
     func suspendIdleMonitoringIfNeeded() {
@@ -150,17 +167,19 @@ final class AppRuntime {
         bluetoothService.onRouteSnapshotChanged = { isConnected in
             VehicleConnectionCoordinator.shared.handleBluetoothSnapshot(isConnected: isConnected)
             VehiclePairingService.syncLearnedBluetoothUID(in: container.mainContext)
-            VehiclePairingService.evaluateVehicleIdentityPrompt(
-                in: container.mainContext,
-                bluetoothService: self.bluetoothService
-            )
         }
         CarPlayConnectionHandler.shared.onConnectionSnapshotChanged = { isConnected in
             VehicleConnectionCoordinator.shared.handleCarPlaySnapshot(isConnected: isConnected)
-            VehiclePairingService.evaluateVehicleIdentityPrompt(
-                in: container.mainContext,
-                bluetoothService: self.bluetoothService
-            )
+        }
+    }
+
+    private func wireMonitoringWake() {
+        locationService.onMonitoringWake = { [weak self] in
+            guard let self else { return }
+            if self.tripRecordingService.state.isActiveSession
+                || AppSettings.shared.hasAutoTriggerVehicle {
+                self.refreshVehicleConnections()
+            }
         }
     }
 
@@ -215,7 +234,6 @@ struct CarinhoApp: App {
             ContentView()
                 .modelContainer(modelContainer)
                 .environment(runtime.locationService)
-                .environment(runtime.motionActivityService)
                 .environment(runtime.tripRecordingService)
                 .environment(runtime.bluetoothService)
                 .environment(runtime.appLockService)

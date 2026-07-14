@@ -63,12 +63,6 @@ public enum AutoRecordingEventArchive {
         RecordingControlBridge.sharedDefaults().set(data, forKey: storageKey)
     }
 
-    public static func append(_ event: StoredAutoRecordingEvent) {
-        var items = load()
-        items.insert(event, at: 0)
-        save(items)
-    }
-
     public static func clear() {
         RecordingControlBridge.sharedDefaults().removeObject(forKey: storageKey)
     }

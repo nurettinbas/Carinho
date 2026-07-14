@@ -7,7 +7,7 @@ enum AppNotificationKind: String {
     case tripDiscarded
     case orphanStale
     case recordingStopped
-    case recordingAwaitingGPS
+    case pairingSuggestion
 
     var systemImage: String {
         switch self {
@@ -16,7 +16,7 @@ enum AppNotificationKind: String {
         case .tripDiscarded: "trash.circle.fill"
         case .orphanStale: "exclamationmark.triangle.fill"
         case .recordingStopped: "stop.circle.fill"
-        case .recordingAwaitingGPS: "location.circle.fill"
+        case .pairingSuggestion: "link.circle.fill"
         }
     }
 
@@ -27,7 +27,7 @@ enum AppNotificationKind: String {
         case .tripDiscarded: "gray"
         case .orphanStale: "orange"
         case .recordingStopped: "red"
-        case .recordingAwaitingGPS: "yellow"
+        case .pairingSuggestion: "blue"
         }
     }
 }
@@ -173,11 +173,11 @@ final class AppNotificationStore {
 
     private func kindForIdentifier(_ identifier: String) -> AppNotificationKind {
         if identifier.contains("started") { return .tripStarted }
-        if identifier.contains("awaiting_gps") { return .recordingAwaitingGPS }
         if identifier.contains("ended") { return .tripEnded }
         if identifier.contains("discarded") { return .tripDiscarded }
         if identifier.contains("orphan") { return .orphanStale }
         if identifier.contains("stopped") { return .recordingStopped }
+        if identifier.contains("pairing") { return .pairingSuggestion }
         return .tripEnded
     }
 

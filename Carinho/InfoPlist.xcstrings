@@ -92,23 +92,6 @@
           }
         }
       }
-    },
-    "NSMotionUsageDescription" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Motion detection helps start and stop recording automatically when you drive."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Araca bindiğinizde otomatik kayıt için hareket algılama kullanılır."
-          }
-        }
-      }
     }
   },
   "version" : "1.0"

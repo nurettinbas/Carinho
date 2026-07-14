@@ -167,11 +167,6 @@ public enum RecordingControlBridge {
     }
 
     @MainActor
-    public static func handleStartButtonPressed() async {
-        requestStartFromControlSurface()
-    }
-
-    @MainActor
     public static func handleStopButtonPressed() async {
         requestStopFromControlSurface()
         await endAllLiveActivitiesImmediately()
@@ -195,7 +190,11 @@ public enum CarinhoDeepLink {
 
     @discardableResult
     public static func handle(_ url: URL) -> Bool {
-        guard url.scheme == "carinho", url.host == "recording" else { return false }
+        guard url.scheme == "carinho" else { return false }
+        if url.host == "open" {
+            return true
+        }
+        guard url.host == "recording" else { return false }
         switch url.path {
         case "/start":
             RecordingControlBridge.requestStartFromControlSurface()

@@ -268,7 +268,7 @@ struct NotificationsListView: View {
         case .tripDiscarded: .gray
         case .orphanStale: .orange
         case .recordingStopped: .red
-        case .recordingAwaitingGPS: .yellow
+        case .pairingSuggestion: .blue
         }
     }
 

@@ -2,15 +2,10 @@ import SwiftUI
 
 enum PairingCardStyle {
     static let cardRadius: CGFloat = 14
-    static let innerRadius: CGFloat = 10
     static let cardShadow = Color.black.opacity(0.04)
 
     static func cardBackground(_ colorScheme: ColorScheme) -> Color {
         colorScheme == .dark ? Color(white: 0.12) : .white
-    }
-
-    static func innerBackground(_ colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? Color(white: 0.16) : Color(.secondarySystemGroupedBackground)
     }
 }
 

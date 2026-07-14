@@ -15,10 +15,6 @@ struct BluetoothRouteCandidate: Equatable {
         return normalizedName
     }
 
-    var debugLabel: String {
-        "\(name) (\(portTypeLabel))"
-    }
-
     static func normalize(_ value: String) -> String {
         value.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
     }
@@ -44,16 +40,14 @@ enum BluetoothRouteMatchMethod: Equatable {
     case uid
     case name
     case legacyIdentifier
-    case lastKnownVehicle
 }
 
 enum BluetoothRouteMatcher {
     /// Resolves a connected route against stored pairing data.
-    /// Priority: UID → display name → legacy identifier → last-known vehicle fallback.
+    /// Priority: UID → display name → legacy identifier.
     static func match(
         candidate: BluetoothRouteCandidate,
-        pairing: BluetoothPairingIdentity,
-        allowLastKnownVehicleFallback: Bool
+        pairing: BluetoothPairingIdentity
     ) -> BluetoothRouteMatchMethod? {
         if let uid = pairing.uid, let candidateUID = candidate.uid, uid == candidateUID {
             return .uid
@@ -69,23 +63,14 @@ enum BluetoothRouteMatcher {
             if legacy == candidate.normalizedName { return .name }
         }
 
-        if allowLastKnownVehicleFallback {
-            return .lastKnownVehicle
-        }
-
         return nil
     }
 
     static func matches(
         candidate: BluetoothRouteCandidate,
-        pairing: BluetoothPairingIdentity,
-        allowLastKnownVehicleFallback: Bool
+        pairing: BluetoothPairingIdentity
     ) -> Bool {
-        match(
-            candidate: candidate,
-            pairing: pairing,
-            allowLastKnownVehicleFallback: allowLastKnownVehicleFallback
-        ) != nil
+        match(candidate: candidate, pairing: pairing) != nil
     }
 }
 

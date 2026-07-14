@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 enum VehicleConnectionTrigger: String, Codable, Equatable {
     case bluetooth
@@ -10,8 +11,10 @@ enum VehicleConnectionTrigger: String, Codable, Equatable {
 final class VehicleConnectionCoordinator {
     static let shared = VehicleConnectionCoordinator()
 
-    private static let connectDebounceSeconds: TimeInterval = 2
-    private static let disconnectDebounceSeconds: TimeInterval = 5
+    private static let connectDebounceSeconds: TimeInterval = 1
+    /// Short verification window before finalizing a disconnect. Guards against a
+    /// momentary audio-route drop (e.g. parked with no playback) ending the trip.
+    private static let disconnectDebounceSeconds: TimeInterval = 3
 
     private enum DefaultsKey {
         static let lastConnected = "vehicle.lastConnected"
@@ -21,23 +24,45 @@ final class VehicleConnectionCoordinator {
     private let settings: AppSettings
     private let defaults: UserDefaults
     private weak var recordingService: TripRecordingService?
+    private weak var bluetoothService: BluetoothTriggerService?
 
     private var connectTask: Task<Void, Never>?
     private var disconnectTask: Task<Void, Never>?
     private var bluetoothConnected = false
     private var carPlayConnected = false
+    /// Tracks whether we already nudged the user to set up auto-start for the
+    /// current unpaired connection, so a single drive triggers at most one hint.
+    private var pairingSuggestionShown = false
 
     private init(settings: AppSettings = .shared) {
         self.settings = settings
         defaults = UserDefaults(suiteName: "group.com.carinho.app") ?? .standard
     }
 
-    func configure(recordingService: TripRecordingService) {
+    func configure(recordingService: TripRecordingService, bluetoothService: BluetoothTriggerService) {
         self.recordingService = recordingService
+        self.bluetoothService = bluetoothService
+    }
+
+    func refreshLiveSnapshots() {
+        let carPlayLive = carPlayLiveState()
+        let bluetoothLive = bluetoothService?.readConnectionState() ?? false
+        bluetoothConnected = bluetoothLive
+        carPlayConnected = carPlayLive
+        syncSnapshot(bluetooth: bluetoothLive, carPlay: carPlayLive)
+    }
+
+    /// CarPlay is live if the CarPlay app scene is connected OR a `.carAudio`
+    /// audio route is present (covers wired/wireless CarPlay without the
+    /// Carinho CarPlay app being opened in the car).
+    private func carPlayLiveState() -> Bool {
+        if CarPlayConnectionHandler.shared.readCarPlayConnectionState() { return true }
+        if bluetoothService?.connectedCarPlayAudioCandidate() != nil { return true }
+        return false
     }
 
     func reloadConfiguration() {
-        syncSnapshot(bluetooth: bluetoothConnected, carPlay: carPlayConnected)
+        refreshLiveSnapshots()
     }
 
     /// Marks an already-live vehicle connection as handled so pairing in the garage does not auto-start recording.
@@ -57,18 +82,21 @@ final class VehicleConnectionCoordinator {
 
     func handleBluetoothSnapshot(isConnected: Bool) {
         bluetoothConnected = isConnected
-        syncSnapshot(bluetooth: isConnected, carPlay: carPlayConnected)
+        carPlayConnected = carPlayLiveState()
+        syncSnapshot(bluetooth: bluetoothConnected, carPlay: carPlayConnected)
     }
 
     func handleCarPlaySnapshot(isConnected: Bool) {
-        carPlayConnected = isConnected
-        syncSnapshot(bluetooth: bluetoothConnected, carPlay: isConnected)
+        carPlayConnected = isConnected || carPlayLiveState()
+        bluetoothConnected = bluetoothService?.readConnectionState() ?? false
+        syncSnapshot(bluetooth: bluetoothConnected, carPlay: carPlayConnected)
     }
 
     private func syncSnapshot(bluetooth: Bool, carPlay: Bool) {
         guard hasAutoTriggerVehicle else {
             cancelPendingTasks()
             persistState(connected: false, trigger: nil)
+            suggestPairingIfNeeded(isConnected: bluetooth || carPlay)
             return
         }
 
@@ -77,6 +105,11 @@ final class VehicleConnectionCoordinator {
         let isAnyConnected = carPlayLive || bluetoothLive
 
         if isAnyConnected {
+            // A live connection cancels any pending disconnect verification so a
+            // momentary drop-and-reconnect does not end the trip.
+            disconnectTask?.cancel()
+            disconnectTask = nil
+
             let trigger: VehicleConnectionTrigger = carPlayLive ? .carPlay : .bluetooth
             let persistedConnected = defaults.bool(forKey: DefaultsKey.lastConnected)
             let lastTriggerRaw = defaults.string(forKey: DefaultsKey.lastTrigger)
@@ -96,6 +129,19 @@ final class VehicleConnectionCoordinator {
         settings.isPairedBluetoothVehicle || settings.isPairedCarPlayVehicle
     }
 
+    /// When no auto-start vehicle is configured, gently remind the user once per
+    /// connection that they can set one up. Resets on disconnect so a later drive
+    /// (or a different car after unpairing) nudges again.
+    private func suggestPairingIfNeeded(isConnected: Bool) {
+        guard isConnected else {
+            pairingSuggestionShown = false
+            return
+        }
+        guard !pairingSuggestionShown else { return }
+        pairingSuggestionShown = true
+        TripNotificationService.notifyVehiclePairingSuggestion()
+    }
+
     private func scheduleConnect(trigger: VehicleConnectionTrigger) {
         disconnectTask?.cancel()
         disconnectTask = nil
@@ -109,6 +155,12 @@ final class VehicleConnectionCoordinator {
         )
 
         connectTask = Task { @MainActor [weak self] in
+            let backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "VehicleConnect")
+            defer {
+                if backgroundTask != .invalid {
+                    UIApplication.shared.endBackgroundTask(backgroundTask)
+                }
+            }
             try? await Task.sleep(for: .seconds(Self.connectDebounceSeconds))
             guard !Task.isCancelled, let self else { return }
             self.connectTask = nil
@@ -122,19 +174,32 @@ final class VehicleConnectionCoordinator {
 
         guard disconnectTask == nil else { return }
 
-        let lastTriggerRaw = defaults.string(forKey: DefaultsKey.lastTrigger)
-        let lastTrigger = lastTriggerRaw.flatMap(VehicleConnectionTrigger.init(rawValue:))
-        let channel: AutoRecordingEventChannel = lastTrigger == .carPlay ? .carPlay : .bluetooth
-        AutoRecordingEventLog.shared.noteVehicleDisconnectTrigger(channel: channel)
-
         disconnectTask = Task { @MainActor [weak self] in
+            let backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "VehicleDisconnect")
+            defer {
+                if backgroundTask != .invalid {
+                    UIApplication.shared.endBackgroundTask(backgroundTask)
+                }
+            }
             try? await Task.sleep(for: .seconds(Self.disconnectDebounceSeconds))
             guard !Task.isCancelled, let self else { return }
             self.disconnectTask = nil
 
-            let carPlayLive = self.settings.isPairedCarPlayVehicle && self.carPlayConnected
-            let bluetoothLive = self.settings.isPairedBluetoothVehicle && self.bluetoothConnected
-            guard !(carPlayLive || bluetoothLive) else { return }
+            // Re-probe: if the paired vehicle is connected again, the drop was
+            // momentary. Keep recording and refresh the live snapshot.
+            let carPlayLive = self.settings.isPairedCarPlayVehicle && self.carPlayLiveState()
+            let bluetoothLive = self.settings.isPairedBluetoothVehicle
+                && (self.bluetoothService?.readConnectionState() ?? false)
+            if carPlayLive || bluetoothLive {
+                self.carPlayConnected = carPlayLive
+                self.bluetoothConnected = bluetoothLive
+                return
+            }
+
+            let lastTriggerRaw = self.defaults.string(forKey: DefaultsKey.lastTrigger)
+            let lastTrigger = lastTriggerRaw.flatMap(VehicleConnectionTrigger.init(rawValue:))
+            let channel: AutoRecordingEventChannel = lastTrigger == .carPlay ? .carPlay : .bluetooth
+            AutoRecordingEventLog.shared.noteVehicleDisconnectTrigger(channel: channel)
 
             self.applyDisconnect()
         }

@@ -27,10 +27,6 @@ enum L10n {
     static var pause: String { string("action.pause") }
     static var resume: String { string("action.resume") }
     static var recordingPaused: String { string("recording.paused") }
-    static var recordingAwaitingGPS: String { string("recording.awaiting_gps") }
-    static var recordingAwaitingGPSTitle: String { string("recording.awaiting_gps.title") }
-    static var recordingAwaitingGPSBody: String { string("recording.awaiting_gps.body") }
-    static var recordingPendingCancelled: String { string("recording.pending_cancelled") }
     static var settingsRecordingSection: String { string("settings.recording.section") }
     static var settingsAutoRecording: String { string("settings.recording.auto") }
     static var settingsRecordingSounds: String { string("settings.recording.sounds") }
@@ -138,11 +134,9 @@ enum L10n {
     static var settingsAutoDeleteNever: String { string("settings.privacy.auto_delete.never") }
     static var settingsPermissionsSection: String { string("settings.permissions.section") }
     static var settingsLocationPermission: String { string("settings.permissions.location") }
-    static var settingsMotionPermission: String { string("settings.permissions.motion") }
     static var settingsPermissionGranted: String { string("settings.permissions.granted") }
     static var settingsPermissionRequired: String { string("settings.permissions.required") }
     static var settingsRequestLocationPermission: String { string("settings.permissions.request_location") }
-    static var settingsRequestMotionPermission: String { string("settings.permissions.request_motion") }
     static var settingsOpenSystemSettings: String { string("settings.permissions.open_settings") }
     static var settingsBackgroundLocationHint: String { string("settings.permissions.background_location_hint") }
     static var settingsCarPlaySection: String { string("settings.carplay.section") }
@@ -172,10 +166,6 @@ enum L10n {
     static var vehiclePairingSavedVehicles: String { string("vehicle.pairing.saved_vehicles") }
     static var vehiclePairingConnectedDevice: String { string("vehicle.pairing.connected_device") }
     static var vehiclePairingConfirm: String { string("vehicle.pairing.confirm") }
-    static var vehicleIdentityPromptTitle: String { string("vehicle.identity.prompt.title") }
-    static func vehicleIdentityPromptMessage(vehicleName: String, connection: String) -> String {
-        String(format: string("vehicle.identity.prompt.message"), connection, vehicleName)
-    }
     static var vehiclePairingBluetoothSetupHint: String { string("vehicle.pairing.bluetooth_setup_hint") }
     static var vehiclePairingWaitingBluetooth: String { string("vehicle.pairing.waiting_bluetooth") }
     static var vehiclePairingCarPlayConnected: String { string("vehicle.pairing.carplay_connected") }
@@ -227,12 +217,8 @@ enum L10n {
     static var pairingTabRecordingStatus: String { string("pairing.tab.recording_status") }
     static var pairingReadinessTitle: String { string("pairing.tab.readiness.title") }
     static var pairingReadinessLocationAlways: String { string("pairing.tab.readiness.location_always") }
-    static var pairingReadinessMotion: String { string("pairing.tab.readiness.motion") }
     static var pairingReadinessVehiclePaired: String { string("pairing.tab.readiness.vehicle_paired") }
     static var pairingReadinessConnectionDetected: String { string("pairing.tab.readiness.connection_detected") }
-    static var pairingReadinessAutoRecording: String { string("pairing.tab.readiness.auto_recording") }
-    static var pairingReadinessReady: String { string("pairing.tab.readiness.ready") }
-    static var pairingReadinessNotReady: String { string("pairing.tab.readiness.not_ready") }
     static var pairingTabDefineVehicle: String { string("pairing.tab.define_vehicle") }
     static var pairingTabConnectionNow: String { string("pairing.tab.connection_now") }
     static var pairingTabConnectionDetected: String { string("pairing.tab.connection_detected") }
@@ -240,6 +226,8 @@ enum L10n {
     static var pairingTabPairNow: String { string("pairing.tab.pair_now") }
     static var pairingTabPairedSuccess: String { string("pairing.tab.paired_success") }
     static var pairingTabWaitingConnection: String { string("pairing.tab.wait_connection") }
+    static var pairingSuggestionTitle: String { string("pairing.suggestion.title") }
+    static var pairingSuggestionBody: String { string("pairing.suggestion.body") }
     static var pairingTabConfirmVehicleHint: String { string("pairing.tab.confirm_vehicle_hint") }
     static var pairingTabAdvanced: String { string("pairing.tab.advanced") }
     static var pairingTabPickChannelHint: String { string("pairing.tab.pick_channel_hint") }
@@ -275,6 +263,7 @@ enum L10n {
     static var pairingLiveConnectionTitle: String { string("pairing.live_connection.title") }
     static var pairingLiveConnectionNone: String { string("pairing.live_connection.none") }
     static var pairingConnectionCarPlay: String { string("pairing.connection.carplay") }
+    static var pairingConnectionCarPlayWired: String { string("pairing.connection.carplay.wired") }
     static func pairingConnectionBluetooth(_ name: String, _ portType: String) -> String {
         String(format: string("pairing.connection.bluetooth"), name, portType)
     }
