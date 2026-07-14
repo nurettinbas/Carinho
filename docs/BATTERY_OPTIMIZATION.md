@@ -2,9 +2,9 @@
 
 ## Uygulanan stratejiler
 
-1. **Idle:** `LocationService` tamamen kapalı.
-2. **Automotive beklerken:** `startLowPowerMonitoring()` — yüz metre doğruluk, 50 m filtre.
-3. **Kayıt sırasında:** `startTracking()` — 10 m doğruluk, 10 m filtre.
+1. **Idle:** Eşleşmiş araç yokken `LocationService` tamamen kapalı.
+2. **Bağlantı beklerken:** `startVehicleConnectionMonitoring()` — yüz metre doğruluk, 25 m filtre; süreç arka planda canlı kalır ki Bluetooth/CarPlay route değişimi anında yakalansın.
+3. **Kayıt sırasında:** `startTracking()` — navigasyon doğruluğu, 5 m filtre.
 4. **Geocoding:** Yalnızca trip başlangıç/bitişinde; offline'da pending, ağ gelince retry.
 5. **Polyline:** 1000+ noktada Douglas-Peucker sadeleştirme.
 6. **Timer:** Yalnızca aktif kayıtta 1 sn elapsed timer.
@@ -20,12 +20,12 @@
 
 ## Arka plan görev denetimi
 
-- `CMMotionActivityManager` automotive izleme: düşük maliyet.
-- `BluetoothTriggerService`: Bluetooth audio route değişikliği dinler (`AVAudioSession`); CoreBluetooth taraması yok.
+- `BluetoothTriggerService`: Bluetooth audio route değişikliğini dinler (`AVAudioSession`); CoreBluetooth taraması yok.
+- CarPlay: `CPTemplateApplicationScene` durumu + `.carAudio` route ile algılanır.
 - Live Activity: yalnızca kayıt sırasında.
 
 ## TestFlight öncesi kontrol listesi
 
 - [ ] 2+ saat gerçek sürüşte pil tüketimi kabul edilebilir
 - [ ] Kayıt bitince GPS duruyor
-- [ ] Otomatik kayıt gecikmesi < 30 sn (automotive + hız)
+- [ ] Araç bağlanınca otomatik kayıt anında başlıyor, kopunca duruyor
