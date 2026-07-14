@@ -2,7 +2,7 @@
 
 **Privacy-first trip recorder for iOS** — track drives with GPS, estimate fuel cost, and keep every mile on your device. No account, no cloud, no third-party SDKs.
 
-Carinho is a native SwiftUI app built with SwiftData. It records routes locally, works offline, and can start or stop automatically when your car connects via **Bluetooth**, **CarPlay**, or **motion detection**.
+Carinho is a native SwiftUI app built with SwiftData. It records routes locally, works offline, and starts automatically the moment your paired car connects via **Bluetooth** or **CarPlay** — and stops when it disconnects.
 
 [English](#features) · [Türkçe](#özellikler)
 
@@ -12,8 +12,8 @@ Carinho is a native SwiftUI app built with SwiftData. It records routes locally,
 
 ### Recording
 - Manual start/stop, pause/resume
-- Auto-recording via automotive motion + speed thresholds
-- **Bluetooth audio route** and **CarPlay** (wired & wireless) vehicle triggers
+- **Connect-start / disconnect-stop**: recording begins automatically when the paired vehicle connects and ends when it disconnects (no motion or speed checks)
+- **Bluetooth audio route** and **CarPlay** (wired & wireless) vehicle triggers, matched by unique connection ID
 - Vehicle profiles with fuel/EV cost per trip
 - Siri Shortcuts: *Start trip*, *Pause trip*, *Resume trip*, *End trip*
 - Widget + Live Activity controls
@@ -61,8 +61,7 @@ Carinho uses **SwiftData**, **App Intents**, **Live Activities**, and modern **W
 
 | Requirement | Used for |
 |-------------|----------|
-| GPS (Always / When In Use) | Route recording, background trips |
-| Motion & Fitness | Auto start/stop while driving |
+| GPS (Always / When In Use) | Route recording, background trips, keeping the connection monitor alive |
 | Bluetooth audio route | Vehicle connect trigger (AVAudioSession, no CoreBluetooth scan) |
 | Notifications | Trip started/ended alerts |
 | Face ID (optional) | App lock |
@@ -136,7 +135,7 @@ CarinhoTests/         # Unit tests
 docs/                 # Battery optimization, TestFlight checklist
 ```
 
-**Stack:** SwiftUI · SwiftData · MapKit · CoreLocation · CoreMotion · App Intents · WidgetKit · ActivityKit · CarPlay
+**Stack:** SwiftUI · SwiftData · MapKit · CoreLocation · App Intents · WidgetKit · ActivityKit · CarPlay
 
 ---
 
