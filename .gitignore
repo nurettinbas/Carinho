@@ -46,4 +46,4 @@ fastlane/test_output
 /*.jpg
 /*.png
 !Design/**/*.png
-!Carinho/**/*.png
+!Trailhound/**/*.png

@@ -1,8 +1,8 @@
-# Carinho
+# Trailhound
 
 **Privacy-first trip recorder for iOS** — track drives with GPS, estimate fuel cost, and keep every mile on your device. No account, no cloud, no third-party SDKs.
 
-Carinho is a native SwiftUI app built with SwiftData. It records routes locally, works offline, and starts automatically the moment your paired car connects via **Bluetooth** or **CarPlay** — and stops when it disconnects.
+Trailhound is a native SwiftUI app built with SwiftData. It records routes locally, works offline, and starts automatically the moment your paired car connects via **CarPlay** (wired or wireless) — and stops when it disconnects.
 
 [English](#features) · [Türkçe](#özellikler)
 
@@ -12,8 +12,8 @@ Carinho is a native SwiftUI app built with SwiftData. It records routes locally,
 
 ### Recording
 - Manual start/stop, pause/resume
-- **Connect-start / disconnect-stop**: recording begins automatically when the paired vehicle connects and ends when it disconnects (no motion or speed checks)
-- **Bluetooth audio route** and **CarPlay** (wired & wireless) vehicle triggers, matched by unique connection ID
+- **Connect-start / disconnect-stop**: recording begins automatically when the paired vehicle connects on **CarPlay** and ends when CarPlay disconnects (no motion or speed checks)
+- **CarPlay** (wired & wireless) auto-start — detected via CarPlay scene and/or `.carAudio` route (classic Bluetooth-only audio is not used as a trigger)
 - Vehicle profiles with fuel/EV cost per trip
 - Siri Shortcuts: *Start trip*, *Pause trip*, *Resume trip*, *End trip*
 - Widget + Live Activity controls
@@ -55,19 +55,19 @@ Carinho is a native SwiftUI app built with SwiftData. It records routes locally,
 
 ### Why iOS 17?
 
-Carinho uses **SwiftData**, **App Intents**, **Live Activities**, and modern **WidgetKit** APIs that require iOS 17. The project does not build for iOS 16 or earlier.
+Trailhound uses **SwiftData**, **App Intents**, **Live Activities**, and modern **WidgetKit** APIs that require iOS 17. The project does not build for iOS 16 or earlier.
 
 ### Device & permissions
 
 | Requirement | Used for |
 |-------------|----------|
 | GPS (Always / When In Use) | Route recording, background trips, keeping the connection monitor alive |
-| Bluetooth audio route | Vehicle connect trigger (AVAudioSession, no CoreBluetooth scan) |
+| CarPlay (scene / `.carAudio`) | Auto-start connect/disconnect trigger |
 | Notifications | Trip started/ended alerts |
 | Face ID (optional) | App lock |
 | CarPlay entitlement | In-car status & controls |
 
-**Physical iPhone recommended** for real-world testing (GPS, Bluetooth, CarPlay, background recording). Simulator is fine for UI and basic location simulation.
+**Physical iPhone recommended** for real-world testing (GPS, CarPlay, background recording). Simulator is fine for UI and basic location simulation.
 
 ---
 
@@ -79,22 +79,22 @@ Carinho uses **SwiftData**, **App Intents**, **Live Activities**, and modern **W
 | **Swift** | 5.0 (strict concurrency enabled) |
 | **iOS deployment target** | 17.0 |
 | **Dependencies** | None (Apple frameworks only) |
-| **Bundle IDs** | `com.carinho.app` · `com.carinho.app.widget` |
-| **App Group** | `group.com.carinho.app` |
+| **Bundle IDs** | `com.trailhound.app` · `com.trailhound.app.widget` |
+| **App Group** | `group.com.trailhound.app` |
 
 ---
 
 ## Getting started
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Carinho.git
-cd Carinho
-open Carinho.xcodeproj
+git clone https://github.com/YOUR_USERNAME/Trailhound.git
+cd Trailhound
+open Trailhound.xcodeproj
 ```
 
 1. Select an **iPhone** simulator or device
-2. Update **Signing & Capabilities** with your Team (bundle ID: `com.carinho.app`)
-3. Ensure App Group `group.com.carinho.app` is enabled for app + widget targets
+2. Update **Signing & Capabilities** with your Team (bundle ID: `com.trailhound.app`)
+3. Ensure App Group `group.com.trailhound.app` is enabled for app + widget targets
 4. Press **⌘R** to run
 
 ### Simulator quick test
@@ -107,13 +107,13 @@ open Carinho.xcodeproj
 
 Requires **iOS 17+** and **Siri enabled**. After first launch:
 
-1. Open **Shortcuts** → search **Carinho**
+1. Open **Shortcuts** → search **Trailhound**
 2. Add the four actions: **Start trip**, **Pause trip**, **Resume trip**, **End trip**
 3. Or use **Settings → Recording → Open Shortcuts** in the app
 
-**English Siri examples:** *“Start trip in Carinho”*, *“Pause trip in Carinho”*
+**English Siri examples:** *“Start trip in Trailhound”*, *“Pause trip in Trailhound”*
 
-**Turkish Siri examples:** *“Carinho yolculuğu başlat”*, *“Carinho yolculuğu duraklat”*, *“Carinho yolculuğu sürdür”*, *“Carinho yolculuğu bitir”*
+**Turkish Siri examples:** *“Trailhound yolculuğu başlat”*, *“Trailhound yolculuğu duraklat”*, *“Trailhound yolculuğu sürdür”*, *“Trailhound yolculuğu bitir”*
 
 > Siri language and system language can differ. Shortcuts list follows system language; voice phrases follow Siri language.
 
@@ -122,16 +122,16 @@ Requires **iOS 17+** and **Siri enabled**. After first launch:
 ## Project structure
 
 ```
-Carinho/
+Trailhound/
 ├── App/              # App entry, runtime bootstrap, CarPlay lifecycle
 ├── Models/           # SwiftData models (Trip, VehicleProfile, …)
-├── Services/         # Location, recording, Bluetooth, geocoding, export
+├── Services/         # Location, recording, CarPlay connection, geocoding, export
 ├── Views/            # SwiftUI screens
 ├── Intents/          # App Intents & Siri Shortcuts
 ├── Utilities/        # L10n, PDF reports, migrations
-CarinhoShared/        # App Group bridge (widget, Live Activity, deep links)
-CarinhoWidget/        # WidgetKit + Live Activity extension
-CarinhoTests/         # Unit tests
+TrailhoundShared/        # App Group bridge (widget, Live Activity, deep links)
+TrailhoundWidget/        # WidgetKit + Live Activity extension
+TrailhoundTests/         # Unit tests
 docs/                 # Battery optimization, TestFlight checklist
 ```
 
@@ -148,10 +148,10 @@ docs/                 # Battery optimization, TestFlight checklist
 
 ## Özellikler (Türkçe)
 
-Carinho, yolculuklarınızı **yalnızca cihazınızda** kaydeden gizlilik odaklı bir sürüş günlüğüdür.
+Trailhound, yolculuklarınızı **yalnızca cihazınızda** kaydeden gizlilik odaklı bir sürüş günlüğüdür.
 
 - GPS ile rota ve mesafe takibi
-- Bluetooth audio / CarPlay ile otomatik başlat-bitir
+- **CarPlay** (kablolu / kablosuz) ile otomatik başlat-bitir
 - Siri: *Yolculuğu başlat*, *duraklat*, *sürdür*, *bitir*
 - Widget ve Live Activity
 - İş/kişisel kategori, yakıt/EV maliyet tahmini
@@ -171,7 +171,7 @@ Carinho, yolculuklarınızı **yalnızca cihazınızda** kaydeden gizlilik odakl
 
 **iOS 17 zorunlu** — SwiftData, App Intents ve Live Activity bu sürümü gerektirir. iOS 16 ve altı desteklenmez.
 
-Gerçek sürüş, Bluetooth ve CarPlay testleri için **fiziksel iPhone** önerilir.
+Gerçek sürüş ve CarPlay testleri için **fiziksel iPhone** önerilir.
 
 ---
 

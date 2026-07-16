@@ -8,8 +8,8 @@
 
 ## Xcode hazırlığı
 
-1. Bundle ID: `com.carinho.app`
-2. Widget: `com.carinho.app.widget`
+1. Bundle ID: `com.trailhound.app`
+2. Widget: `com.trailhound.app.widget`
 3. Signing: Automatic + Team seç
 4. Capabilities: App Groups, Background Modes (location), CarPlay
 
@@ -24,9 +24,13 @@
 
 1. Archive → Distribute → App Store Connect
 2. Internal testing grubu
-3. Gerçek sürüş testi checklist: otomatik kayıt, Bluetooth, export
+3. Gerçek sürüş testi checklist:
+   - CarPlay (kablolu / kablosuz) ile otomatik kayıt başlat/durdur
+   - Klasik Bluetooth-only (CarPlay’siz) ile otomatik kayıt **başlamamalı**
+   - Manuel kayıt, widget, export
 
 ## CarPlay
 
 - [Apple CarPlay başvurusu](https://developer.apple.com/contact/carplay/)
 - App Review notlarında Driving Task kullanım gerekçesi
+- Auto-start yalnızca CarPlay sinyallerine bağlıdır (sahne veya `.carAudio`)

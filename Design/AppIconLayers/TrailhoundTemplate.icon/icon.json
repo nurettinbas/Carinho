@@ -1,0 +1,16 @@
+{
+  "fill" : {
+    "solid" : "srgb:0.28235,0.59608,0.84706,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "image-name" : "Symbol.png",
+          "is-glass" : true,
+          "opacity" : 1
+        }
+      ]
+    }
+  ]
+}
