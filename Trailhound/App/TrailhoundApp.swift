@@ -149,7 +149,8 @@ final class AppRuntime {
     }
 
     func refreshVehicleConnections() {
-        bluetoothService.readConnectionState()
+        // Re-evaluate with snapshot reporting so foreground/wake can drive connect.
+        bluetoothService.syncRouteSnapshot()
         VehicleConnectionCoordinator.shared.refreshLiveSnapshots()
     }
 

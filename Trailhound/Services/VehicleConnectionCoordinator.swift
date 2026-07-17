@@ -55,6 +55,9 @@ final class VehicleConnectionCoordinator {
     private var graceDisconnectTask: Task<Void, Never>?
     private var vehicleConnected = false
     private var lastConnectEstablishedAt: Date?
+    /// After manual stop while the route is still live, wait for one real disconnect
+    /// before auto-start can fire again (clears stuck `lastConnected` otherwise).
+    private var awaitingReconnectAfterManualStop = false
     /// Tracks whether we already nudged the user to set up auto-start for the
     /// current unpaired connection, so a single drive triggers at most one hint.
     private var pairingSuggestionShown = false
@@ -67,6 +70,18 @@ final class VehicleConnectionCoordinator {
     func configure(recordingService: TripRecordingService, bluetoothService: BluetoothTriggerService) {
         self.recordingService = recordingService
         self.bluetoothService = bluetoothService
+    }
+
+    /// Clears in-memory session state between unit tests (`shared` is a singleton).
+    func resetSessionStateForTesting() {
+        connectTask?.cancel()
+        connectTask = nil
+        cancelDisconnectWork()
+        vehicleConnected = false
+        lastConnectEstablishedAt = nil
+        awaitingReconnectAfterManualStop = false
+        pairingSuggestionShown = false
+        persistState(connected: false, trigger: nil)
     }
 
     func refreshLiveSnapshots() {
@@ -95,6 +110,20 @@ final class VehicleConnectionCoordinator {
         refreshLiveSnapshots()
     }
 
+    /// Clears the handled-connect session after a manual stop so the next real
+    /// vehicle reconnect can auto-start. While the route stays live, blocks restart.
+    func notifyManualRecordingStopped() {
+        let stillInVehicleSession = vehicleConnected || vehicleLiveState()
+        awaitingReconnectAfterManualStop = stillInVehicleSession
+        connectTask?.cancel()
+        connectTask = nil
+        persistState(connected: false, trigger: nil)
+        DevLog.shared.log(
+            .recording,
+            "Manual stop: cleared connect session (awaitingReconnect=\(stillInVehicleSession))"
+        )
+    }
+
     /// Marks an already-live vehicle connection as handled so pairing in the garage does not auto-start recording.
     func acknowledgeLiveConnectionWithoutRecording() {
         guard hasAutoTriggerVehicle, vehicleConnected else { return }
@@ -108,6 +137,20 @@ final class VehicleConnectionCoordinator {
 
     func handleVehicleSnapshot(isConnected: Bool) {
         DevLog.shared.log(.bluetooth, "handleVehicleSnapshot(isConnected: \(isConnected))")
+
+        if !isConnected, connectTask != nil {
+            DevLog.shared.log(
+                .bluetooth,
+                "Ignoring transient disconnect during connect debounce"
+            )
+            vehicleConnected = vehicleLiveState()
+            return
+        }
+
+        if !isConnected {
+            awaitingReconnectAfterManualStop = false
+        }
+
         vehicleConnected = isConnected || vehicleLiveState()
         syncSnapshot(connected: vehicleConnected)
     }
@@ -157,6 +200,14 @@ final class VehicleConnectionCoordinator {
     }
 
     private func scheduleConnect(trigger: VehicleConnectionTrigger) {
+        if awaitingReconnectAfterManualStop {
+            DevLog.shared.log(
+                .recording,
+                "Connect deferred: awaiting vehicle disconnect after manual stop"
+            )
+            return
+        }
+
         if disconnectTask != nil || graceDisconnectTask != nil {
             DevLog.shared.log(.recording, "Cancelling pending disconnect: connect signal arrived (trigger=\(trigger.rawValue))")
         }
@@ -186,6 +237,11 @@ final class VehicleConnectionCoordinator {
     }
 
     private func scheduleDisconnect() {
+        if connectTask != nil {
+            DevLog.shared.log(.recording, "Disconnect ignored: connect debounce in flight")
+            return
+        }
+
         connectTask?.cancel()
         connectTask = nil
 

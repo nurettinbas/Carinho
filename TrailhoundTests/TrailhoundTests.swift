@@ -176,6 +176,7 @@ final class VehicleConnectionCoordinatorTests: XCTestCase {
         recordingService.configure(modelContext: container.mainContext)
 
         let coordinator = VehicleConnectionCoordinator.shared
+        coordinator.resetSessionStateForTesting()
         coordinator.configure(
             recordingService: recordingService,
             bluetoothService: BluetoothTriggerService(settings: shared)
@@ -230,6 +231,7 @@ final class VehicleConnectionCoordinatorTests: XCTestCase {
         recordingService.configure(modelContext: container.mainContext)
 
         let coordinator = VehicleConnectionCoordinator.shared
+        coordinator.resetSessionStateForTesting()
         coordinator.configure(
             recordingService: recordingService,
             bluetoothService: BluetoothTriggerService(settings: shared)
@@ -737,6 +739,7 @@ final class VehicleConnectRecordingTests: XCTestCase {
         recordingService.configure(modelContext: container.mainContext)
 
         let coordinator = VehicleConnectionCoordinator.shared
+        coordinator.resetSessionStateForTesting()
         coordinator.configure(
             recordingService: recordingService,
             bluetoothService: BluetoothTriggerService(settings: shared)
@@ -910,6 +913,7 @@ final class VehicleConnectRecordingTests: XCTestCase {
     }
 }
 
+@MainActor
 final class TripMapFitTests: XCTestCase {
     func testPanelInsetZoomsOutMoreThanFullscreen() {
         let coordinates = [

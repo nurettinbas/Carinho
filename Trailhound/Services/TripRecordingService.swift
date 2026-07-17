@@ -476,6 +476,12 @@ final class TripRecordingService {
             "stopRecording: reason=\(reason), saveTrip=\(saveTrip), distance=\(Int(currentDistanceMeters))m, elapsed=\(Int(elapsedTime))s"
         )
 
+        defer {
+            if reason == .manual {
+                VehicleConnectionCoordinator.shared.notifyManualRecordingStopped()
+            }
+        }
+
         finalizeRecordingLocation()
         finalizeStopIfNeeded()
         state = .idle
