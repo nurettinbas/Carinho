@@ -180,24 +180,17 @@ final class TripRecordingService {
     func handleVehicleConnected(trigger: VehicleRecordingTrigger) {
         DevLog.shared.log(.recording, "handleVehicleConnected(trigger: \(trigger), state: \(state))")
         switch trigger {
-        case .carPlay:
+        case .bluetooth:
             guard state == .idle else {
-                DevLog.shared.log(.recording, "CarPlay connect skipped: state is not idle")
+                DevLog.shared.log(.recording, "Bluetooth connect skipped: state is not idle")
                 AutoRecordingEventLog.shared.recordConnectSkipped(
-                    channel: .carPlay,
+                    channel: .bluetooth,
                     vehicleName: settings.pairedVehicleName
                 )
                 return
             }
-            guard settings.isPairedCarPlayVehicle else { return }
-            beginRecording(trigger: .carPlay)
-        case .bluetooth:
-            // Classic Bluetooth is not an auto-start channel.
-            DevLog.shared.log(.recording, "Bluetooth connect ignored: auto-start is CarPlay-only")
-            AutoRecordingEventLog.shared.recordConnectSkipped(
-                channel: .bluetooth,
-                vehicleName: settings.pairedVehicleName
-            )
+            guard settings.hasAutoTriggerVehicle else { return }
+            beginRecording(trigger: .bluetooth)
         case .manual:
             break
         }
@@ -209,27 +202,23 @@ final class TripRecordingService {
         // the trip and saves it (subject to the automatic-stop thresholds).
         DevLog.shared.warning(.recording, "handleVehicleDisconnected(trigger: \(trigger), state: \(state))")
         switch trigger {
-        case .carPlay:
+        case .bluetooth:
             guard state.isActiveSession else {
-                AutoRecordingEventLog.shared.recordDisconnectSkipped(channel: .carPlay)
+                AutoRecordingEventLog.shared.recordDisconnectSkipped(channel: .bluetooth)
                 return
             }
-            stopRecording(saveTrip: true, reason: .carPlay)
-        case .bluetooth:
-            // Classic Bluetooth disconnect no longer stops trips.
-            DevLog.shared.log(.recording, "Bluetooth disconnect ignored: auto-start is CarPlay-only")
-            AutoRecordingEventLog.shared.recordDisconnectSkipped(channel: .bluetooth)
+            stopRecording(saveTrip: true, reason: .bluetooth)
         case .manual:
             break
         }
     }
 
     private enum RecordingTrigger {
-        case manual, carPlay, bluetooth
+        case manual, bluetooth
     }
 
     private enum StopReason {
-        case manual, carPlay, bluetooth
+        case manual, bluetooth
     }
 
     func resumeRecording(trip: Trip) {
@@ -257,7 +246,6 @@ final class TripRecordingService {
             distanceMeters: currentDistanceMeters
         )
         syncExternalState(force: true)
-        refreshCarPlayUIIfConnected()
     }
 
     private func handleLocationUpdate(_ location: CLLocation) {
@@ -409,7 +397,6 @@ final class TripRecordingService {
         let trip = Trip(startedAt: resolvedStartedAt)
         let vehicleTrigger: VehicleRecordingTrigger = switch trigger {
         case .manual: .manual
-        case .carPlay: .carPlay
         case .bluetooth: .bluetooth
         }
         if let vehicle = VehicleResolver.resolveActiveVehicle(in: modelContext, trigger: vehicleTrigger, settings: settings) {
@@ -437,8 +424,6 @@ final class TripRecordingService {
             TrailhoundHaptics.recordingStarted()
             TrailhoundSounds.recordingStarted()
         }
-
-        refreshCarPlayUIIfConnected()
 
         if processInitialLocation, let location = locationService.lastLocation {
             processRecordingLocationUpdate(location)
@@ -517,7 +502,6 @@ final class TripRecordingService {
         let duration = endedAt.timeIntervalSince(trip.startedAt)
         let policyReason: RecordingStopPolicy.StopReason = switch reason {
         case .manual: .manual
-        case .carPlay: .carPlay
         case .bluetooth: .bluetooth
         }
         let stopDistanceMeters = currentDistanceMeters
@@ -587,8 +571,6 @@ final class TripRecordingService {
         TripStore.syncWidgetWeekDistance(in: modelContext)
         syncExternalState(force: true)
         WidgetCenter.shared.reloadAllTimelines()
-
-        refreshCarPlayUIIfConnected()
     }
 
     private func ensureTripHasAnchorPointIfNeeded() {
@@ -632,11 +614,6 @@ final class TripRecordingService {
                 channel: .bluetooth,
                 vehicleName: settings.pairedVehicleName
             )
-        case .carPlay:
-            AutoRecordingEventLog.shared.recordConnectStarted(
-                channel: .carPlay,
-                vehicleName: settings.pairedVehicleName
-            )
         case .manual:
             break
         }
@@ -650,11 +627,6 @@ final class TripRecordingService {
         case .bluetooth:
             AutoRecordingEventLog.shared.recordDisconnectStopped(
                 channel: .bluetooth,
-                distanceMeters: distanceMeters
-            )
-        case .carPlay:
-            AutoRecordingEventLog.shared.recordDisconnectStopped(
-                channel: .carPlay,
                 distanceMeters: distanceMeters
             )
         case .manual:
@@ -731,13 +703,6 @@ final class TripRecordingService {
         if force {
             WidgetCenter.shared.reloadAllTimelines()
         }
-
-        refreshCarPlayUIIfConnected()
-    }
-
-    private func refreshCarPlayUIIfConnected() {
-        guard CarPlayConnectionHandler.shared.isConnected else { return }
-        CarPlayConnectionHandler.shared.refreshCarPlayUI()
     }
 
     private func startElapsedTimer() {

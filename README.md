@@ -2,7 +2,7 @@
 
 **Privacy-first trip recorder for iOS** — track drives with GPS, estimate fuel cost, and keep every mile on your device. No account, no cloud, no third-party SDKs.
 
-Trailhound is a native SwiftUI app built with SwiftData. It records routes locally, works offline, and starts automatically the moment your paired car connects via **CarPlay** (wired or wireless) — and stops when it disconnects.
+Trailhound is a native SwiftUI app built with SwiftData. It records routes locally, works offline, and starts automatically the moment your paired car connects over **Bluetooth** — and stops when it disconnects. No music playback required.
 
 [English](#features) · [Türkçe](#özellikler)
 
@@ -12,12 +12,11 @@ Trailhound is a native SwiftUI app built with SwiftData. It records routes local
 
 ### Recording
 - Manual start/stop, pause/resume
-- **Connect-start / disconnect-stop**: recording begins automatically when the paired vehicle connects on **CarPlay** and ends when CarPlay disconnects (no motion or speed checks)
-- **CarPlay** (wired & wireless) auto-start — detected via CarPlay scene and/or `.carAudio` route (classic Bluetooth-only audio is not used as a trigger)
+- **Connect-start / disconnect-stop**: recording begins automatically when the paired vehicle's **Bluetooth** audio route connects and ends when it disconnects (no motion or speed checks)
+- **Bluetooth** auto-start — the paired car is matched by its `AVAudioSessionPortDescription.uid`, detected as soon as the route appears (no music playback needed)
 - Vehicle profiles with fuel/EV cost per trip
 - Siri Shortcuts: *Start trip*, *Pause trip*, *Resume trip*, *End trip*
 - Widget + Live Activity controls
-- CarPlay minimal UI (status, pause, stop)
 
 ### Privacy & data
 - All trips stored locally with **SwiftData** (file protection on store)
@@ -48,7 +47,7 @@ Trailhound is a native SwiftUI app built with SwiftData. It records routes local
 |----------|-----------------|--------|
 | **iPhone (iOS)** | **17.0** | ✅ Primary target |
 | **iPadOS** | 17.0 | ⚠️ Runs as iPhone app (not optimized for iPad) |
-| **CarPlay** | iOS 17.0+ | ✅ Wired & wireless |
+| **Bluetooth auto-start** | iOS 17.0+ | ✅ Paired car audio route (uid match) |
 | **Widget + Live Activity** | iOS 17.0+ | ✅ Home Screen & Lock Screen |
 | **Siri / Shortcuts** | iOS 17.0+ | ✅ App Intents (4 recording actions) |
 | **macOS / visionOS / tvOS** | — | ❌ Not supported |
@@ -62,12 +61,11 @@ Trailhound uses **SwiftData**, **App Intents**, **Live Activities**, and modern 
 | Requirement | Used for |
 |-------------|----------|
 | GPS (Always / When In Use) | Route recording, background trips, keeping the connection monitor alive |
-| CarPlay (scene / `.carAudio`) | Auto-start connect/disconnect trigger |
+| Bluetooth car audio route | Auto-start connect/disconnect trigger (uid match) |
 | Notifications | Trip started/ended alerts |
 | Face ID (optional) | App lock |
-| CarPlay entitlement | In-car status & controls |
 
-**Physical iPhone recommended** for real-world testing (GPS, CarPlay, background recording). Simulator is fine for UI and basic location simulation.
+**Physical iPhone recommended** for real-world testing (GPS, Bluetooth, background recording). Simulator is fine for UI and basic location simulation.
 
 ---
 
@@ -123,9 +121,9 @@ Requires **iOS 17+** and **Siri enabled**. After first launch:
 
 ```
 Trailhound/
-├── App/              # App entry, runtime bootstrap, CarPlay lifecycle
+├── App/              # App entry, runtime bootstrap, scene lifecycle
 ├── Models/           # SwiftData models (Trip, VehicleProfile, …)
-├── Services/         # Location, recording, CarPlay connection, geocoding, export
+├── Services/         # Location, recording, Bluetooth connection, geocoding, export
 ├── Views/            # SwiftUI screens
 ├── Intents/          # App Intents & Siri Shortcuts
 ├── Utilities/        # L10n, PDF reports, migrations
@@ -135,7 +133,7 @@ TrailhoundTests/         # Unit tests
 docs/                 # Battery optimization, TestFlight checklist
 ```
 
-**Stack:** SwiftUI · SwiftData · MapKit · CoreLocation · App Intents · WidgetKit · ActivityKit · CarPlay
+**Stack:** SwiftUI · SwiftData · MapKit · CoreLocation · AVFoundation · App Intents · WidgetKit · ActivityKit
 
 ---
 
@@ -151,7 +149,7 @@ docs/                 # Battery optimization, TestFlight checklist
 Trailhound, yolculuklarınızı **yalnızca cihazınızda** kaydeden gizlilik odaklı bir sürüş günlüğüdür.
 
 - GPS ile rota ve mesafe takibi
-- **CarPlay** (kablolu / kablosuz) ile otomatik başlat-bitir
+- **Bluetooth** ile otomatik başlat-bitir (eşleşmiş araca bağlanınca, müzik çalmadan)
 - Siri: *Yolculuğu başlat*, *duraklat*, *sürdür*, *bitir*
 - Widget ve Live Activity
 - İş/kişisel kategori, yakıt/EV maliyet tahmini
@@ -164,14 +162,14 @@ Trailhound, yolculuklarınızı **yalnızca cihazınızda** kaydeden gizlilik od
 |----------|---------------|-------|
 | **iPhone (iOS)** | **17.0** | ✅ Ana hedef |
 | **iPadOS** | 17.0 | ⚠️ iPhone uygulaması olarak çalışır |
-| **CarPlay** | iOS 17.0+ | ✅ Kablolu ve kablosuz |
+| **Bluetooth otomatik başlatma** | iOS 17.0+ | ✅ Eşleşmiş araç ses rotası (uid eşleşme) |
 | **Widget + Live Activity** | iOS 17.0+ | ✅ Ana ekran ve kilit ekranı |
 | **Siri / Kısayollar** | iOS 17.0+ | ✅ 4 kayıt eylemi |
 | **macOS / visionOS / tvOS** | — | ❌ Desteklenmiyor |
 
 **iOS 17 zorunlu** — SwiftData, App Intents ve Live Activity bu sürümü gerektirir. iOS 16 ve altı desteklenmez.
 
-Gerçek sürüş ve CarPlay testleri için **fiziksel iPhone** önerilir.
+Gerçek sürüş ve Bluetooth testleri için **fiziksel iPhone** önerilir.
 
 ---
 

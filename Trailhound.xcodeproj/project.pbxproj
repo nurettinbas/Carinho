@@ -26,7 +26,6 @@
 		A10000000000000000000005 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* LocationService.swift */; };
 		A10000000000000000000006 /* TripRecordingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* TripRecordingService.swift */; };
 		A10000000000000000000007 /* GeocodingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* GeocodingService.swift */; };
-		A10000000000000000000009 /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* CarPlaySceneDelegate.swift */; };
 		A10000000000000000000011 /* TripListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* TripListViewModel.swift */; };
 		A10000000000000000000012 /* TripDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* TripDetailViewModel.swift */; };
 		A10000000000000000000013 /* TripListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* TripListView.swift */; };
@@ -47,7 +46,6 @@
 		A1APPSERVICES00000001 /* AppServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2APPSERVICES00000001 /* AppServices.swift */; };
 		A1VEHCOORD0000000001 /* VehicleConnectionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2VEHCOORD0000000001 /* VehicleConnectionCoordinator.swift */; };
 		A1VEHPAIRING00000001 /* VehiclePairingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2VEHPAIRING00000001 /* VehiclePairingService.swift */; };
-		A1VEHCONNKIND0000001 /* VehicleConnectionKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2VEHCONNKIND0000001 /* VehicleConnectionKind.swift */; };
 		A1INFOPLISTXC0000001 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A2INFOPLISTXC0000001 /* InfoPlist.xcstrings */; };
 		A10000000000000000000028 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000027 /* PrivacyInfo.xcprivacy */; };
 		A5667A7DE2024FB687E8DD43 /* TrailhoundTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86269EF985B34281B00F7FAC /* TrailhoundTests.swift */; };
@@ -130,6 +128,13 @@
 			remoteGlobalIDString = B60000000000000000000001;
 			remoteInfo = TrailhoundWidgetExtension;
 		};
+		BA0000000000000000000002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A90000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A60000000000000000000001;
+			remoteInfo = Trailhound;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -170,7 +175,6 @@
 		A20000000000000000000005 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
 		A20000000000000000000006 /* TripRecordingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripRecordingService.swift; sourceTree = "<group>"; };
 		A20000000000000000000007 /* GeocodingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeocodingService.swift; sourceTree = "<group>"; };
-		A20000000000000000000009 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
 		A20000000000000000000011 /* TripListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripListViewModel.swift; sourceTree = "<group>"; };
 		A20000000000000000000012 /* TripDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripDetailViewModel.swift; sourceTree = "<group>"; };
 		A20000000000000000000013 /* TripListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripListView.swift; sourceTree = "<group>"; };
@@ -191,7 +195,6 @@
 		A2APPSERVICES00000001 /* AppServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppServices.swift; sourceTree = "<group>"; };
 		A2VEHCOORD0000000001 /* VehicleConnectionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleConnectionCoordinator.swift; sourceTree = "<group>"; };
 		A2VEHPAIRING00000001 /* VehiclePairingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehiclePairingService.swift; sourceTree = "<group>"; };
-		A2VEHCONNKIND0000001 /* VehicleConnectionKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleConnectionKind.swift; sourceTree = "<group>"; };
 		A2INFOPLISTXC0000001 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		A20000000000000000000024 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A20000000000000000000026 /* Trailhound.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Trailhound.entitlements; sourceTree = "<group>"; };
@@ -359,7 +362,6 @@
 				A2MATCHEDROUTE0000000001 /* MatchedRoutePoint.swift */,
 				A2USERCATEGORY00000000001 /* UserCategory.swift */,
 				A2VEHICLEPROFILE00000001 /* VehicleProfile.swift */,
-				A2VEHCONNKIND0000001 /* VehicleConnectionKind.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -388,7 +390,6 @@
 				A20000000000000000000005 /* LocationService.swift */,
 				A20000000000000000000006 /* TripRecordingService.swift */,
 				A20000000000000000000007 /* GeocodingService.swift */,
-				A20000000000000000000009 /* CarPlaySceneDelegate.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -535,6 +536,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				B90000000000000000000002 /* PBXTargetDependency */,
 			);
 			name = TrailhoundTests;
 			productName = TrailhoundTests;
@@ -658,7 +660,6 @@
 				A10000000000000000000005 /* LocationService.swift in Sources */,
 				A10000000000000000000006 /* TripRecordingService.swift in Sources */,
 				A10000000000000000000007 /* GeocodingService.swift in Sources */,
-				A10000000000000000000009 /* CarPlaySceneDelegate.swift in Sources */,
 				A10000000000000000000011 /* TripListViewModel.swift in Sources */,
 				A10000000000000000000012 /* TripDetailViewModel.swift in Sources */,
 				A10000000000000000000013 /* TripListView.swift in Sources */,
@@ -698,7 +699,6 @@
 				76D48CED5CBB4054BB2D9361 /* BluetoothTriggerService.swift in Sources */,
 				A1VEHCOORD0000000001 /* VehicleConnectionCoordinator.swift in Sources */,
 				A1VEHPAIRING00000001 /* VehiclePairingService.swift in Sources */,
-				A1VEHCONNKIND0000001 /* VehicleConnectionKind.swift in Sources */,
 				D10E4D3FDD254D86A5654E28 /* RecordingLiveActivityService.swift in Sources */,
 				A1REC0BSERVER00000000001 /* RecordingRequestObserver.swift in Sources */,
 				A1MATCHEDROUTE0000000001 /* MatchedRoutePoint.swift in Sources */,
@@ -771,6 +771,11 @@
 			isa = PBXTargetDependency;
 			target = B60000000000000000000001 /* TrailhoundWidgetExtension */;
 			targetProxy = BA0000000000000000000001 /* PBXContainerItemProxy */;
+		};
+		B90000000000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A60000000000000000000001 /* Trailhound */;
+			targetProxy = BA0000000000000000000002 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

@@ -2,7 +2,6 @@ import Foundation
 
 public enum AutoRecordingEventChannel: String, Codable, Sendable {
     case bluetooth
-    case carPlay
     case motion
 }
 

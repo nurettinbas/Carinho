@@ -23,20 +23,6 @@ enum AutoRecordingEventFormatter {
         case (.bluetooth, .disconnectSkipped):
             return L10n.autoLogBluetoothDisconnectedSkipped(time)
 
-        case (.carPlay, .connectStarted):
-            return L10n.autoLogCarPlayConnectedStarted(time, vehicle, delay)
-        case (.carPlay, .connectAwaitingGPS):
-            return L10n.autoLogCarPlayConnectedAwaitingGPS(time, vehicle, delay)
-        case (.carPlay, .connectCancelled):
-            return L10n.autoLogCarPlayConnectedCancelled(time, vehicle)
-        case (.carPlay, .connectSkipped):
-            return L10n.autoLogCarPlayConnectedSkipped(time, vehicle)
-        case (.carPlay, .disconnectStopped):
-            let distance = formattedDistance(event.distanceMeters)
-            return L10n.autoLogCarPlayDisconnectedStopped(time, delay, distance)
-        case (.carPlay, .disconnectSkipped):
-            return L10n.autoLogCarPlayDisconnectedSkipped(time)
-
         case (.motion, .motionStarted):
             return L10n.autoLogMotionStarted(time)
         case (.motion, .motionStopped):

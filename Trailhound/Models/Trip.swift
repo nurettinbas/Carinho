@@ -142,13 +142,13 @@ final class Trip {
         if let startPlaceName { return startPlaceName }
         if let startAddress, !startAddress.isEmpty { return startAddress }
         if let startCoordinate { return DateFormatters.formatCoordinate(startCoordinate) }
-        return "Başlangıç"
+        return L10n.tripPointStart
     }
 
     var displayEndName: String {
         if let endPlaceName { return endPlaceName }
         if let endAddress, !endAddress.isEmpty { return endAddress }
         if let endCoordinate { return DateFormatters.formatCoordinate(endCoordinate) }
-        return "Bitiş"
+        return L10n.tripPointEnd
     }
 }

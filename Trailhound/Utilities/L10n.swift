@@ -46,6 +46,11 @@ enum L10n {
     static var tripTrimTail: String { string("trip.trim.tail") }
     static var tripStartedAt: String { string("trip.started_at") }
     static var tripEndedAt: String { string("trip.ended_at") }
+    static var tripDetailTitle: String { string("trip.detail.title") }
+    static var tripPointStart: String { string("trip.point.start") }
+    static var tripPointEnd: String { string("trip.point.end") }
+    static var tripPointStop: String { string("trip.point.stop") }
+    static var tripMapOfflineHint: String { string("trip.map.offline_hint") }
     static var orphanStaleNotificationTitle: String { string("orphan.stale.title") }
     static var orphanStaleNotificationBody: String { string("orphan.stale.body") }
     static var all: String { string("filter.all") }
@@ -53,11 +58,7 @@ enum L10n {
     static var currentSpeed: String { string("label.current_speed") }
     static var maxAbbr: String { string("label.max_abbr") }
     static var avgAbbr: String { string("label.avg_abbr") }
-    static var carPlayStatusTitle: String { string("carplay.status") }
-    static var carPlayDurationTitle: String { string("label.duration") }
-    static var carPlayDistanceTitle: String { string("carplay.distance") }
-    static var carPlayRecording: String { string("carplay.recording") }
-    static var carPlayIdle: String { string("carplay.idle") }
+    static var labelDistance: String { string("label.distance") }
     static var placeHome: String { string("place.home") }
     static var placeWork: String { string("place.work") }
     static var placeOther: String { string("place.other") }
@@ -139,9 +140,6 @@ enum L10n {
     static var settingsRequestLocationPermission: String { string("settings.permissions.request_location") }
     static var settingsOpenSystemSettings: String { string("settings.permissions.open_settings") }
     static var settingsBackgroundLocationHint: String { string("settings.permissions.background_location_hint") }
-    static var settingsCarPlaySection: String { string("settings.carplay.section") }
-    static var settingsCarPlayStatus: String { string("settings.carplay.status") }
-    static var settingsCarPlayHint: String { string("settings.carplay.hint") }
     static var settingsBackupSection: String { string("settings.backup.section") }
     static var settingsExportJSON: String { string("settings.backup.json") }
     static var settingsExportCSV: String { string("settings.backup.csv") }
@@ -161,15 +159,12 @@ enum L10n {
     static var vehiclePairingMessage: String { string("vehicle.pairing.message") }
     static var vehiclePairingConnectionType: String { string("vehicle.pairing.connection_type") }
     static var vehiclePairingBluetooth: String { string("vehicle.pairing.bluetooth") }
-    static var vehiclePairingCarPlay: String { string("vehicle.pairing.carplay") }
     static var vehiclePairingSkip: String { string("vehicle.pairing.skip") }
     static var vehiclePairingSavedVehicles: String { string("vehicle.pairing.saved_vehicles") }
     static var vehiclePairingConnectedDevice: String { string("vehicle.pairing.connected_device") }
     static var vehiclePairingConfirm: String { string("vehicle.pairing.confirm") }
     static var vehiclePairingBluetoothSetupHint: String { string("vehicle.pairing.bluetooth_setup_hint") }
     static var vehiclePairingWaitingBluetooth: String { string("vehicle.pairing.waiting_bluetooth") }
-    static var vehiclePairingCarPlayConnected: String { string("vehicle.pairing.carplay_connected") }
-    static var vehiclePairingCarPlayHint: String { string("vehicle.pairing.carplay_hint") }
     static var vehiclePairingNoConnection: String { string("vehicle.pairing.no_connection") }
     static var vehiclePairingMissingConnection: String { string("vehicle.pairing.missing_connection") }
     static var vehicleDefaultName: String { string("vehicle.default_name") }
@@ -212,7 +207,6 @@ enum L10n {
     static var pairingTabSetupTitle: String { string("pairing.tab.setup.title") }
     static var pairingTabSetupSubtitle: String { string("pairing.tab.setup.subtitle") }
     static var pairingTabSelectVehicle: String { string("pairing.tab.select_vehicle") }
-    static var pairingTabCarPlaySetupTitle: String { string("pairing.tab.carplay_setup.title") }
     static var pairingTabBluetoothSetupTitle: String { string("pairing.tab.bluetooth_setup.title") }
     static var pairingTabRecordingStatus: String { string("pairing.tab.recording_status") }
     static var pairingReadinessTitle: String { string("pairing.tab.readiness.title") }
@@ -262,8 +256,6 @@ enum L10n {
     static var pairingAutoStartHint: String { string("pairing.auto_start.hint") }
     static var pairingLiveConnectionTitle: String { string("pairing.live_connection.title") }
     static var pairingLiveConnectionNone: String { string("pairing.live_connection.none") }
-    static var pairingConnectionCarPlay: String { string("pairing.connection.carplay") }
-    static var pairingConnectionCarPlayWired: String { string("pairing.connection.carplay.wired") }
     static func pairingConnectionBluetooth(_ name: String, _ portType: String) -> String {
         String(format: string("pairing.connection.bluetooth"), name, portType)
     }
@@ -354,30 +346,6 @@ enum L10n {
 
     static func autoLogBluetoothDisconnectedSkipped(_ time: String) -> String {
         String(format: string("auto_log.bt.disconnected.skipped"), time)
-    }
-
-    static func autoLogCarPlayConnectedStarted(_ time: String, _ vehicle: String?, _ delay: Int) -> String {
-        String(format: string("auto_log.carplay.connected.started"), time, vehicle ?? "—", delay)
-    }
-
-    static func autoLogCarPlayConnectedAwaitingGPS(_ time: String, _ vehicle: String?, _ delay: Int) -> String {
-        String(format: string("auto_log.carplay.connected.awaiting_gps"), time, vehicle ?? "—", delay)
-    }
-
-    static func autoLogCarPlayConnectedCancelled(_ time: String, _ vehicle: String?) -> String {
-        String(format: string("auto_log.carplay.connected.cancelled"), time, vehicle ?? "—")
-    }
-
-    static func autoLogCarPlayConnectedSkipped(_ time: String, _ vehicle: String?) -> String {
-        String(format: string("auto_log.carplay.connected.skipped"), time, vehicle ?? "—")
-    }
-
-    static func autoLogCarPlayDisconnectedStopped(_ time: String, _ delay: Int, _ distance: String) -> String {
-        String(format: string("auto_log.carplay.disconnected.stopped"), time, delay, distance)
-    }
-
-    static func autoLogCarPlayDisconnectedSkipped(_ time: String) -> String {
-        String(format: string("auto_log.carplay.disconnected.skipped"), time)
     }
 
     static func autoLogMotionStarted(_ time: String) -> String {

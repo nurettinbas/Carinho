@@ -44,7 +44,6 @@ final class AppRuntime {
             locationService: locationService
         )
         recording = service
-        CarPlayConnectionHandler.shared.tripRecordingService = service
         return service
     }
 
@@ -83,7 +82,6 @@ final class AppRuntime {
         wireVehicleConnectionHandlers(container: container)
         wireMonitoringWake()
         wireRecordingRequestHandlers()
-        CarPlayConnectionHandler.shared.probeAndSyncConnection()
         bluetoothService.syncRouteSnapshot()
         reconcileRecordingStateAfterLaunch()
     }
@@ -114,9 +112,6 @@ final class AppRuntime {
         networkMonitor.startIfNeeded()
         CategorySeeder.seedIfNeeded(in: container.mainContext)
         VehiclePairingService.seedDefaultVehicleIfNeeded(in: container.mainContext)
-        VehiclePairingService.migrateLegacyPairingIfNeeded(in: container.mainContext)
-        VehiclePairingService.clearBluetoothOnlyAutoStartIfNeeded(in: container.mainContext)
-        VehiclePairingService.repairStaleActivePairing(in: container.mainContext)
         TripStore.syncWidgetWeekDistance(in: container.mainContext)
         TripRecoveryService.finalizeStaleOrphans(in: container.mainContext)
         TripRecoveryService.scheduleOrphanStaleNotifications(
@@ -154,7 +149,6 @@ final class AppRuntime {
     }
 
     func refreshVehicleConnections() {
-        CarPlayConnectionHandler.shared.readCarPlayConnectionState()
         bluetoothService.readConnectionState()
         VehicleConnectionCoordinator.shared.refreshLiveSnapshots()
     }
@@ -169,12 +163,10 @@ final class AppRuntime {
     }
 
     private func wireVehicleConnectionHandlers(container: ModelContainer) {
+        // The route monitor reports the paired Bluetooth audio route, so a route
+        // snapshot change is a vehicle connect/disconnect signal.
         bluetoothService.onRouteSnapshotChanged = { isConnected in
-            VehicleConnectionCoordinator.shared.handleBluetoothSnapshot(isConnected: isConnected)
-            VehiclePairingService.syncLearnedBluetoothUID(in: container.mainContext)
-        }
-        CarPlayConnectionHandler.shared.onConnectionSnapshotChanged = { isConnected in
-            VehicleConnectionCoordinator.shared.handleCarPlaySnapshot(isConnected: isConnected)
+            VehicleConnectionCoordinator.shared.handleVehicleSnapshot(isConnected: isConnected)
         }
     }
 
@@ -276,6 +268,7 @@ struct TrailhoundApp: App {
             runtime.processPendingRecordingRequests()
             AppNotificationStore.shared.reload()
             runtime.resumeMonitoringIfNeeded()
+            refreshLockScreenWidgetStats()
             Task { @MainActor in
                 await runtime.geocodingRetryService.retryPendingTrips(in: modelContainer.mainContext)
             }
@@ -288,5 +281,17 @@ struct TrailhoundApp: App {
         default:
             break
         }
+    }
+
+    /// Re-writes the App Group distance stats and refreshes the accessory
+    /// (lock-screen) widget whenever the app comes to the foreground. The
+    /// once-only `bootstrap` guard skips this on background→foreground returns,
+    /// so the monthly ring could otherwise show a stale value until relaunch.
+    /// Note: lock-screen widget reloads are still subject to WidgetKit's system
+    /// reload budget, so this maximizes freshness but cannot guarantee instant updates.
+    private func refreshLockScreenWidgetStats() {
+        TripStore.syncWidgetWeekDistance(in: modelContainer.mainContext)
+        WidgetCenter.shared.reloadTimelines(ofKind: "TrailhoundLockScreenWidget")
+        WidgetCenter.shared.reloadTimelines(ofKind: "TrailhoundWidget")
     }
 }

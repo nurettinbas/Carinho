@@ -68,7 +68,7 @@ struct TripDetailView: View {
 
                     VStack(alignment: .trailing, spacing: 8) {
                         if !networkMonitor.isConnected {
-                            Text("Harita karoları için internet gerekir. Rota kayıtlı veriden çizilir.")
+                            Text(L10n.tripMapOfflineHint)
                                 .font(.caption2)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
@@ -99,7 +99,7 @@ struct TripDetailView: View {
         .opacity(didAppear ? 1 : 0)
         .offset(y: didAppear ? 0 : 12)
         .dismissKeyboardOnTap(focus: $noteFocused)
-        .navigationTitle("Yolculuk")
+        .navigationTitle(L10n.tripDetailTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -402,7 +402,7 @@ struct TripDetailView: View {
             }
 
             if let start = viewModel.routeStartCoordinate {
-                Annotation("Başlangıç", coordinate: start) {
+                Annotation(L10n.tripPointStart, coordinate: start) {
                     Image(systemName: "flag.fill")
                         .padding(6)
                         .background(.green, in: Circle())
@@ -411,7 +411,7 @@ struct TripDetailView: View {
             }
 
             if let end = viewModel.routeEndCoordinate {
-                Annotation("Bitiş", coordinate: end) {
+                Annotation(L10n.tripPointEnd, coordinate: end) {
                     Image(systemName: "mappin.circle.fill")
                         .padding(6)
                         .background(.red, in: Circle())
@@ -420,7 +420,7 @@ struct TripDetailView: View {
             }
 
             ForEach(Array(trip.stops.enumerated()), id: \.offset) { _, stop in
-                Annotation("Mola", coordinate: stop.coordinate) {
+                Annotation(L10n.tripPointStop, coordinate: stop.coordinate) {
                     Image(systemName: "pause.circle.fill")
                         .padding(6)
                         .background(.orange, in: Circle())

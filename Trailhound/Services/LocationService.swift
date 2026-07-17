@@ -68,7 +68,7 @@ final class LocationService: NSObject {
         }
     }
 
-    /// Keeps the process alive in the background so Bluetooth/CarPlay route changes can be handled.
+    /// Keeps the process alive in the background so Bluetooth route changes can be handled.
     func startVehicleConnectionMonitoring() {
         guard trackingMode != .full else { return }
         trackingMode = .vehicleConnection

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export Trailhound App Icon layers for Icon Composer (Liquid Glass)."""
+"""Rebuild Trailhound.icon Symbol.png from the 1024 AppIcon master (Liquid Glass)."""
 
 from __future__ import annotations
 
@@ -13,11 +13,8 @@ except ImportError:
     raise
 
 ROOT = Path(__file__).resolve().parents[1]
-LAYERS = ROOT / "Design" / "AppIconLayers"
-EXPORT = LAYERS / "exported"
 MASTER_ICON = ROOT / "Trailhound" / "Assets.xcassets" / "AppIcon.appiconset" / "AppIcon.png"
 SYMBOL_OUT = ROOT / "Trailhound" / "Trailhound.icon" / "Assets" / "Symbol.png"
-TEMPLATE_SYMBOL = LAYERS / "TrailhoundTemplate.icon" / "Assets" / "Symbol.png"
 
 
 def export_foreground_from_master() -> Path:
@@ -61,30 +58,13 @@ def export_foreground_from_master() -> Path:
                 continue
             out_px[x, y] = (255, 255, 255, alpha)
 
-    EXPORT.mkdir(parents=True, exist_ok=True)
-    path = EXPORT / "00-foreground-from-master.png"
-    out.save(path, "PNG")
     SYMBOL_OUT.parent.mkdir(parents=True, exist_ok=True)
     out.save(SYMBOL_OUT, "PNG")
-    TEMPLATE_SYMBOL.parent.mkdir(parents=True, exist_ok=True)
-    out.save(TEMPLATE_SYMBOL, "PNG")
-    return path
-
-
-def export_legacy_copy() -> Path:
-    EXPORT.mkdir(parents=True, exist_ok=True)
-    out = EXPORT / "AppIcon-legacy-blue.png"
-    Image.open(MASTER_ICON).convert("RGBA").save(out, "PNG")
-    return out
+    return SYMBOL_OUT
 
 
 def main() -> None:
-    paths = [
-        export_foreground_from_master(),
-        export_legacy_copy(),
-    ]
-    for path in paths:
-        print(path)
+    print(export_foreground_from_master())
 
 
 if __name__ == "__main__":

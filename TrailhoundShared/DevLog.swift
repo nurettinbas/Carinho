@@ -19,7 +19,6 @@ public enum DevLogLevel: String, Sendable {
 /// so exported logs stay easy to filter/scan.
 public enum DevLogCategory: String, Sendable, CaseIterable, Hashable {
     case lifecycle
-    case carPlay
     case bluetooth
     case recording
     case location
@@ -29,7 +28,7 @@ public enum DevLogCategory: String, Sendable, CaseIterable, Hashable {
 
 /// Trailhound has no analytics or crash reporting (the app works fully offline),
 /// so this is the only way to see what actually happened on a user's device —
-/// e.g. exact CarPlay connect/disconnect timing around a false-stop report.
+/// e.g. exact Bluetooth connect/disconnect timing around a false-stop report.
 ///
 /// Entries are appended as plain text lines to a rolling log file in the
 /// shared app-group container, so both the main app and the widget/App

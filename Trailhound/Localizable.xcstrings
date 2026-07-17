@@ -524,108 +524,6 @@
         }
       }
     },
-    "auto_log.carplay.connected.awaiting_gps" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ CarPlay connected (%@) → waiting for GPS (%ds)"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ CarPlay bağlandı (%@) → GPS bekleniyor (%ds)"
-          }
-        }
-      }
-    },
-    "auto_log.carplay.connected.cancelled" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ CarPlay connected (%@) → recording cancelled"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ CarPlay bağlandı (%@) → kayıt iptal edildi"
-          }
-        }
-      }
-    },
-    "auto_log.carplay.connected.skipped" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ CarPlay connected (%@) → recording already active"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ CarPlay bağlandı (%@) → zaten kayıt aktif"
-          }
-        }
-      }
-    },
-    "auto_log.carplay.connected.started" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ CarPlay connected (%@) → recording started %ds later"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ CarPlay bağlandı (%@) → %ds sonra kayıt başladı"
-          }
-        }
-      }
-    },
-    "auto_log.carplay.disconnected.skipped" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ CarPlay disconnected → no active recording"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ CarPlay koptu → aktif kayıt yoktu"
-          }
-        }
-      }
-    },
-    "auto_log.carplay.disconnected.stopped" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ CarPlay disconnected → recording stopped %ds later (%@)"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ CarPlay koptu → %ds sonra kayıt durdu (%@)"
-          }
-        }
-      }
-    },
     "auto_log.clear" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -826,28 +724,6 @@
         }
       }
     },
-    "Bluetooth ses, CarPlay (kablo veya kablosuz) ile bağlanınca sadece bu araç kayıt başlatır." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Only this paired vehicle starts recording when connected via CarPlay (wired or wireless)."
-          }
-        }
-      }
-    },
-    "Bluetooth veya CarPlay bağlandığında otomatik kayıt için aracınızı eşleştirin." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pair your vehicle for automatic recording when CarPlay connects."
-          }
-        }
-      }
-    },
     "Bu aracım" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -877,165 +753,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This week"
-          }
-        }
-      }
-    },
-    "Trailhound" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trailhound"
-          }
-        }
-      }
-    },
-    "Trailhound kilitli" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trailhound is locked"
-          }
-        }
-      }
-    },
-    "Trailhound yolculuk kaydını başlatır." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trailhound starts trip recording."
-          }
-        }
-      }
-    },
-    "Trailhound yolculuk kaydını durdurur." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trailhound stops trip recording."
-          }
-        }
-      }
-    },
-    "trailhound-debug.log" : {
-      "comment" : "The file name of the developer log.",
-      "isCommentAutoGenerated" : true
-    },
-    "CarPlay" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CarPlay"
-          }
-        }
-      }
-    },
-    "CarPlay bağlı" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CarPlay connected"
-          }
-        }
-      }
-    },
-    "CarPlay için Apple onayı gerekir. Bağlanınca kayıt ve minimal arayüz aktif olur." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple approval is required for CarPlay. Recording and a minimal UI activate when connected."
-          }
-        }
-      }
-    },
-    "carplay.distance" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Distance"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mesafe"
-          }
-        }
-      }
-    },
-    "carplay.idle" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Idle"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beklemede"
-          }
-        }
-      }
-    },
-    "carplay.recording" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recording"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kayıt devam ediyor"
-          }
-        }
-      }
-    },
-    "carplay.status" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Status"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Durum"
-          }
-        }
-      }
-    },
-    "CarPlay'e bağlanın (kablo veya kablosuz), sonra yenileyin." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connect to CarPlay (wired or wireless), then refresh."
           }
         }
       }
@@ -1470,6 +1187,7 @@
       }
     },
     "Harita karoları için internet gerekir. Rota kayıtlı veriden çizilir." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2176,13 +1894,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"Always\" location is required. CarPlay auto-start stops GPS tracking in the background with \"When In Use\" only."
+            "value" : "\"Always\" location is required. Bluetooth auto-start stops GPS tracking in the background with \"When In Use\" only."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"Her Zaman\" konum izni gerekir. Sadece \"Uygulama Kullanılırken\" ile arka planda CarPlay otomatik başlatmada GPS takibi kesilir."
+            "value" : "\"Her Zaman\" konum izni gerekir. Sadece \"Uygulama Kullanılırken\" ile arka planda Bluetooth otomatik başlatmada GPS takibi kesilir."
           }
         }
       }
@@ -2443,13 +2161,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trailhound requires \"Always\" location access. Without it, GPS tracking stops when CarPlay starts recording while the app is in the background."
+            "value" : "Trailhound requires \"Always\" location access. Without it, GPS tracking stops when Bluetooth auto-start begins recording while the app is in the background."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trailhound için \"Her Zaman\" konum izni zorunludur. Bu izin olmadan uygulama arka plandayken CarPlay kaydı başlattığında GPS takibi kesilir."
+            "value" : "Trailhound için \"Her Zaman\" konum izni zorunludur. Bu izin olmadan uygulama arka plandayken Bluetooth otomatik kayıt başlattığında GPS takibi kesilir."
           }
         }
       }
@@ -2596,13 +2314,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pair your vehicle for automatic recording when CarPlay connects."
+            "value" : "Pair your vehicle for automatic recording when Bluetooth connects."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CarPlay bağlandığında otomatik kayıt için aracını eşleştir."
+            "value" : "Bluetooth bağlandığında otomatik kayıt için aracını eşleştir."
           }
         }
       }
@@ -2929,13 +2647,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connect to CarPlay, choose a vehicle below, then tap Auto-start."
+            "value" : "Connect your car via Bluetooth, choose a vehicle below, then tap Auto-start."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CarPlay'e bağlan, aşağıdan aracını seç ve Otomatik başlat'a dokun."
+            "value" : "Aracına Bluetooth ile bağlan, aşağıdan aracını seç ve Otomatik başlat'a dokun."
           }
         }
       }
@@ -2953,40 +2671,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bluetooth · %@ (%@)"
-          }
-        }
-      }
-    },
-    "pairing.connection.carplay" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CarPlay"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CarPlay"
-          }
-        }
-      }
-    },
-    "pairing.connection.carplay.wired" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CarPlay (wired)"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CarPlay (kablolu)"
           }
         }
       }
@@ -3031,13 +2715,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Without Always location access, automatic recording may not work reliably when CarPlay starts a trip in the background."
+            "value" : "Without Always location access, automatic recording may not work reliably when Bluetooth starts a trip in the background."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Her Zaman konum izni yoksa, CarPlay arka planda tetiklediğinde otomatik kayıt güvenilir çalışmaz."
+            "value" : "Her Zaman konum izni yoksa, Bluetooth arka planda tetiklediğinde otomatik kayıt güvenilir çalışmaz."
           }
         }
       }
@@ -3048,13 +2732,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CarPlay is connected. Tap to pair so trips start automatically."
+            "value" : "Your car is connected via Bluetooth. Tap to pair so trips start automatically."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CarPlay bağlı. Yolculukların otomatik başlaması için dokunup eşleştir."
+            "value" : "Araç Bluetooth ile bağlı. Yolculukların otomatik başlaması için dokunup eşleştir."
           }
         }
       }
@@ -3174,23 +2858,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bluetooth kurulumu"
-          }
-        }
-      }
-    },
-    "pairing.tab.carplay_setup.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CarPlay setup"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CarPlay kurulumu"
           }
         }
       }
@@ -3524,13 +3191,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connect your phone to the car via CarPlay or Bluetooth, then tap Pair."
+            "value" : "Connect your phone to the car via Bluetooth, then tap Pair."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Telefonunu CarPlay veya Bluetooth ile araca bağla, ardından Eşleştir'e dokun."
+            "value" : "Telefonunu Bluetooth ile araca bağla, ardından Eşleştir'e dokun."
           }
         }
       }
@@ -3558,13 +3225,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Select at least one connection channel."
+            "value" : "Connect to your car via Bluetooth first."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "En az bir bağlantı kanalı seçin."
+            "value" : "Önce aracına Bluetooth ile bağlan."
           }
         }
       }
@@ -3626,13 +3293,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Turn on CarPlay and/or Bluetooth below, then tap Pair."
+            "value" : "Connect via Bluetooth, then tap Pair."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aşağıdan CarPlay ve/veya Bluetooth'u aç, ardından Eşleştir'e dokun."
+            "value" : "Bluetooth ile bağlan, ardından Eşleştir'e dokun."
           }
         }
       }
@@ -3643,13 +3310,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "BT/CarPlay detected now"
+            "value" : "Bluetooth detected now"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "BT/CarPlay şu an algılandı"
+            "value" : "Bluetooth şu an algılandı"
           }
         }
       }
@@ -3881,13 +3548,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Start recording automatically when your phone connects via CarPlay or Bluetooth."
+            "value" : "Start recording automatically when your phone connects to the paired car via Bluetooth."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Telefon araca CarPlay veya Bluetooth ile bağlanınca kayıt otomatik başlar."
+            "value" : "Telefon eşleşmiş araca Bluetooth ile bağlanınca kayıt otomatik başlar."
           }
         }
       }
@@ -4068,13 +3735,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connect to CarPlay (wired or wireless). Trailhound will recognize it and ask you to confirm once."
+            "value" : "Connect to your car via Bluetooth. Trailhound will recognize it and ask you to confirm once."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aracına CarPlay ile bağlan (kablolu veya kablosuz). Trailhound tanıyıp bir kez onay isteyecek."
+            "value" : "Aracına Bluetooth ile bağlan. Trailhound tanıyıp bir kez onay isteyecek."
           }
         }
       }
@@ -5050,57 +4717,6 @@
         }
       }
     },
-    "settings.carplay.hint" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CarPlay requires Apple approval. Recording and a minimal UI are active when connected."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CarPlay için Apple onayı gerekir. Bağlanınca kayıt ve minimal arayüz aktif olur."
-          }
-        }
-      }
-    },
-    "settings.carplay.section" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CarPlay"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CarPlay"
-          }
-        }
-      }
-    },
-    "settings.carplay.status" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Status"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Durum"
-          }
-        }
-      }
-    },
     "settings.connection.connected" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5498,13 +5114,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Always location is required for automatic recording when CarPlay starts a trip while the app is in the background."
+            "value" : "Always location is required for automatic recording when Bluetooth starts a trip while the app is in the background."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uygulama arka plandayken CarPlay ile otomatik kayıt için Her Zaman konum izni gereklidir."
+            "value" : "Uygulama arka plandayken Bluetooth ile otomatik kayıt için Her Zaman konum izni gereklidir."
           }
         }
       }
@@ -7127,6 +6743,70 @@
         }
       }
     },
+    "Trailhound" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trailhound"
+          }
+        }
+      }
+    },
+    "Trailhound kilitli" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trailhound is locked"
+          }
+        }
+      }
+    },
+    "Trailhound yolculuk kaydını başlatır." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trailhound starts trip recording."
+          }
+        }
+      }
+    },
+    "Trailhound yolculuk kaydını durdurur." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trailhound stops trip recording."
+          }
+        }
+      }
+    },
+    "trailhound-debug.log" : {
+      "comment" : "The file name of the developer log.",
+      "isCommentAutoGenerated" : true
+    },
+    "trip.detail.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trip"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yolculuk"
+          }
+        }
+      }
+    },
     "trip.discarded.body" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -7304,13 +6984,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pair your vehicle for automatic recording when CarPlay connects."
+            "value" : "Pair your vehicle for automatic recording when Bluetooth connects."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CarPlay bağlandığında otomatik kayıt için aracınızı eşleştirin."
+            "value" : "Bluetooth bağlandığında otomatik kayıt için aracını eşleştir."
           }
         }
       }
@@ -7345,6 +7025,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Konum adları"
+          }
+        }
+      }
+    },
+    "trip.map.offline_hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Internet is required for map tiles. The route is drawn from recorded data."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Harita karoları için internet gerekir. Rota kayıtlı veriden çizilir."
+          }
+        }
+      }
+    },
+    "trip.point.end" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitiş"
+          }
+        }
+      }
+    },
+    "trip.point.start" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Başlangıç"
+          }
+        }
+      }
+    },
+    "trip.point.stop" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mola"
           }
         }
       }
@@ -7755,57 +7503,6 @@
         }
       }
     },
-    "vehicle.pairing.carplay" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CarPlay connection"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CarPlay bağlantısı"
-          }
-        }
-      }
-    },
-    "vehicle.pairing.carplay_connected" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CarPlay connected"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CarPlay bağlı"
-          }
-        }
-      }
-    },
-    "vehicle.pairing.carplay_hint" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cable or wireless"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kablo veya kablosuz"
-          }
-        }
-      }
-    },
     "vehicle.pairing.confirm" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -7863,13 +7560,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "When connected via CarPlay (cable or wireless), only this vehicle starts recording."
+            "value" : "When connected via Bluetooth, only this vehicle starts recording."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CarPlay (kablo veya kablosuz) ile bağlanınca sadece bu araç kayıt başlatır."
+            "value" : "Bluetooth ile bağlanınca sadece bu araç kayıt başlatır."
           }
         }
       }
@@ -7880,13 +7577,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connect to CarPlay for this vehicle first."
+            "value" : "Connect to this car via Bluetooth first."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bu araç için önce CarPlay bağlantısı kurun."
+            "value" : "Bu araç için önce Bluetooth bağlantısı kur."
           }
         }
       }
@@ -8188,6 +7885,7 @@
       }
     },
     "Yolculuk" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

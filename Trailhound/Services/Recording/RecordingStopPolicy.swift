@@ -3,7 +3,7 @@ import SwiftData
 
 enum RecordingStopPolicy {
     enum StopReason {
-        case manual, carPlay, bluetooth
+        case manual, bluetooth
     }
 
     static func shouldSaveTrip(

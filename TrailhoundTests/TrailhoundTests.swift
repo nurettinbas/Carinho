@@ -109,46 +109,25 @@ final class SchemaMigrationTests: XCTestCase {
         XCTAssertEqual(vehicles.count, 1)
     }
 
-    func testV7VehicleProfileConnectionFields() throws {
-        let container = try ModelContainer(
-            for: Schema(versionedSchema: TrailhoundSchemaV7.self),
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-        )
-        let vehicle = VehicleProfile(
-            name: "Şair",
-            connectionKindRaw: VehicleConnectionKind.bluetooth.rawValue,
-            connectionIdentifier: "car-audio",
-            connectionDisplayName: "Şair"
-        )
-        vehicle.migrateLegacyTriggerFlagsIfNeeded()
-        vehicle.syncLegacyConnectionFields()
-        container.mainContext.insert(vehicle)
-        try container.mainContext.save()
-
-        let fetched = try container.mainContext.fetch(FetchDescriptor<VehicleProfile>()).first
-        XCTAssertEqual(fetched?.connectionKind, .bluetooth)
-        XCTAssertEqual(fetched?.bluetoothID, "car-audio")
-    }
-
-    func testV7VehicleProfileMultiChannelFields() throws {
+    func testVehicleProfilePersistsPairedRoute() throws {
         let container = try ModelContainer(
             for: Schema(versionedSchema: TrailhoundSchemaV7.self),
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
         let vehicle = VehicleProfile(
             name: "Ford Puma",
-            autoTriggerCarPlayEnabled: true,
-            autoTriggerBluetoothEnabled: true,
-            bluetoothTriggerIdentifier: "puma-bt",
-            bluetoothTriggerDisplayName: "Ford Puma"
+            consumption: 6.5,
+            autoStartEnabled: true,
+            pairedRouteUID: "puma-bt-uid",
+            pairedRouteName: "Ford Puma"
         )
         container.mainContext.insert(vehicle)
         try container.mainContext.save()
 
         let fetched = try container.mainContext.fetch(FetchDescriptor<VehicleProfile>()).first
-        XCTAssertTrue(fetched?.autoTriggerCarPlayEnabled == true)
-        XCTAssertTrue(fetched?.autoTriggerBluetoothEnabled == true)
-        XCTAssertEqual(fetched?.bluetoothTriggerIdentifier, "puma-bt")
+        XCTAssertTrue(fetched?.autoStartEnabled == true)
+        XCTAssertEqual(fetched?.pairedRouteUID, "puma-bt-uid")
+        XCTAssertEqual(fetched?.pairedRouteName, "Ford Puma")
     }
 }
 
@@ -157,15 +136,15 @@ final class VehicleConnectionCoordinatorTests: XCTestCase {
     func testRepeatedConnectedSnapshotDoesNotDuplicatePersistedState() {
         let defaults = UserDefaults(suiteName: "group.com.trailhound.app") ?? .standard
         defaults.set(true, forKey: "vehicle.lastConnected")
-        defaults.set(VehicleConnectionTrigger.carPlay.rawValue, forKey: "vehicle.lastTrigger")
+        defaults.set(VehicleConnectionTrigger.bluetooth.rawValue, forKey: "vehicle.lastTrigger")
 
-        let settings = AppSettings(userDefaults: defaults)
+        let settings = AppSettings.shared
         settings.activeAutoTriggerVehicleID = UUID()
-        settings.pairVehicle(id: "carplay", name: "Şair", type: .carPlay)
+        settings.pairVehicle(uid: "bt-uid", name: "Şair")
 
         let coordinator = VehicleConnectionCoordinator.shared
-        coordinator.handleCarPlaySnapshot(isConnected: true)
-        coordinator.handleCarPlaySnapshot(isConnected: true)
+        coordinator.handleVehicleSnapshot(isConnected: true)
+        coordinator.handleVehicleSnapshot(isConnected: true)
 
         XCTAssertTrue(defaults.bool(forKey: "vehicle.lastConnected"))
     }
@@ -175,7 +154,7 @@ final class VehicleConnectionCoordinatorTests: XCTestCase {
         let shared = AppSettings.shared
         shared.clearPairedVehicle()
         shared.activeAutoTriggerVehicleID = UUID()
-        shared.pairVehicle(id: "carplay", name: "Ford Puma", type: .carPlay)
+        shared.pairVehicle(uid: "bt-uid", name: "Ford Puma")
         let group = UserDefaults(suiteName: "group.com.trailhound.app")!
         group.removeObject(forKey: "vehicle.lastConnected")
         group.removeObject(forKey: "vehicle.lastTrigger")
@@ -201,15 +180,69 @@ final class VehicleConnectionCoordinatorTests: XCTestCase {
             recordingService: recordingService,
             bluetoothService: BluetoothTriggerService(settings: shared)
         )
-        coordinator.handleCarPlaySnapshot(isConnected: true)
+        coordinator.handleVehicleSnapshot(isConnected: true)
 
         coordinator.acknowledgeLiveConnectionWithoutRecording()
-        coordinator.handleCarPlaySnapshot(isConnected: true)
+        coordinator.handleVehicleSnapshot(isConnected: true)
 
         XCTAssertTrue(group.bool(forKey: "vehicle.lastConnected"))
         XCTAssertEqual(recordingService.state, .idle)
 
         try? await Task.sleep(for: .seconds(2.5))
+        XCTAssertEqual(recordingService.state, .idle)
+    }
+
+    func testDisconnectDuringGraceStillEndsTripAfterGraceElapses() async throws {
+        let priorGrace = VehicleConnectionCoordinator.testDisconnectGraceSeconds
+        let priorPoll = VehicleConnectionCoordinator.testDisconnectPollSeconds
+        let priorCount = VehicleConnectionCoordinator.testDisconnectPollCount
+        VehicleConnectionCoordinator.testDisconnectGraceSeconds = 1
+        VehicleConnectionCoordinator.testDisconnectPollSeconds = 0.2
+        VehicleConnectionCoordinator.testDisconnectPollCount = 2
+        defer {
+            VehicleConnectionCoordinator.testDisconnectGraceSeconds = priorGrace
+            VehicleConnectionCoordinator.testDisconnectPollSeconds = priorPoll
+            VehicleConnectionCoordinator.testDisconnectPollCount = priorCount
+        }
+
+        let shared = AppSettings.shared
+        shared.clearPairedVehicle()
+        shared.activeAutoTriggerVehicleID = UUID()
+        shared.pairVehicle(uid: "bt-uid", name: "Ford Puma")
+        let group = UserDefaults(suiteName: "group.com.trailhound.app")!
+        group.removeObject(forKey: "vehicle.lastConnected")
+        group.removeObject(forKey: "vehicle.lastTrigger")
+        defer {
+            shared.clearPairedVehicle()
+            shared.activeAutoTriggerVehicleID = nil
+            group.removeObject(forKey: "vehicle.lastConnected")
+            group.removeObject(forKey: "vehicle.lastTrigger")
+        }
+
+        let container = try ModelContainer(
+            for: Trip.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let recordingService = TripRecordingService(
+            locationService: LocationService(),
+            settings: shared
+        )
+        recordingService.configure(modelContext: container.mainContext)
+
+        let coordinator = VehicleConnectionCoordinator.shared
+        coordinator.configure(
+            recordingService: recordingService,
+            bluetoothService: BluetoothTriggerService(settings: shared)
+        )
+
+        coordinator.handleVehicleSnapshot(isConnected: true)
+        try await Task.sleep(for: .seconds(1.2))
+        XCTAssertEqual(recordingService.state, .recording)
+
+        // Single disconnect inside grace — must not be dropped when grace ends.
+        coordinator.handleVehicleSnapshot(isConnected: false)
+        try await Task.sleep(for: .seconds(2.0))
+
         XCTAssertEqual(recordingService.state, .idle)
     }
 }
@@ -345,8 +378,8 @@ enum DeviceTestChecklist {
     static let items = [
         "30+ dk gerçek sürüş: km ve süre akıyor",
         "Arka plana at, 5 dk bekle: kayıt devam ediyor",
-        "CarPlay ile otomatik başlat/durdur (klasik BT-only başlamamalı)",
-        "Widget / Live Activity ile durdur",
+        "Eşleşmiş araca Bluetooth ile bağlanınca otomatik başla (müzik çalmadan)",
+        "Araçtan ayrılınca / Bluetooth kesilince otomatik dur",
         "Uygulamayı öldür → aç → orphan banner / recovery",
         "Detay haritada rota gerçekçi (denizden geçmiyor)"
     ]
@@ -392,7 +425,7 @@ final class RecordingStopPolicyTests: XCTestCase {
 
 @MainActor
 final class VehiclePairingServiceTests: XCTestCase {
-    func testPairChannelsEnablesCarPlayOnlyEvenIfBluetoothRequested() throws {
+    func testPairArmsAutoStartForRoute() throws {
         let container = try ModelContainer(
             for: Schema(versionedSchema: TrailhoundSchemaV7.self),
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
@@ -403,26 +436,81 @@ final class VehiclePairingServiceTests: XCTestCase {
         let vehicle = VehicleProfile(name: "Ford Puma", consumption: 6.5)
         context.insert(vehicle)
 
-        VehiclePairingService.pairChannels(
+        let candidate = BluetoothRouteCandidate(uid: "puma-bt-hfp", name: "Ford Puma", portTypeLabel: "HFP")
+        VehiclePairingService.pair(
             vehicle: vehicle,
-            carPlay: true,
-            bluetooth: true,
-            bluetoothUID: "puma-bt-hfp",
-            bluetoothDisplayName: "Ford Puma",
+            candidate: candidate,
             in: context,
             settings: settings
         )
 
         XCTAssertEqual(settings.activeAutoTriggerVehicleID, vehicle.id)
-        XCTAssertTrue(settings.pairedCarPlayChannelEnabled)
-        XCTAssertFalse(settings.pairedBluetoothChannelEnabled)
-        XCTAssertNil(settings.pairedBluetoothUID)
-        XCTAssertEqual(settings.pairedVehicleID, VehicleConnectionKind.carPlayVehicleID)
-        XCTAssertTrue(vehicle.autoTriggerCarPlayEnabled)
-        XCTAssertFalse(vehicle.autoTriggerBluetoothEnabled)
+        XCTAssertEqual(settings.pairedRouteUID, "puma-bt-hfp")
+        XCTAssertEqual(settings.pairedVehicleName, "Ford Puma")
+        XCTAssertTrue(settings.hasAutoTriggerVehicle)
+        XCTAssertTrue(vehicle.autoStartEnabled)
+        XCTAssertEqual(vehicle.pairedRouteUID, "puma-bt-hfp")
     }
 
-    func testConfirmLiveConnectionRejectsBluetoothOnly() throws {
+    func testPairingSecondVehicleClearsFirst() throws {
+        let container = try ModelContainer(
+            for: Schema(versionedSchema: TrailhoundSchemaV7.self),
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = container.mainContext
+        let defaults = UserDefaults(suiteName: "test.trailhound.pairing.swap.\(UUID().uuidString)")!
+        let settings = AppSettings(userDefaults: defaults)
+        let first = VehicleProfile(name: "First")
+        let second = VehicleProfile(name: "Second")
+        context.insert(first)
+        context.insert(second)
+
+        VehiclePairingService.pair(
+            vehicle: first,
+            candidate: BluetoothRouteCandidate(uid: "first-uid", name: "First", portTypeLabel: "A2DP"),
+            in: context,
+            settings: settings
+        )
+        VehiclePairingService.pair(
+            vehicle: second,
+            candidate: BluetoothRouteCandidate(uid: "second-uid", name: "Second", portTypeLabel: "A2DP"),
+            in: context,
+            settings: settings
+        )
+
+        XCTAssertFalse(first.autoStartEnabled)
+        XCTAssertNil(first.pairedRouteUID)
+        XCTAssertTrue(second.autoStartEnabled)
+        XCTAssertEqual(settings.activeAutoTriggerVehicleID, second.id)
+        XCTAssertEqual(settings.pairedRouteUID, "second-uid")
+    }
+
+    func testConfirmLiveConnectionRejectsWhenNoRoute() throws {
+        let container = try ModelContainer(
+            for: Schema(versionedSchema: TrailhoundSchemaV7.self),
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = container.mainContext
+        let defaults = UserDefaults(suiteName: "test.trailhound.confirm.none.\(UUID().uuidString)")!
+        let settings = AppSettings(userDefaults: defaults)
+        let vehicle = VehicleProfile(name: "Ford Puma", consumption: 6.5)
+        context.insert(vehicle)
+
+        let live = LiveVehicleConnection(candidate: nil)
+        XCTAssertFalse(live.isDetected)
+
+        VehiclePairingService.confirmLiveConnection(
+            vehicle: vehicle,
+            live: live,
+            in: context,
+            settings: settings
+        )
+
+        XCTAssertFalse(settings.hasAutoTriggerVehicle)
+        XCTAssertFalse(vehicle.autoStartEnabled)
+    }
+
+    func testConfirmLiveConnectionArmsMatchedRoute() throws {
         let container = try ModelContainer(
             for: Schema(versionedSchema: TrailhoundSchemaV7.self),
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
@@ -434,8 +522,8 @@ final class VehiclePairingServiceTests: XCTestCase {
         context.insert(vehicle)
 
         let candidate = BluetoothRouteCandidate(uid: "puma-uid-123", name: "Ford Puma", portTypeLabel: "HFP")
-        let live = LiveVehicleConnection(carPlay: false, bluetoothCandidate: candidate)
-        XCTAssertFalse(live.isDetected)
+        let live = LiveVehicleConnection(candidate: candidate)
+        XCTAssertTrue(live.isDetected)
 
         VehiclePairingService.confirmLiveConnection(
             vehicle: vehicle,
@@ -444,93 +532,9 @@ final class VehiclePairingServiceTests: XCTestCase {
             settings: settings
         )
 
-        XCTAssertFalse(settings.pairedBluetoothChannelEnabled)
-        XCTAssertFalse(settings.pairedCarPlayChannelEnabled)
-        XCTAssertFalse(settings.hasAutoTriggerVehicle)
-        XCTAssertFalse(vehicle.autoTriggerBluetoothEnabled)
-        XCTAssertFalse(vehicle.autoTriggerCarPlayEnabled)
-    }
-
-    func testConfirmLiveConnectionCarPlayDoesNotArmBluetooth() throws {
-        let container = try ModelContainer(
-            for: Schema(versionedSchema: TrailhoundSchemaV7.self),
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-        )
-        let context = container.mainContext
-        let defaults = UserDefaults(suiteName: "test.trailhound.confirm.cp.\(UUID().uuidString)")!
-        let settings = AppSettings(userDefaults: defaults)
-        let vehicle = VehicleProfile(name: "Ford Puma", consumption: 6.5)
-        context.insert(vehicle)
-
-        // Wired/wireless CarPlay may also surface `.carAudio`, but auto-start
-        // arms CarPlay only.
-        let candidate = BluetoothRouteCandidate(uid: "carplay-uid", name: "CarPlay", portTypeLabel: "CarAudio")
-        let live = LiveVehicleConnection(carPlay: true, bluetoothCandidate: candidate)
-
-        VehiclePairingService.confirmLiveConnection(
-            vehicle: vehicle,
-            live: live,
-            in: context,
-            settings: settings
-        )
-
-        XCTAssertTrue(settings.pairedCarPlayChannelEnabled)
-        XCTAssertFalse(settings.pairedBluetoothChannelEnabled)
-        XCTAssertNil(settings.pairedBluetoothUID)
-        XCTAssertTrue(vehicle.autoTriggerCarPlayEnabled)
-        XCTAssertFalse(vehicle.autoTriggerBluetoothEnabled)
-    }
-
-    func testClearBluetoothOnlyAutoStartMigration() throws {
-        let container = try ModelContainer(
-            for: Schema(versionedSchema: TrailhoundSchemaV7.self),
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-        )
-        let context = container.mainContext
-        let defaults = UserDefaults(suiteName: "test.trailhound.migrate.bt.\(UUID().uuidString)")!
-        let settings = AppSettings(userDefaults: defaults)
-        let vehicle = VehicleProfile(
-            name: "Legacy BT Car",
-            autoTriggerCarPlayEnabled: false,
-            autoTriggerBluetoothEnabled: true,
-            bluetoothTriggerIdentifier: "legacy-bt"
-        )
-        context.insert(vehicle)
-        settings.activeAutoTriggerVehicleID = vehicle.id
-        settings.pairVehicle(id: "legacy-bt", name: "Legacy BT Car", type: .bluetoothAudio)
-        try context.save()
-
-        VehiclePairingService.clearBluetoothOnlyAutoStartIfNeeded(in: context, settings: settings)
-
-        XCTAssertFalse(vehicle.autoTriggerBluetoothEnabled)
-        XCTAssertFalse(vehicle.autoTriggerCarPlayEnabled)
-        XCTAssertNil(settings.activeAutoTriggerVehicleID)
-        XCTAssertFalse(settings.hasAutoTriggerVehicle)
-    }
-
-    func testConfirmLiveConnectionSceneOnlyCarPlayEnablesCarPlayOnly() throws {
-        let container = try ModelContainer(
-            for: Schema(versionedSchema: TrailhoundSchemaV7.self),
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-        )
-        let context = container.mainContext
-        let defaults = UserDefaults(suiteName: "test.trailhound.confirm.scene.\(UUID().uuidString)")!
-        let settings = AppSettings(userDefaults: defaults)
-        let vehicle = VehicleProfile(name: "Ford Puma", consumption: 6.5)
-        context.insert(vehicle)
-
-        // Scene-only wireless CarPlay: no audio route identity available.
-        let live = LiveVehicleConnection(carPlay: true, bluetoothCandidate: nil)
-
-        VehiclePairingService.confirmLiveConnection(
-            vehicle: vehicle,
-            live: live,
-            in: context,
-            settings: settings
-        )
-
-        XCTAssertTrue(settings.pairedCarPlayChannelEnabled)
-        XCTAssertFalse(settings.pairedBluetoothChannelEnabled)
+        XCTAssertTrue(settings.hasAutoTriggerVehicle)
+        XCTAssertEqual(settings.pairedRouteUID, "puma-uid-123")
+        XCTAssertTrue(vehicle.autoStartEnabled)
     }
 
     func testDeleteVehicleUnpairsActiveProfile() throws {
@@ -543,12 +547,9 @@ final class VehiclePairingServiceTests: XCTestCase {
         let settings = AppSettings(userDefaults: defaults)
         let vehicle = VehicleProfile(name: "Ford Puma")
         context.insert(vehicle)
-        VehiclePairingService.pairChannels(
+        VehiclePairingService.pair(
             vehicle: vehicle,
-            carPlay: true,
-            bluetooth: false,
-            bluetoothIdentifier: nil,
-            bluetoothDisplayName: nil,
+            candidate: BluetoothRouteCandidate(uid: "puma-uid", name: "Ford Puma", portTypeLabel: "A2DP"),
             in: context,
             settings: settings
         )
@@ -561,44 +562,29 @@ final class VehiclePairingServiceTests: XCTestCase {
         XCTAssertFalse(settings.hasAutoTriggerVehicle)
     }
 
-    func testRepairStaleActivePairingClearsMissingVehicle() throws {
-        let container = try ModelContainer(
-            for: Schema(versionedSchema: TrailhoundSchemaV7.self),
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-        )
-        let defaults = UserDefaults(suiteName: "test.trailhound.stale.\(UUID().uuidString)")!
-        let settings = AppSettings(userDefaults: defaults)
-        settings.activeAutoTriggerVehicleID = UUID()
-        settings.pairedCarPlayChannelEnabled = true
-        settings.pairedVehicleID = VehicleConnectionKind.carPlayVehicleID
-
-        VehiclePairingService.repairStaleActivePairing(in: container.mainContext, settings: settings)
-
-        XCTAssertNil(settings.activeAutoTriggerVehicleID)
-        XCTAssertFalse(settings.pairedCarPlayChannelEnabled)
-    }
-
-    func testRepairStaleActivePairingClearsOrphanedPairingFlags() throws {
+    func testUnpairClearsAutoStart() throws {
         let container = try ModelContainer(
             for: Schema(versionedSchema: TrailhoundSchemaV7.self),
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
         let context = container.mainContext
-        let defaults = UserDefaults(suiteName: "test.trailhound.stale.flags.\(UUID().uuidString)")!
+        let defaults = UserDefaults(suiteName: "test.trailhound.unpair.\(UUID().uuidString)")!
         let settings = AppSettings(userDefaults: defaults)
-        let vehicle = VehicleProfile(
-            name: "Ford",
-            autoTriggerCarPlayEnabled: true
-        )
+        let vehicle = VehicleProfile(name: "Ford Puma")
         context.insert(vehicle)
-        settings.activeAutoTriggerVehicleID = vehicle.id
-        settings.pairedCarPlayChannelEnabled = false
-        settings.pairedBluetoothChannelEnabled = false
+        VehiclePairingService.pair(
+            vehicle: vehicle,
+            candidate: BluetoothRouteCandidate(uid: "puma-uid", name: "Ford Puma", portTypeLabel: "A2DP"),
+            in: context,
+            settings: settings
+        )
 
-        VehiclePairingService.repairStaleActivePairing(in: context, settings: settings)
+        VehiclePairingService.unpair(in: context, settings: settings)
 
+        XCTAssertFalse(vehicle.autoStartEnabled)
+        XCTAssertNil(vehicle.pairedRouteUID)
         XCTAssertNil(settings.activeAutoTriggerVehicleID)
-        XCTAssertFalse(vehicle.autoTriggerCarPlayEnabled)
+        XCTAssertFalse(settings.hasAutoTriggerVehicle)
     }
 }
 
@@ -668,7 +654,7 @@ final class VehicleConnectRecordingTests: XCTestCase {
         let settings = AppSettings(userDefaults: defaults)
         if paired {
             settings.activeAutoTriggerVehicleID = UUID()
-            settings.pairVehicle(id: "carplay", name: "Test Car", type: .carPlay)
+            settings.pairVehicle(uid: "bt-uid", name: "Test Car")
         }
 
         let container = try ModelContainer(
@@ -685,8 +671,19 @@ final class VehicleConnectRecordingTests: XCTestCase {
         return (recordingService, locationService, settings, context)
     }
 
-    func testBluetoothConnectDoesNotStartRecording() throws {
+    func testBluetoothConnectStartsRecordingImmediately() throws {
         let (recordingService, _, _, context) = try makeService()
+
+        recordingService.handleVehicleConnected(trigger: .bluetooth)
+
+        XCTAssertEqual(recordingService.state, .recording)
+        XCTAssertNotNil(recordingService.activeTripID)
+        let trips = try context.fetch(FetchDescriptor<Trip>())
+        XCTAssertEqual(trips.count, 1)
+    }
+
+    func testUnpairedBluetoothConnectDoesNothing() throws {
+        let (recordingService, _, _, context) = try makeService(paired: false)
 
         recordingService.handleVehicleConnected(trigger: .bluetooth)
 
@@ -695,25 +692,12 @@ final class VehicleConnectRecordingTests: XCTestCase {
         XCTAssertTrue(trips.isEmpty)
     }
 
-    func testCarPlayConnectStartsRecordingImmediately() throws {
-        let (recordingService, _, settings, context) = try makeService(paired: false)
-        settings.activeAutoTriggerVehicleID = UUID()
-        settings.pairVehicle(id: "carplay", name: "Test Car", type: .carPlay)
-
-        recordingService.handleVehicleConnected(trigger: .carPlay)
-
-        XCTAssertEqual(recordingService.state, .recording)
-        XCTAssertNotNil(recordingService.activeTripID)
-        let trips = try context.fetch(FetchDescriptor<Trip>())
-        XCTAssertEqual(trips.count, 1)
-    }
-
     func testDisconnectStopsRecording() throws {
         let (recordingService, _, _, context) = try makeService()
-        recordingService.handleVehicleConnected(trigger: .carPlay)
+        recordingService.handleVehicleConnected(trigger: .bluetooth)
         XCTAssertEqual(recordingService.state, .recording)
 
-        recordingService.handleVehicleDisconnected(trigger: .carPlay)
+        recordingService.handleVehicleDisconnected(trigger: .bluetooth)
 
         // Disconnect stops recording immediately. With no distance/duration the
         // automatic stop is below threshold, so the trip is discarded.
@@ -727,41 +711,19 @@ final class VehicleConnectRecordingTests: XCTestCase {
         _ = recordingService.startManualRecording()
         XCTAssertEqual(recordingService.state, .recording)
 
-        // Leaving CarPlay ends even a manually-started session.
-        recordingService.handleVehicleDisconnected(trigger: .carPlay)
-
-        XCTAssertEqual(recordingService.state, .idle)
-    }
-
-    func testBluetoothDisconnectDoesNotStopRecording() throws {
-        let (recordingService, _, _, _) = try makeService()
-        recordingService.handleVehicleConnected(trigger: .carPlay)
-        XCTAssertEqual(recordingService.state, .recording)
-
+        // Leaving the car ends even a manually-started session.
         recordingService.handleVehicleDisconnected(trigger: .bluetooth)
 
-        XCTAssertEqual(recordingService.state, .recording)
-    }
-
-    func testUnpairedBluetoothConnectDoesNothing() throws {
-        let (recordingService, _, _, context) = try makeService(paired: false)
-
-        recordingService.handleVehicleConnected(trigger: .bluetooth)
-
         XCTAssertEqual(recordingService.state, .idle)
-        let trips = try context.fetch(FetchDescriptor<Trip>())
-        XCTAssertTrue(trips.isEmpty)
     }
 
     /// The coordinator reads `AppSettings.shared`, so pairing must be configured
     /// there (not on an isolated instance) for these tests to be deterministic.
-    private func makeSharedPairedCoordinator(
-        type: PairedVehicleType = .carPlay
-    ) throws -> (TripRecordingService, VehicleConnectionCoordinator, ModelContext) {
+    private func makeSharedPairedCoordinator() throws -> (TripRecordingService, VehicleConnectionCoordinator, ModelContext) {
         let shared = AppSettings.shared
         shared.clearPairedVehicle()
         shared.activeAutoTriggerVehicleID = UUID()
-        shared.pairVehicle(id: "carplay", name: "Test Car", type: type)
+        shared.pairVehicle(uid: "bt-uid", name: "Test Car")
         resetCoordinatorPersistedState()
 
         let container = try ModelContainer(
@@ -782,90 +744,87 @@ final class VehicleConnectRecordingTests: XCTestCase {
         return (recordingService, coordinator, container.mainContext)
     }
 
-    func testManualStopWhileConnectedDoesNotRestartUntilReconnect() async throws {
-        let (recordingService, coordinator, _) = try makeSharedPairedCoordinator()
-
-        coordinator.handleCarPlaySnapshot(isConnected: true)
-        try await Task.sleep(for: .seconds(1.2))
-        XCTAssertEqual(recordingService.state, .recording)
-
-        recordingService.stopManualRecording()
-        XCTAssertEqual(recordingService.state, .idle)
-
-        coordinator.handleCarPlaySnapshot(isConnected: true)
-        try await Task.sleep(for: .seconds(1.2))
-        XCTAssertEqual(recordingService.state, .idle)
-
-        // A genuine disconnect must clear before a reconnect can restart.
-        // CarPlay disconnect verification polls for ~24s.
-        coordinator.handleCarPlaySnapshot(isConnected: false)
-        try await Task.sleep(for: .seconds(25))
-        coordinator.handleCarPlaySnapshot(isConnected: true)
-        try await Task.sleep(for: .seconds(1.2))
-        XCTAssertEqual(recordingService.state, .recording)
-    }
-
     private func resetCoordinatorPersistedState() {
         let group = UserDefaults(suiteName: "group.com.trailhound.app") ?? .standard
         group.removeObject(forKey: "vehicle.lastConnected")
         group.removeObject(forKey: "vehicle.lastTrigger")
     }
 
+    func testManualStopWhileConnectedDoesNotRestartUntilReconnect() async throws {
+        let priorGrace = VehicleConnectionCoordinator.testDisconnectGraceSeconds
+        let priorPoll = VehicleConnectionCoordinator.testDisconnectPollSeconds
+        let priorCount = VehicleConnectionCoordinator.testDisconnectPollCount
+        VehicleConnectionCoordinator.testDisconnectGraceSeconds = 0.5
+        VehicleConnectionCoordinator.testDisconnectPollSeconds = 0.2
+        VehicleConnectionCoordinator.testDisconnectPollCount = 2
+        defer {
+            VehicleConnectionCoordinator.testDisconnectGraceSeconds = priorGrace
+            VehicleConnectionCoordinator.testDisconnectPollSeconds = priorPoll
+            VehicleConnectionCoordinator.testDisconnectPollCount = priorCount
+        }
+
+        let (recordingService, coordinator, _) = try makeSharedPairedCoordinator()
+
+        coordinator.handleVehicleSnapshot(isConnected: true)
+        try await Task.sleep(for: .seconds(1.2))
+        XCTAssertEqual(recordingService.state, .recording)
+
+        recordingService.stopManualRecording()
+        XCTAssertEqual(recordingService.state, .idle)
+
+        coordinator.handleVehicleSnapshot(isConnected: true)
+        try await Task.sleep(for: .seconds(1.2))
+        XCTAssertEqual(recordingService.state, .idle)
+
+        // A genuine disconnect must clear before a reconnect can restart.
+        coordinator.handleVehicleSnapshot(isConnected: false)
+        try await Task.sleep(for: .seconds(2.5))
+        coordinator.handleVehicleSnapshot(isConnected: true)
+        try await Task.sleep(for: .seconds(1.2))
+        XCTAssertEqual(recordingService.state, .recording)
+    }
+
     func testMomentaryDisconnectKeepsRecording() async throws {
         let (recordingService, coordinator, _) = try makeSharedPairedCoordinator()
 
-        coordinator.handleCarPlaySnapshot(isConnected: true)
+        coordinator.handleVehicleSnapshot(isConnected: true)
         try await Task.sleep(for: .seconds(1.2))
         XCTAssertEqual(recordingService.state, .recording)
 
         // Momentary drop immediately followed by a reconnect within the window.
-        coordinator.handleCarPlaySnapshot(isConnected: false)
-        coordinator.handleCarPlaySnapshot(isConnected: true)
+        coordinator.handleVehicleSnapshot(isConnected: false)
+        coordinator.handleVehicleSnapshot(isConnected: true)
         try await Task.sleep(for: .seconds(3.5))
         XCTAssertEqual(recordingService.state, .recording)
-    }
-
-    func testTransientCarPlayDisconnectKeepsRecordingPastShortRouteWindow() async throws {
-        let (recordingService, coordinator, _) = try makeSharedPairedCoordinator(type: .carPlay)
-
-        coordinator.handleCarPlaySnapshot(isConnected: true)
-        try await Task.sleep(for: .seconds(1.2))
-        XCTAssertEqual(recordingService.state, .recording)
-
-        // Locking the phone can briefly remove both the CarPlay scene and its
-        // audio route. A short drop must not end an otherwise active CarPlay trip.
-        coordinator.handleCarPlaySnapshot(isConnected: false)
-        try await Task.sleep(for: .seconds(3.5))
-        XCTAssertEqual(recordingService.state, .recording)
-
-        // Simulate the scene/route becoming visible again and cancel verification.
-        coordinator.handleCarPlaySnapshot(isConnected: true)
     }
 
     func testSustainedDisconnectStopsRecordingAfterVerification() async throws {
+        let priorGrace = VehicleConnectionCoordinator.testDisconnectGraceSeconds
+        let priorPoll = VehicleConnectionCoordinator.testDisconnectPollSeconds
+        let priorCount = VehicleConnectionCoordinator.testDisconnectPollCount
+        VehicleConnectionCoordinator.testDisconnectGraceSeconds = 0.5
+        VehicleConnectionCoordinator.testDisconnectPollSeconds = 0.2
+        VehicleConnectionCoordinator.testDisconnectPollCount = 2
+        defer {
+            VehicleConnectionCoordinator.testDisconnectGraceSeconds = priorGrace
+            VehicleConnectionCoordinator.testDisconnectPollSeconds = priorPoll
+            VehicleConnectionCoordinator.testDisconnectPollCount = priorCount
+        }
+
         let (recordingService, coordinator, _) = try makeSharedPairedCoordinator()
 
-        coordinator.handleCarPlaySnapshot(isConnected: true)
+        coordinator.handleVehicleSnapshot(isConnected: true)
         try await Task.sleep(for: .seconds(1.2))
         XCTAssertEqual(recordingService.state, .recording)
 
-        // Sustained CarPlay disconnect: still gone after the ~24s verification window.
-        coordinator.handleCarPlaySnapshot(isConnected: false)
-        try await Task.sleep(for: .seconds(25))
-        XCTAssertEqual(recordingService.state, .idle)
-    }
-
-    func testClassicBluetoothSnapshotDoesNotStartRecording() async throws {
-        let (recordingService, coordinator, _) = try makeSharedPairedCoordinator()
-
-        coordinator.handleBluetoothSnapshot(isConnected: true)
-        try await Task.sleep(for: .seconds(1.5))
+        coordinator.handleVehicleSnapshot(isConnected: false)
+        try await Task.sleep(for: .seconds(2.5))
         XCTAssertEqual(recordingService.state, .idle)
     }
 
     func testManualStopDuringRecordingAlwaysSavesShortTrip() throws {
         let (recordingService, locationService, _, context) = try makeService()
-        recordingService.handleVehicleConnected(trigger: .carPlay)
+        recordingService.handleVehicleConnected(trigger: .bluetooth)
 
         let location = CLLocation(
             coordinate: CLLocationCoordinate2D(latitude: 41.0, longitude: 29.0),

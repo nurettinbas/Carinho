@@ -1,3 +1,5 @@
+import AVFoundation
+import Combine
 import SwiftData
 import SwiftUI
 
@@ -110,6 +112,14 @@ struct PairingTabView: View {
                 refreshConnectionState()
             }
         }
+        .onReceive(
+            NotificationCenter.default.publisher(for: AVAudioSession.routeChangeNotification)
+                .receive(on: DispatchQueue.main)
+        ) { _ in
+            // Bluetooth connect/disconnect surfaces as an audio route change;
+            // refresh the live banner instantly instead of waiting for a tab re-entry.
+            refreshConnectionState()
+        }
         .alert(L10n.pairingTabDeleteVehicleTitle, isPresented: $showDeleteConfirmation) {
             Button(L10n.delete, role: .destructive) {
                 deletePendingVehicle()
@@ -171,7 +181,6 @@ struct PairingTabView: View {
 
     private func refreshConnectionState() {
         bluetoothService.refreshMonitoring()
-        CarPlayConnectionHandler.shared.refreshConnectionSnapshot()
         VehicleConnectionCoordinator.shared.reloadConfiguration()
         refreshToken &+= 1
     }

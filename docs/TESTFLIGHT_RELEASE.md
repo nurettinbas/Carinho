@@ -11,7 +11,7 @@
 1. Bundle ID: `com.trailhound.app`
 2. Widget: `com.trailhound.app.widget`
 3. Signing: Automatic + Team seç
-4. Capabilities: App Groups, Background Modes (location), CarPlay
+4. Capabilities: App Groups, Background Modes (location)
 
 ## App Store Connect
 
@@ -25,12 +25,12 @@
 1. Archive → Distribute → App Store Connect
 2. Internal testing grubu
 3. Gerçek sürüş testi checklist:
-   - CarPlay (kablolu / kablosuz) ile otomatik kayıt başlat/durdur
-   - Klasik Bluetooth-only (CarPlay’siz) ile otomatik kayıt **başlamamalı**
+   - Eşleşmiş araca Bluetooth ile bağlanınca otomatik kayıt başla (müzik çalmadan)
+   - Araçtan ayrılınca / Bluetooth kesilince otomatik kayıt dur
+   - Eşleşmemiş cihazlara (AirPods vb.) bağlanınca kayıt **başlamamalı**
    - Manuel kayıt, widget, export
 
-## CarPlay
+## Bluetooth otomatik başlatma
 
-- [Apple CarPlay başvurusu](https://developer.apple.com/contact/carplay/)
-- App Review notlarında Driving Task kullanım gerekçesi
-- Auto-start yalnızca CarPlay sinyallerine bağlıdır (sahne veya `.carAudio`)
+- Auto-start yalnızca eşleşmiş aracın Bluetooth ses rotasına bağlıdır (`AVAudioSessionPortDescription.uid` eşleşmesi).
+- Ek entitlement gerekmez; yalnızca konum ve arka plan konum modu kullanılır.

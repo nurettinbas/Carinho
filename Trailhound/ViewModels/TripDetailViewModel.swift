@@ -83,7 +83,7 @@ struct TripDetailViewModel {
     var summaryItems: [(icon: String, title: String, value: String)] {
         var items: [(icon: String, title: String, value: String)] = [
             ("clock", L10n.duration, durationText),
-            ("road.lanes", L10n.carPlayDistanceTitle, distanceText)
+            ("road.lanes", L10n.labelDistance, distanceText)
         ]
         if let maxSpeedText {
             items.append(("speedometer", L10n.maxSpeed, maxSpeedText))

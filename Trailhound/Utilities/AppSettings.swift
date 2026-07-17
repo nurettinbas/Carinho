@@ -1,10 +1,5 @@
 import Foundation
 
-enum PairedVehicleType: String, Codable {
-    case bluetoothAudio
-    case carPlay
-}
-
 @MainActor
 @Observable
 final class AppSettings {
@@ -41,17 +36,11 @@ final class AppSettings {
         static let privacyRadiusMeters = "privacyRadiusMeters"
         static let autoDeleteDays = "autoDeleteDays"
         static let blurExportCoordinates = "blurExportCoordinates"
-        static let bluetoothCarIdentifier = "bluetoothCarIdentifier"
-        static let bluetoothCarName = "bluetoothCarName"
         static let hasCompletedCarSetup = "hasCompletedCarSetup"
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
         static let monthlyDistanceGoalMeters = "monthlyDistanceGoalMeters"
-        static let pairedVehicleID = "pairedVehicleID"
         static let pairedVehicleName = "pairedVehicleName"
-        static let pairedBluetoothUID = "pairedBluetoothUID"
-        static let pairedVehicleType = "pairedVehicleType"
-        static let pairedCarPlayChannelEnabled = "vehicle.paired.carplay.enabled"
-        static let pairedBluetoothChannelEnabled = "vehicle.paired.bluetooth.enabled"
+        static let pairedRouteUID = "pairedRouteUID"
         static let activeAutoTriggerVehicleID = "activeAutoTriggerVehicleID"
         static let preferredLanguageCode = "preferredLanguageCode"
         static let stopSpeedKmh = "recording.stopSpeedKmh"
@@ -175,48 +164,25 @@ final class AppSettings {
         set { defaults.set(newValue, forKey: Key.blurExportCoordinates) }
     }
 
-    var pairedVehicleID: String? {
-        get {
-            defaults.string(forKey: Key.pairedVehicleID)
-                ?? defaults.string(forKey: Key.bluetoothCarIdentifier)
-        }
-        set { defaults.set(newValue, forKey: Key.pairedVehicleID) }
-    }
-
     var pairedVehicleName: String? {
-        get {
-            defaults.string(forKey: Key.pairedVehicleName)
-                ?? defaults.string(forKey: Key.bluetoothCarName)
-        }
+        get { defaults.string(forKey: Key.pairedVehicleName) }
         set { defaults.set(newValue, forKey: Key.pairedVehicleName) }
     }
 
-    var pairedBluetoothUID: String? {
-        get { defaults.string(forKey: Key.pairedBluetoothUID) }
-        set { defaults.set(newValue, forKey: Key.pairedBluetoothUID) }
+    /// UID (or normalized name) of the Bluetooth audio route bound to the active
+    /// auto-start vehicle. Only this route triggers connect-start / disconnect-stop.
+    var pairedRouteUID: String? {
+        get { defaults.string(forKey: Key.pairedRouteUID) }
+        set { defaults.set(newValue, forKey: Key.pairedRouteUID) }
     }
 
-    var bluetoothPairingIdentity: BluetoothPairingIdentity {
-        BluetoothPairingIdentity(
-            uid: pairedBluetoothUID,
-            displayName: pairedVehicleName,
-            legacyIdentifier: pairedVehicleID
-        )
+    var pairingIdentity: BluetoothPairingIdentity {
+        BluetoothPairingIdentity(uid: pairedRouteUID, displayName: pairedVehicleName)
     }
 
     var developerModeEnabled: Bool {
         get { defaults.bool(forKey: Key.developerModeEnabled) }
         set { defaults.set(newValue, forKey: Key.developerModeEnabled) }
-    }
-
-    var pairedVehicleType: PairedVehicleType? {
-        get {
-            guard let raw = defaults.string(forKey: Key.pairedVehicleType) else {
-                return pairedVehicleID == nil ? nil : .bluetoothAudio
-            }
-            return PairedVehicleType(rawValue: raw)
-        }
-        set { defaults.set(newValue?.rawValue, forKey: Key.pairedVehicleType) }
     }
 
     private static func loadedTimeInterval(
@@ -240,64 +206,13 @@ final class AppSettings {
     }
 
     func clearPairedVehicle() {
-        pairedVehicleID = nil
         pairedVehicleName = nil
-        pairedBluetoothUID = nil
-        pairedVehicleType = nil
-        pairedCarPlayChannelEnabled = false
-        pairedBluetoothChannelEnabled = false
+        pairedRouteUID = nil
     }
 
-    func pairVehicle(id: String, name: String, type: PairedVehicleType) {
-        pairVehicle(uid: id, legacyIdentifier: id, name: name, type: type)
-    }
-
-    func pairVehicle(uid: String?, legacyIdentifier: String, name: String, type: PairedVehicleType) {
-        pairedBluetoothUID = type == .bluetoothAudio ? uid : nil
-        pairedVehicleID = legacyIdentifier
+    func pairVehicle(uid: String?, name: String) {
+        pairedRouteUID = uid
         pairedVehicleName = name
-        pairedVehicleType = type
-        switch type {
-        case .carPlay:
-            pairedCarPlayChannelEnabled = true
-            pairedBluetoothChannelEnabled = false
-        case .bluetoothAudio:
-            pairedBluetoothChannelEnabled = true
-            pairedCarPlayChannelEnabled = false
-        }
-    }
-
-    func learnPairedBluetoothUID(_ uid: String, fromDisplayName candidateName: String? = nil) {
-        guard pairedBluetoothChannelEnabled else { return }
-        let trimmed = uid.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        if let pairedName = pairedVehicleName, let candidateName {
-            let normalizedPaired = BluetoothRouteCandidate.normalize(pairedName)
-            let normalizedCandidate = BluetoothRouteCandidate.normalize(candidateName)
-            guard normalizedPaired == normalizedCandidate else { return }
-        }
-        pairedBluetoothUID = trimmed
-        pairedVehicleID = trimmed
-    }
-
-    var pairedCarPlayChannelEnabled: Bool {
-        get { defaults.bool(forKey: Key.pairedCarPlayChannelEnabled) }
-        set { defaults.set(newValue, forKey: Key.pairedCarPlayChannelEnabled) }
-    }
-
-    var pairedBluetoothChannelEnabled: Bool {
-        get { defaults.bool(forKey: Key.pairedBluetoothChannelEnabled) }
-        set { defaults.set(newValue, forKey: Key.pairedBluetoothChannelEnabled) }
-    }
-
-    var isPairedCarPlayVehicle: Bool {
-        activeAutoTriggerVehicleID != nil && pairedCarPlayChannelEnabled
-    }
-
-    var isPairedBluetoothVehicle: Bool {
-        // Classic Bluetooth is no longer an auto-start channel. Kept for migration
-        // cleanup / legacy reads only — always treat as inactive for recording.
-        false
     }
 
     var activeAutoTriggerVehicleID: UUID? {
@@ -315,7 +230,7 @@ final class AppSettings {
     }
 
     var hasAutoTriggerVehicle: Bool {
-        isPairedCarPlayVehicle
+        activeAutoTriggerVehicleID != nil && pairedRouteUID != nil
     }
 
     func syncRecordingState(

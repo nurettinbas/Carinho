@@ -1,5 +1,4 @@
 import AppIntents
-import CarPlay
 @preconcurrency import UserNotifications
 import UIKit
 
@@ -28,21 +27,10 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         configurationForConnecting connectingSceneSession: UISceneSession,
         options: UIScene.ConnectionOptions
     ) -> UISceneConfiguration {
-        if connectingSceneSession.role == .carTemplateApplication {
-            let configuration = UISceneConfiguration(
-                name: "CarPlay Configuration",
-                sessionRole: connectingSceneSession.role
-            )
-            configuration.delegateClass = CarPlaySceneDelegate.self
-            configuration.sceneClass = CPTemplateApplicationScene.self
-            return configuration
-        }
-
-        let configuration = UISceneConfiguration(
+        UISceneConfiguration(
             name: "Default Configuration",
             sessionRole: connectingSceneSession.role
         )
-        return configuration
     }
 
     nonisolated func userNotificationCenter(
