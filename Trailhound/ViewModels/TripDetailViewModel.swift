@@ -41,6 +41,17 @@ struct TripSummaryMetric: Identifiable {
 
 @MainActor
 struct TripDetailViewModel {
+    /// Fractional insets (0...1) describing UI that covers the map; used to zoom/pan so the route fits the visible area.
+    struct MapFitContext: Equatable {
+        var top: Double
+        var bottom: Double
+        var horizontal: Double
+
+        static let detailWithPanel = MapFitContext(top: 0.13, bottom: 0.54, horizontal: 0.08)
+        static let fullscreen = MapFitContext(top: 0.11, bottom: 0.10, horizontal: 0.08)
+        static let cinematicReveal = MapFitContext(top: 0.13, bottom: 0.08, horizontal: 0.08)
+    }
+
     let trip: Trip
     let places: [SavedPlace]
     let privacyRadius: Double
@@ -210,10 +221,13 @@ struct TripDetailViewModel {
         RoutePathReveal.progress(nearestTo: coordinate, in: routeCoordinates)
     }
 
-    func followRegion(progress: Double) -> MKCoordinateRegion? {
+    func followRegion(
+        progress: Double,
+        fit: MapFitContext = .cinematicReveal
+    ) -> MKCoordinateRegion? {
         let path = routeCoordinates.isEmpty ? coordinates : routeCoordinates
         guard let tip = RoutePathReveal.tip(of: path, progress: progress) else { return nil }
-        guard let settled = mapRegion else { return nil }
+        guard let settled = mapRegion(fit: fit) else { return nil }
 
         // Follow a bit tighter than the final fit early on, then ease out to the settled span.
         let blend = min(1, max(0, (progress - 0.55) / 0.45))
@@ -228,8 +242,8 @@ struct TripDetailViewModel {
     }
 
     /// High-altitude opening look — route as a small silhouette below.
-    func cinematicOpeningCamera() -> MapCamera? {
-        guard let settled = mapRegion else { return nil }
+    func cinematicOpeningCamera(fit: MapFitContext = .cinematicReveal) -> MapCamera? {
+        guard let settled = mapRegion(fit: fit) else { return nil }
         let path = routeCoordinates.isEmpty ? coordinates : routeCoordinates
         let center = path.first ?? settled.center
         return MapCamera(
@@ -241,10 +255,13 @@ struct TripDetailViewModel {
     }
 
     /// Dive + follow the drawing tip; pitch and altitude ease toward the settle pose.
-    func cinematicFollowCamera(routeProgress: Double) -> MapCamera? {
+    func cinematicFollowCamera(
+        routeProgress: Double,
+        fit: MapFitContext = .cinematicReveal
+    ) -> MapCamera? {
         let path = routeCoordinates.isEmpty ? coordinates : routeCoordinates
         guard let tip = RoutePathReveal.tip(of: path, progress: routeProgress) else { return nil }
-        guard let settled = mapRegion else { return nil }
+        guard let settled = mapRegion(fit: fit) else { return nil }
 
         let p = min(1, max(0, routeProgress))
         let ease = 1 - pow(1 - p, 1.65)
@@ -259,16 +276,6 @@ struct TripDetailViewModel {
             distance: distance,
             heading: Self.bearing(from: tip, to: lookAhead),
             pitch: pitch
-        )
-    }
-
-    func cinematicSettledCamera() -> MapCamera? {
-        guard let settled = mapRegion else { return nil }
-        return MapCamera(
-            centerCoordinate: settled.center,
-            distance: cameraDistance(for: settled.span, multiplier: 1.25),
-            heading: 0,
-            pitch: 8
         )
     }
 
@@ -337,57 +344,73 @@ struct TripDetailViewModel {
         return segments
     }
 
-    var mapRegion: MKCoordinateRegion? {
-        let path = coordinates.isEmpty ? routeCoordinates : coordinates
+    func mapRegion(fit: MapFitContext = .detailWithPanel) -> MKCoordinateRegion? {
+        let path = routeCoordinates.isEmpty ? coordinates : routeCoordinates
         guard !path.isEmpty else { return nil }
+        return Self.regionFitting(coordinates: path, fit: fit)
+    }
 
-        var minLat = path[0].latitude
-        var maxLat = path[0].latitude
-        var minLon = path[0].longitude
-        var maxLon = path[0].longitude
+    /// Fits the camera to the drawn route inside the visible map area.
+    static func regionFitting(
+        coordinates: [CLLocationCoordinate2D],
+        fit: MapFitContext
+    ) -> MKCoordinateRegion? {
+        guard let first = coordinates.first else { return nil }
 
-        for coordinate in path {
+        var minLat = first.latitude
+        var maxLat = first.latitude
+        var minLon = first.longitude
+        var maxLon = first.longitude
+
+        for coordinate in coordinates.dropFirst() {
             minLat = min(minLat, coordinate.latitude)
             maxLat = max(maxLat, coordinate.latitude)
             minLon = min(minLon, coordinate.longitude)
             maxLon = max(maxLon, coordinate.longitude)
         }
 
-        let center = CLLocationCoordinate2D(
-            latitude: (minLat + maxLat) / 2,
-            longitude: (minLon + maxLon) / 2
-        )
-        return MKCoordinateRegion(
-            center: center,
-            span: Self.fittedSpan(
-                latitudeDelta: maxLat - minLat,
-                longitudeDelta: maxLon - minLon
-            )
-        )
-    }
+        var latDelta = max(maxLat - minLat, 0)
+        var lonDelta = max(maxLon - minLon, 0)
 
-    /// Fits the camera to the route size. Short neighborhood loops stay close;
-    /// long trips still get padding without a huge forced minimum zoom-out.
-    private static func fittedSpan(
-        latitudeDelta: Double,
-        longitudeDelta: Double
-    ) -> MKCoordinateSpan {
-        // ~180m floor — enough for pins, still readable for short loops.
+        // ~180m floor — keeps very short hops readable without over-zooming long trips.
         let minimumDelta = 0.0016
-        // Short routes need more relative padding so pins aren't clipped;
-        // long routes need less so we don't zoom out unnecessarily.
-        let raw = max(latitudeDelta, longitudeDelta)
-        let padding: Double
-        if raw < 0.003 {
-            padding = 2.4
-        } else if raw < 0.01 {
-            padding = 1.9
+        if latDelta < 1e-8 { latDelta = minimumDelta * 0.35 }
+        if lonDelta < 1e-8 { lonDelta = minimumDelta * 0.35 }
+
+        let visibleHeight = max(0.22, 1 - fit.top - fit.bottom)
+        let visibleWidth = max(0.22, 1 - (2 * fit.horizontal))
+
+        var requiredLat = latDelta / visibleHeight
+        var requiredLon = lonDelta / visibleWidth
+
+        let rawMax = max(latDelta, lonDelta)
+        let margin: Double
+        if rawMax < 0.003 {
+            margin = 2.35
+        } else if rawMax < 0.01 {
+            margin = 1.85
+        } else if rawMax < 0.05 {
+            margin = 1.45
         } else {
-            padding = 1.45
+            margin = 1.28
         }
 
-        let side = max(raw * padding, minimumDelta)
-        return MKCoordinateSpan(latitudeDelta: side, longitudeDelta: side)
+        requiredLat *= margin
+        requiredLon *= margin
+
+        let side = max(requiredLat, requiredLon, minimumDelta)
+
+        // Shift the center so the route sits in the visible map above the bottom sheet.
+        let visibleCenterY = fit.top + (visibleHeight / 2)
+        let latOffset = (0.5 - visibleCenterY) * side
+
+        return MKCoordinateRegion(
+            center: CLLocationCoordinate2D(
+                latitude: ((minLat + maxLat) / 2) - latOffset,
+                longitude: (minLon + maxLon) / 2
+            ),
+            span: MKCoordinateSpan(latitudeDelta: side, longitudeDelta: side)
+        )
     }
 
     static func speedColor(for speedMps: Double?) -> Color {

@@ -199,7 +199,7 @@ struct TripDetailView: View {
 
         if let opening = viewModel.cinematicOpeningCamera() {
             cameraPosition = .camera(opening)
-        } else if let region = viewModel.mapRegion {
+        } else if let region = viewModel.mapRegion(fit: .cinematicReveal) {
             cameraPosition = .region(region)
         }
 
@@ -259,11 +259,7 @@ struct TripDetailView: View {
             }
             TrailhoundHaptics.selection()
 
-            if let settled = viewModel.cinematicSettledCamera() {
-                withAnimation(.easeInOut(duration: 0.95)) {
-                    cameraPosition = .camera(settled)
-                }
-            } else if let region = viewModel.mapRegion {
+            if let region = viewModel.mapRegion(fit: .detailWithPanel) {
                 withAnimation(.easeInOut(duration: 0.95)) {
                     cameraPosition = .region(region)
                 }
@@ -314,9 +310,7 @@ struct TripDetailView: View {
         statCountProgress = Dictionary(
             uniqueKeysWithValues: viewModel.summaryMetrics.map { ($0.id, 1.0) }
         )
-        if let settled = viewModel.cinematicSettledCamera() {
-            cameraPosition = .camera(settled)
-        } else if let region = viewModel.mapRegion {
+        if let region = viewModel.mapRegion(fit: .detailWithPanel) {
             cameraPosition = .region(region)
         }
     }
@@ -665,6 +659,11 @@ struct TripDetailView: View {
                     Button("Kapat") {
                         showFullscreenMap = false
                     }
+                }
+            }
+            .onAppear {
+                if let region = viewModel.mapRegion(fit: .fullscreen) {
+                    cameraPosition = .region(region)
                 }
             }
         }
