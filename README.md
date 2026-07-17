@@ -85,7 +85,7 @@ Trailhound uses **SwiftData**, **App Intents**, **Live Activities**, and modern 
 ## Getting started
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Trailhound.git
+git clone https://github.com/nurettinbas/Trailhound.git
 cd Trailhound
 open Trailhound.xcodeproj
 ```
