@@ -1,3 +1,4 @@
+import CoreLocation
 import SwiftUI
 import UIKit
 
@@ -5,6 +6,66 @@ enum TrailhoundMotion {
     static let snappy = Animation.snappy(duration: 0.35)
     static let gentle = Animation.easeInOut(duration: 0.3)
     static let cardSpring = Animation.spring(response: 0.45, dampingFraction: 0.82)
+    /// Recording banner mixed entrance (~3s total).
+    static let coldOpenPiece = Animation.easeOut(duration: 0.4)
+    static let coldOpenCar = Animation.easeOut(duration: 0.42)
+    static let coldOpenMap = Animation.easeOut(duration: 0.4)
+    static let coldOpenPill = Animation.easeOut(duration: 0.36)
+    static let coldOpenActions = Animation.easeOut(duration: 0.4)
+    /// Gap between major beats (car → map → pills → buttons).
+    static let coldOpenPieceGap: Duration = .milliseconds(480)
+    /// Cascade between the three stat pills.
+    static let coldOpenPillStagger: Duration = .milliseconds(75)
+    static let coldOpenCardSettle = Animation.easeOut(duration: 0.2)
+    /// Soft sheet rise for TripDetail panel.
+    static let sheetRise = Animation.spring(response: 0.72, dampingFraction: 0.86)
+    /// Map clarity / dark→clear open.
+    static let mapClear = Animation.easeOut(duration: 0.9)
+    /// Pin pop with a bit of overshoot.
+    static let pinPop = Animation.spring(response: 0.42, dampingFraction: 0.68)
+
+    /// Soft rise (fade + slight upward settle).
+    static var softRiseTransition: AnyTransition {
+        .asymmetric(
+            insertion: .opacity.combined(with: .offset(y: 12)),
+            removal: .opacity
+        )
+    }
+
+    /// Soft slide in from the leading edge.
+    static var softSlideFromLeadingTransition: AnyTransition {
+        .asymmetric(
+            insertion: .opacity.combined(with: .offset(x: -28)),
+            removal: .opacity
+        )
+    }
+
+    /// Scale in 0.92 → 1 (no overshoot).
+    static var softScaleInTransition: AnyTransition {
+        .asymmetric(
+            insertion: .opacity.combined(with: .scale(scale: 0.92)),
+            removal: .opacity
+        )
+    }
+
+    /// Rise from below (buttons / bottom chrome).
+    static var softRiseFromBottomTransition: AnyTransition {
+        .asymmetric(
+            insertion: .opacity.combined(with: .offset(y: 16)),
+            removal: .opacity
+        )
+    }
+
+    /// Curtain / clip-reveal transition (progress 0 → 1).
+    static func clipRevealTransition(edge: Edge = .top) -> AnyTransition {
+        .asymmetric(
+            insertion: .modifier(
+                active: ClipRevealEffect(progress: 0, edge: edge),
+                identity: ClipRevealEffect(progress: 1, edge: edge)
+            ),
+            removal: .opacity
+        )
+    }
 
     static func cardAppearTransition(reduceMotion: Bool) -> AnyTransition {
         guard !reduceMotion else { return .identity }
@@ -98,7 +159,58 @@ private struct ShimmerModifier: ViewModifier {
     }
 }
 
+/// Curtain wipe — reveals content by expanding a clip from an edge.
+struct ClipRevealEffect: ViewModifier, Animatable {
+    var progress: CGFloat
+    var edge: Edge
+
+    nonisolated var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    func body(content: Content) -> some View {
+        let clamped = min(1, max(0, progress))
+        let p = max(clamped, 0.001)
+        let horizontal = (edge == .leading || edge == .trailing)
+        content
+            .mask(alignment: clipAlignment) {
+                Rectangle()
+                    .scaleEffect(
+                        x: horizontal ? p : 1,
+                        y: horizontal ? 1 : p,
+                        anchor: clipAnchor
+                    )
+            }
+            .opacity(Double(min(1, clamped * 1.2)))
+    }
+
+    private var clipAnchor: UnitPoint {
+        switch edge {
+        case .top: .top
+        case .bottom: .bottom
+        case .leading: .leading
+        case .trailing: .trailing
+        @unknown default: .top
+        }
+    }
+
+    private var clipAlignment: Alignment {
+        switch edge {
+        case .top: .top
+        case .bottom: .bottom
+        case .leading: .leading
+        case .trailing: .trailing
+        @unknown default: .top
+        }
+    }
+}
+
 extension View {
+    func clipReveal(progress: CGFloat, edge: Edge = .top) -> some View {
+        modifier(ClipRevealEffect(progress: progress, edge: edge))
+    }
+
     func numericTextAnimation<V: Equatable>(value: V) -> some View {
         modifier(NumericTextAnimationModifier(value: value))
     }
@@ -109,5 +221,220 @@ extension View {
 
     func trailhoundCardTransition(reduceMotion: Bool) -> some View {
         transition(TrailhoundMotion.cardAppearTransition(reduceMotion: reduceMotion))
+    }
+
+    @ViewBuilder
+    func matchedGeometryEffectIfAvailable(
+        id: UUID?,
+        namespace: Namespace.ID?,
+        isSource: Bool
+    ) -> some View {
+        if let id, let namespace {
+            matchedGeometryEffect(id: id, in: namespace, properties: .frame, isSource: isSource)
+        } else {
+            self
+        }
+    }
+
+    @ViewBuilder
+    func matchedGeometryEffectIfAvailable(
+        stringID: String?,
+        namespace: Namespace.ID?,
+        isSource: Bool
+    ) -> some View {
+        if let stringID, let namespace {
+            matchedGeometryEffect(id: stringID, in: namespace, properties: .frame, isSource: isSource)
+        } else {
+            self
+        }
+    }
+}
+
+/// Soft press feedback for bordered controls (Pause / Resume, etc.).
+struct SoftPressBorderedButtonStyle: PrimitiveButtonStyle {
+    var reduceMotion: Bool = false
+    var pressedScale: CGFloat = 0.96
+
+    func makeBody(configuration: Configuration) -> some View {
+        SoftPressBorderedPrimitive(
+            configuration: configuration,
+            reduceMotion: reduceMotion,
+            pressedScale: pressedScale
+        )
+    }
+}
+
+private struct SoftPressBorderedPrimitive: View {
+    let configuration: PrimitiveButtonStyleConfiguration
+    var reduceMotion: Bool
+    var pressedScale: CGFloat
+
+    @GestureState private var isPressed = false
+
+    var body: some View {
+        BorderedButtonStyle()
+            .makeBody(configuration: configuration)
+            .scaleEffect((isPressed && !reduceMotion) ? pressedScale : 1)
+            .animation(reduceMotion ? nil : TrailhoundMotion.cardSpring, value: isPressed)
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .updating($isPressed) { _, state, _ in
+                        state = true
+                    }
+            )
+    }
+}
+
+// MARK: - Route path reveal
+
+enum RoutePathReveal {
+    /// Returns a polyline prefix for `progress` in `0...1`, with an interpolated tip.
+    static func prefix(
+        _ coordinates: [CLLocationCoordinate2D],
+        progress: Double
+    ) -> [CLLocationCoordinate2D] {
+        guard coordinates.count >= 2 else { return coordinates }
+        let clamped = min(1, max(0, progress))
+        if clamped <= 0 { return [coordinates[0]] }
+        if clamped >= 1 { return coordinates }
+
+        let segmentCount = coordinates.count - 1
+        let exact = Double(segmentCount) * clamped
+        let index = min(segmentCount - 1, Int(exact))
+        let fraction = exact - Double(index)
+        var result = Array(coordinates.prefix(index + 1))
+        let start = coordinates[index]
+        let end = coordinates[index + 1]
+        result.append(
+            CLLocationCoordinate2D(
+                latitude: start.latitude + (end.latitude - start.latitude) * fraction,
+                longitude: start.longitude + (end.longitude - start.longitude) * fraction
+            )
+        )
+        return result
+    }
+
+    static func tip(
+        of coordinates: [CLLocationCoordinate2D],
+        progress: Double
+    ) -> CLLocationCoordinate2D? {
+        prefix(coordinates, progress: progress).last
+    }
+
+    /// Fraction along the point index range closest to `coordinate` (0...1).
+    static func progress(
+        nearestTo coordinate: CLLocationCoordinate2D,
+        in coordinates: [CLLocationCoordinate2D]
+    ) -> Double {
+        guard coordinates.count >= 2 else { return 0 }
+        var bestIndex = 0
+        var bestDistance = Double.greatestFiniteMagnitude
+        for (index, point) in coordinates.enumerated() {
+            let dLat = point.latitude - coordinate.latitude
+            let dLon = point.longitude - coordinate.longitude
+            let distance = dLat * dLat + dLon * dLon
+            if distance < bestDistance {
+                bestDistance = distance
+                bestIndex = index
+            }
+        }
+        return Double(bestIndex) / Double(coordinates.count - 1)
+    }
+}
+
+// MARK: - Soft pulse ring (Core Animation)
+
+/// Compact Core Animation glow ring — used for recording tab badge and similar live signals.
+struct SoftPulseRing: UIViewRepresentable {
+    var color: UIColor
+    var isActive: Bool
+    var reduceMotion: Bool
+
+    func makeUIView(context: Context) -> SoftPulseRingView {
+        SoftPulseRingView()
+    }
+
+    func updateUIView(_ uiView: SoftPulseRingView, context: Context) {
+        uiView.apply(color: color, isActive: isActive && !reduceMotion)
+    }
+}
+
+final class SoftPulseRingView: UIView {
+    private let ringLayer = CAShapeLayer()
+    private var isActive = false
+    private var ringColor: UIColor = .systemRed
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        isUserInteractionEnabled = false
+        isAccessibilityElement = false
+        backgroundColor = .clear
+
+        ringLayer.fillColor = UIColor.clear.cgColor
+        ringLayer.lineWidth = 2
+        ringLayer.opacity = 0
+        layer.addSublayer(ringLayer)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let inset = ringLayer.lineWidth
+        ringLayer.frame = bounds
+        ringLayer.path = UIBezierPath(ovalIn: bounds.insetBy(dx: inset, dy: inset)).cgPath
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        if window != nil, isActive {
+            startPulseIfNeeded()
+        }
+    }
+
+    func apply(color: UIColor, isActive: Bool) {
+        ringColor = color
+        ringLayer.strokeColor = color.withAlphaComponent(0.7).cgColor
+        self.isActive = isActive
+
+        if isActive {
+            isHidden = false
+            startPulseIfNeeded()
+        } else {
+            stopPulse()
+            ringLayer.opacity = 0
+            ringLayer.transform = CATransform3DIdentity
+            isHidden = true
+        }
+    }
+
+    private func startPulseIfNeeded() {
+        guard ringLayer.animation(forKey: "softPulse") == nil else { return }
+        ringLayer.opacity = 0.4
+        ringLayer.transform = CATransform3DIdentity
+
+        let opacity = CABasicAnimation(keyPath: "opacity")
+        opacity.fromValue = 0.25
+        opacity.toValue = 0.75
+
+        let scale = CABasicAnimation(keyPath: "transform.scale")
+        scale.fromValue = 0.92
+        scale.toValue = 1.18
+
+        let group = CAAnimationGroup()
+        group.animations = [opacity, scale]
+        group.duration = 1.7
+        group.autoreverses = true
+        group.repeatCount = .infinity
+        group.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        group.isRemovedOnCompletion = false
+        ringLayer.add(group, forKey: "softPulse")
+    }
+
+    private func stopPulse() {
+        ringLayer.removeAnimation(forKey: "softPulse")
     }
 }

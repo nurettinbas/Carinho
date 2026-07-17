@@ -14,6 +14,14 @@ public enum DateFormatters {
         return formatter
     }
 
+    public static func tripDateOnlyFormatter() -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = currentLocale
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter
+    }
+
     public static func tripTimeFormatter() -> DateFormatter {
         let formatter = DateFormatter()
         formatter.locale = currentLocale
@@ -23,6 +31,7 @@ public enum DateFormatters {
     }
 
     public static var tripDate: DateFormatter { tripDateFormatter() }
+    public static var tripDateOnly: DateFormatter { tripDateOnlyFormatter() }
     public static var tripTime: DateFormatter { tripTimeFormatter() }
 
     public static func formatDuration(_ interval: TimeInterval) -> String {
@@ -53,7 +62,7 @@ public enum DateFormatters {
     }
 
     public static func formatTripDateRange(startedAt: Date, endedAt: Date?) -> String {
-        let datePart = tripDate.string(from: startedAt).components(separatedBy: ", ").first ?? tripDate.string(from: startedAt)
+        let datePart = tripDateOnly.string(from: startedAt)
         let startTime = tripTime.string(from: startedAt)
         guard let endedAt else { return "\(datePart) · \(startTime)" }
         let endTime = tripTime.string(from: endedAt)

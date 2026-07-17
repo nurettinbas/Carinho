@@ -4,6 +4,10 @@ struct TripRowView: View {
     let trip: Trip
     var places: [SavedPlace] = []
     var privacyRadius: Double = 500
+    var morphNamespace: Namespace.ID?
+    var morphID: UUID?
+    /// Soft-lands the map thumbnail after stop→row morph.
+    var emphasizeLanding: Bool = false
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var thumbnail: UIImage?
@@ -67,13 +71,38 @@ struct TripRowView: View {
             }
         }
         .padding(.vertical, 4)
+        .background {
+            if emphasizeLanding, !reduceMotion {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(TrailhoundBrandColors.brandBottom.opacity(0.14))
+                    .padding(.horizontal, -8)
+                    .padding(.vertical, -6)
+            }
+        }
+        .overlay {
+            if emphasizeLanding, !reduceMotion {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(TrailhoundBrandColors.brandBottom.opacity(0.35), lineWidth: 1)
+                    .padding(.horizontal, -8)
+                    .padding(.vertical, -6)
+            }
+        }
+        .scaleEffect(emphasizeLanding && !reduceMotion ? 1.03 : 1)
+        .animation(TrailhoundMotion.cardSpring, value: emphasizeLanding)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilitySummary)
         .task(id: trip.id) {
             thumbnailLoaded = false
+            thumbnail = nil
+
+            if emphasizeLanding, !reduceMotion {
+                // Hold shimmer briefly so morph settles before snapshot lands.
+                try? await Task.sleep(for: .milliseconds(420))
+            }
+
             let image = await TripMapSnapshotCache.shared.snapshot(for: trip)
             if !reduceMotion {
-                withAnimation(TrailhoundMotion.gentle) {
+                withAnimation(emphasizeLanding ? TrailhoundMotion.cardSpring : TrailhoundMotion.gentle) {
                     thumbnail = image
                     thumbnailLoaded = true
                 }
@@ -101,7 +130,7 @@ struct TripRowView: View {
                 Image(uiImage: thumbnail)
                     .resizable()
                     .scaledToFill()
-                    .transition(.opacity)
+                    .transition(.opacity.combined(with: .scale(scale: emphasizeLanding ? 0.92 : 1)))
             } else {
                 ZStack {
                     Color(.tertiarySystemFill)

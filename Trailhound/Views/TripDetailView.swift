@@ -19,6 +19,12 @@ private enum TripMapStyle {
     }
 }
 
+private struct RevealedRouteSegment: Identifiable {
+    let id: String
+    let coordinates: [CLLocationCoordinate2D]
+    let color: Color
+}
+
 struct TripDetailView: View {
     @Bindable var trip: Trip
     @Environment(\.modelContext) private var modelContext
@@ -46,7 +52,14 @@ struct TripDetailView: View {
     @State private var editedEndedAt: Date = Date()
     @State private var trimHeadCount: Int = 0
     @State private var trimTailCount: Int = 0
-    @State private var didAppear = false
+    @State private var routeRevealProgress: Double = 0
+    @State private var didStartRouteReveal = false
+    @State private var routeRevealTask: Task<Void, Never>?
+    @State private var mapClarity: Double = 0
+    @State private var startPinVisible = false
+    @State private var endPinVisible = false
+    @State private var panelRisen = false
+    @State private var statCountProgress: [String: Double] = [:]
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var sortedStops: [TripStop] {
@@ -59,9 +72,20 @@ struct TripDetailView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            VStack(spacing: 0) {
+            let panelHeight = geometry.size.height * 0.52
+            ZStack(alignment: .bottom) {
                 ZStack(alignment: .topTrailing) {
-                    tripMapView(style: mapStyle, interactive: true)
+                    tripMapView(style: mapStyle, interactive: panelRisen)
+                        .overlay {
+                            // Dark / soft-blur veil that clears as the dive begins.
+                            ZStack {
+                                Color.black.opacity(0.55 * (1 - mapClarity))
+                                Rectangle()
+                                    .fill(.ultraThinMaterial)
+                                    .opacity(0.85 * (1 - mapClarity))
+                            }
+                            .allowsHitTesting(false)
+                        }
                         .onTapGesture {
                             dismissNoteKeyboard()
                         }
@@ -77,6 +101,7 @@ struct TripDetailView: View {
                         }
 
                         compactSpeedLegend
+                            .opacity(mapClarity)
 
                         Button {
                             showFullscreenMap = true
@@ -87,17 +112,22 @@ struct TripDetailView: View {
                                 .background(.ultraThinMaterial, in: Circle())
                         }
                         .accessibilityLabel(L10n.mapFullscreen)
+                        .opacity(mapClarity)
                     }
                     .padding(12)
                 }
-                .frame(height: geometry.size.height * 0.48)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.bottom, panelRisen ? panelHeight - 12 : 0)
+                .animation(reduceMotion ? nil : TrailhoundMotion.sheetRise, value: panelRisen)
 
                 detailPanel
-                    .frame(maxHeight: .infinity)
+                    .frame(height: panelHeight)
+                    .offset(y: panelRisen ? 0 : panelHeight + 24)
+                    .opacity(panelRisen ? 1 : 0)
+                    .animation(reduceMotion ? nil : TrailhoundMotion.sheetRise, value: panelRisen)
+                    .allowsHitTesting(panelRisen)
             }
         }
-        .opacity(didAppear ? 1 : 0)
-        .offset(y: didAppear ? 0 : 12)
         .dismissKeyboardOnTap(focus: $noteFocused)
         .navigationTitle(L10n.tripDetailTitle)
         .navigationBarTitleDisplayMode(.inline)
@@ -136,16 +166,158 @@ struct TripDetailView: View {
             endPlaceNameText = trip.endPlaceName ?? ""
             editedStartedAt = trip.startedAt
             editedEndedAt = trip.endedAt ?? Date()
-            if let region = viewModel.mapRegion {
-                cameraPosition = .region(region)
-            }
             if reduceMotion {
-                didAppear = true
+                finishRouteRevealInstant()
             } else {
-                withAnimation(TrailhoundMotion.gentle) {
-                    didAppear = true
+                startCinematicRevealIfNeeded()
+            }
+        }
+        .onDisappear {
+            routeRevealTask?.cancel()
+            routeRevealTask = nil
+        }
+    }
+
+    private func startCinematicRevealIfNeeded() {
+        guard !didStartRouteReveal else { return }
+        didStartRouteReveal = true
+
+        let pathCount = max(viewModel.routeCoordinates.count, viewModel.coordinates.count)
+        guard pathCount >= 2 else {
+            finishRouteRevealInstant()
+            return
+        }
+
+        routeRevealProgress = 0
+        startPinVisible = false
+        endPinVisible = false
+        panelRisen = false
+        mapClarity = 0
+        statCountProgress = Dictionary(
+            uniqueKeysWithValues: viewModel.summaryMetrics.map { ($0.id, 0.0) }
+        )
+
+        if let opening = viewModel.cinematicOpeningCamera() {
+            cameraPosition = .camera(opening)
+        } else if let region = viewModel.mapRegion {
+            cameraPosition = .region(region)
+        }
+
+        routeRevealTask?.cancel()
+        routeRevealTask = Task { @MainActor in
+            // Let the map mount under the dark veil.
+            try? await Task.sleep(for: .milliseconds(160))
+            guard !Task.isCancelled else { return }
+
+            // 1) Dark → clear + camera begins the dive toward the start.
+            withAnimation(TrailhoundMotion.mapClear) {
+                mapClarity = 1
+            }
+            if let diveStart = viewModel.cinematicFollowCamera(routeProgress: 0) {
+                withAnimation(.easeInOut(duration: 0.85)) {
+                    cameraPosition = .camera(diveStart)
                 }
             }
+
+            try? await Task.sleep(for: .milliseconds(720))
+            guard !Task.isCancelled else { return }
+
+            // 2) Start pin pops, then the neon route draws on.
+            withAnimation(TrailhoundMotion.pinPop) {
+                startPinVisible = true
+            }
+            TrailhoundHaptics.selection()
+
+            try? await Task.sleep(for: .milliseconds(280))
+            guard !Task.isCancelled else { return }
+
+            let duration: TimeInterval = pathCount < 50
+                ? 2.0
+                : min(3.1, 1.55 + Double(pathCount) * 0.012)
+            let steps = 64
+            let stepSleep = duration / Double(steps)
+
+            for step in 1...steps {
+                try? await Task.sleep(for: .seconds(stepSleep))
+                guard !Task.isCancelled else { return }
+
+                // Ease-in-out so the stroke accelerates mid-route then softens into the end.
+                let linear = Double(step) / Double(steps)
+                let progress = Self.smoothstep(linear)
+                routeRevealProgress = progress
+
+                if let follow = viewModel.cinematicFollowCamera(routeProgress: progress) {
+                    cameraPosition = .camera(follow)
+                }
+            }
+
+            guard !Task.isCancelled else { return }
+
+            // 3) End pin settles, camera eases to the full route frame.
+            withAnimation(TrailhoundMotion.pinPop) {
+                endPinVisible = true
+            }
+            TrailhoundHaptics.selection()
+
+            if let settled = viewModel.cinematicSettledCamera() {
+                withAnimation(.easeInOut(duration: 0.95)) {
+                    cameraPosition = .camera(settled)
+                }
+            } else if let region = viewModel.mapRegion {
+                withAnimation(.easeInOut(duration: 0.95)) {
+                    cameraPosition = .region(region)
+                }
+            }
+
+            try? await Task.sleep(for: .milliseconds(220))
+            guard !Task.isCancelled else { return }
+
+            // 4) Bottom panel rises; stats count up in sequence.
+            panelRisen = true
+            await runStatCountUp()
+        }
+    }
+
+    private func runStatCountUp() async {
+        let metrics = viewModel.summaryMetrics
+        for (index, metric) in metrics.enumerated() {
+            if index > 0 {
+                try? await Task.sleep(for: .milliseconds(140))
+            }
+            guard !Task.isCancelled else { return }
+
+            let ticks = 22
+            for tick in 1...ticks {
+                try? await Task.sleep(for: .milliseconds(28))
+                guard !Task.isCancelled else { return }
+                let linear = Double(tick) / Double(ticks)
+                statCountProgress[metric.id] = Self.smoothstep(linear)
+            }
+            statCountProgress[metric.id] = 1
+        }
+    }
+
+    private static func smoothstep(_ t: Double) -> Double {
+        let x = min(1, max(0, t))
+        return x * x * (3 - 2 * x)
+    }
+
+    private func finishRouteRevealInstant() {
+        didStartRouteReveal = true
+        routeRevealTask?.cancel()
+        routeRevealTask = nil
+        routeRevealProgress = 1
+        mapClarity = 1
+        startPinVisible = true
+        endPinVisible = true
+        panelRisen = true
+        statCountProgress = Dictionary(
+            uniqueKeysWithValues: viewModel.summaryMetrics.map { ($0.id, 1.0) }
+        )
+        if let settled = viewModel.cinematicSettledCamera() {
+            cameraPosition = .camera(settled)
+        } else if let region = viewModel.mapRegion {
+            cameraPosition = .region(region)
         }
     }
 
@@ -269,20 +441,25 @@ struct TripDetailView: View {
     private var statsStrip: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(Array(viewModel.summaryItems.enumerated()), id: \.offset) { _, item in
+                ForEach(viewModel.summaryMetrics) { metric in
+                    let progress = statCountProgress[metric.id] ?? (panelRisen ? 1 : 0)
                     VStack(alignment: .leading, spacing: 2) {
-                        Label(item.title, systemImage: item.icon)
+                        Label(metric.title, systemImage: metric.icon)
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                             .labelStyle(.titleAndIcon)
-                        Text(item.value)
+                        Text(metric.formatted(progress: progress))
                             .font(.subheadline.weight(.semibold))
                             .lineLimit(1)
+                            .contentTransition(.numericText())
+                            .animation(reduceMotion ? nil : TrailhoundMotion.snappy, value: progress)
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 10)
                     .background(Color(.secondarySystemGroupedBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .opacity(progress > 0.01 || reduceMotion ? 1 : 0.35)
+                    .scaleEffect(progress > 0.01 || reduceMotion ? 1 : 0.94)
                 }
             }
         }
@@ -386,50 +563,79 @@ struct TripDetailView: View {
 
     @ViewBuilder
     private func tripMapView(style: TripMapStyle, interactive: Bool) -> some View {
+        let revealedSegments = viewModel.revealedSpeedColoredSegments(progress: routeRevealProgress)
+        let revealedFallback = viewModel.revealedFallbackCoordinates(progress: routeRevealProgress)
+        // MapKit often skips in-place coordinate updates; key overlays by length
+        // so each reveal tick replaces the stroke visibly.
+        let revealTick = Int((routeRevealProgress * 200).rounded())
+        let revealedItems = revealedSegments.map { segment in
+            RevealedRouteSegment(
+                id: "\(segment.id)-\(segment.coordinates.count)-\(revealTick)",
+                coordinates: segment.coordinates,
+                color: segment.color
+            )
+        }
+
         Map(position: $cameraPosition, interactionModes: interactive ? .all : []) {
-            ForEach(viewModel.speedColoredSegments) { segment in
+            // Soft neon under-glow, then the crisp speed-colored stroke on top.
+            ForEach(revealedItems) { segment in
                 MapPolyline(coordinates: segment.coordinates)
                     .stroke(
-                        segment.color,
-                        style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)
+                        segment.color.opacity(0.38),
+                        style: StrokeStyle(lineWidth: 11, lineCap: .round, lineJoin: .round)
                     )
                     .mapOverlayLevel(level: .aboveRoads)
             }
 
-            if viewModel.speedColoredSegments.isEmpty, viewModel.coordinates.count >= 2 {
-                MapPolyline(coordinates: viewModel.coordinates)
-                    .stroke(.blue, lineWidth: 4)
+            ForEach(revealedItems) { segment in
+                MapPolyline(coordinates: segment.coordinates)
+                    .stroke(
+                        segment.color,
+                        style: StrokeStyle(lineWidth: 4.5, lineCap: .round, lineJoin: .round)
+                    )
+                    .mapOverlayLevel(level: .aboveRoads)
             }
 
-            if let start = viewModel.routeStartCoordinate {
+            if revealedItems.isEmpty, revealedFallback.count >= 2 {
+                MapPolyline(coordinates: revealedFallback)
+                    .stroke(Color.cyan.opacity(0.35), style: StrokeStyle(lineWidth: 11, lineCap: .round, lineJoin: .round))
+                MapPolyline(coordinates: revealedFallback)
+                    .stroke(.cyan, lineWidth: 4.5)
+            }
+
+            if startPinVisible, let start = viewModel.routeStartCoordinate {
                 Annotation(L10n.tripPointStart, coordinate: start) {
-                    Image(systemName: "flag.fill")
-                        .padding(6)
-                        .background(.green, in: Circle())
-                        .foregroundStyle(.white)
+                    routeAnnotationMark(systemName: "flag.fill", color: .green, popped: startPinVisible)
                 }
             }
 
-            if let end = viewModel.routeEndCoordinate {
+            if endPinVisible, let end = viewModel.routeEndCoordinate {
                 Annotation(L10n.tripPointEnd, coordinate: end) {
-                    Image(systemName: "mappin.circle.fill")
-                        .padding(6)
-                        .background(.red, in: Circle())
-                        .foregroundStyle(.white)
+                    routeAnnotationMark(systemName: "mappin.circle.fill", color: .red, popped: endPinVisible)
                 }
             }
 
-            ForEach(Array(trip.stops.enumerated()), id: \.offset) { _, stop in
-                Annotation(L10n.tripPointStop, coordinate: stop.coordinate) {
-                    Image(systemName: "pause.circle.fill")
-                        .padding(6)
-                        .background(.orange, in: Circle())
-                        .foregroundStyle(.white)
+            ForEach(Array(sortedStops.enumerated()), id: \.element.persistentModelID) { _, stop in
+                if routeRevealProgress >= viewModel.annotationRevealProgress(forStopAt: stop.coordinate) {
+                    Annotation(L10n.tripPointStop, coordinate: stop.coordinate) {
+                        routeAnnotationMark(systemName: "pause.circle.fill", color: .orange, popped: true)
+                    }
                 }
             }
         }
         .mapStyle(style.mapStyle)
         .preferredColorScheme(style == .dark ? .dark : nil)
+    }
+
+    private func routeAnnotationMark(systemName: String, color: Color, popped: Bool) -> some View {
+        Image(systemName: systemName)
+            .padding(6)
+            .background(color, in: Circle())
+            .foregroundStyle(.white)
+            .scaleEffect(popped ? 1 : 0.35)
+            .opacity(popped ? 1 : 0)
+            .shadow(color: color.opacity(0.55), radius: popped ? 8 : 0, y: 1)
+            .animation(reduceMotion ? nil : TrailhoundMotion.pinPop, value: popped)
     }
 
     private var fullscreenMapSheet: some View {

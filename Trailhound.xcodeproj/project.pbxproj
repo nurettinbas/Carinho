@@ -32,6 +32,8 @@
 		A10000000000000000000014 /* TripRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* TripRowView.swift */; };
 		A10000000000000000000015 /* TripDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* TripDetailView.swift */; };
 		A10000000000000000000016 /* ActiveTripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* ActiveTripView.swift */; };
+		A1RECCOLDOPEN0000000001 /* RecordingColdOpenOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2RECCOLDOPEN0000000001 /* RecordingColdOpenOverlay.swift */; };
+		A1RECENDCREDITS00000001 /* RecordingEndCreditsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2RECENDCREDITS00000001 /* RecordingEndCreditsView.swift */; };
 		A10000000000000000000017 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* SettingsView.swift */; };
 		A10000000000000000000018 /* DistanceCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* DistanceCalculator.swift */; };
 		A1TRAILHOUNDMOTION00000001 /* TrailhoundMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2TRAILHOUNDMOTION00000001 /* TrailhoundMotion.swift */; };
@@ -181,6 +183,8 @@
 		A20000000000000000000014 /* TripRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripRowView.swift; sourceTree = "<group>"; };
 		A20000000000000000000015 /* TripDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripDetailView.swift; sourceTree = "<group>"; };
 		A20000000000000000000016 /* ActiveTripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveTripView.swift; sourceTree = "<group>"; };
+		A2RECCOLDOPEN0000000001 /* RecordingColdOpenOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingColdOpenOverlay.swift; sourceTree = "<group>"; };
+		A2RECENDCREDITS00000001 /* RecordingEndCreditsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingEndCreditsView.swift; sourceTree = "<group>"; };
 		A20000000000000000000017 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A20000000000000000000018 /* DistanceCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistanceCalculator.swift; sourceTree = "<group>"; };
 		A2TRAILHOUNDMOTION00000001 /* TrailhoundMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundMotion.swift; sourceTree = "<group>"; };
@@ -437,6 +441,8 @@
 				A20000000000000000000014 /* TripRowView.swift */,
 				A20000000000000000000015 /* TripDetailView.swift */,
 				A20000000000000000000016 /* ActiveTripView.swift */,
+				A2RECCOLDOPEN0000000001 /* RecordingColdOpenOverlay.swift */,
+				A2RECENDCREDITS00000001 /* RecordingEndCreditsView.swift */,
 				A2ONBOARDING00000000001 /* OnboardingView.swift */,
 				A2NOTIFLISTVIEW00000001 /* NotificationsListView.swift */,
 				A2AUTOEVENTLOGVIEW001 /* AutoRecordingEventLogView.swift */,
@@ -666,6 +672,8 @@
 				A10000000000000000000014 /* TripRowView.swift in Sources */,
 				A10000000000000000000015 /* TripDetailView.swift in Sources */,
 				A10000000000000000000016 /* ActiveTripView.swift in Sources */,
+				A1RECCOLDOPEN0000000001 /* RecordingColdOpenOverlay.swift in Sources */,
+				A1RECENDCREDITS00000001 /* RecordingEndCreditsView.swift in Sources */,
 				A1ONBOARDING00000000001 /* OnboardingView.swift in Sources */,
 				A1PERMBANNER00000000001 /* PermissionBanner.swift in Sources */,
 				A10000000000000000000017 /* SettingsView.swift in Sources */,

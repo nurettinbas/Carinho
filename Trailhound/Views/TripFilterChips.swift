@@ -3,49 +3,92 @@ import SwiftUI
 
 struct TripFilterChips: View {
     @Query(sort: \UserCategory.sortOrder) private var categories: [UserCategory]
-    @Binding var selectedLabel: String?
     @Binding var selectedCategoryID: String?
 
+    @Namespace private var chipNamespace
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var selectionKey: String {
+        if let selectedCategoryID { return "category:\(selectedCategoryID)" }
+        return "all"
+    }
+
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                filterChip(title: L10n.all, isSelected: selectedLabel == nil && selectedCategoryID == nil) {
-                    selectedLabel = nil
-                    selectedCategoryID = nil
-                }
-                ForEach(categories) { category in
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
                     filterChip(
-                        title: category.name,
-                        isSelected: selectedCategoryID == category.id.uuidString
+                        title: L10n.all,
+                        key: "all",
+                        isSelected: selectedCategoryID == nil
                     ) {
-                        let id = category.id.uuidString
-                        selectedCategoryID = selectedCategoryID == id ? nil : id
-                        selectedLabel = nil
-                    }
-                }
-                ForEach(TripLabelOption.allCases.filter { $0 != .work }, id: \.self) { option in
-                    filterChip(title: option.rawValue, isSelected: selectedLabel == option.rawValue) {
-                        selectedLabel = selectedLabel == option.rawValue ? nil : option.rawValue
                         selectedCategoryID = nil
                     }
+                    ForEach(categories) { category in
+                        let id = category.id.uuidString
+                        filterChip(
+                            title: category.name,
+                            key: "category:\(id)",
+                            isSelected: selectedCategoryID == id
+                        ) {
+                            selectedCategoryID = selectedCategoryID == id ? nil : id
+                        }
+                    }
                 }
+                .padding(.horizontal)
+                .animation(reduceMotion ? nil : TrailhoundMotion.cardSpring, value: selectionKey)
             }
-            .padding(.horizontal)
+            .onChange(of: selectionKey) { _, newKey in
+                revealChip(withID: newKey, using: proxy)
+            }
         }
         .frame(height: 36)
         .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
     }
 
-    private func filterChip(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+    private func revealChip(withID id: String, using proxy: ScrollViewProxy) {
+        if reduceMotion {
+            proxy.scrollTo(id, anchor: .center)
+        } else {
+            withAnimation(TrailhoundMotion.cardSpring) {
+                proxy.scrollTo(id, anchor: .center)
+            }
+        }
+    }
+
+    private func filterChip(
+        title: String,
+        key: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button {
+            if reduceMotion {
+                action()
+            } else {
+                withAnimation(TrailhoundMotion.cardSpring) {
+                    action()
+                }
+            }
+        } label: {
             Text(title)
-                .font(.caption)
+                .font(.caption.weight(isSelected ? .semibold : .regular))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(isSelected ? Color.accentColor : Color.secondary.opacity(0.15))
                 .foregroundStyle(isSelected ? Color.white : Color.primary)
-                .clipShape(Capsule())
+                .background {
+                    if isSelected {
+                        Capsule()
+                            .fill(Color.accentColor)
+                            .matchedGeometryEffect(id: "tripFilterHighlight", in: chipNamespace)
+                    } else {
+                        Capsule()
+                            .fill(Color.secondary.opacity(0.15))
+                    }
+                }
         }
         .buttonStyle(.plain)
+        .id(key)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
