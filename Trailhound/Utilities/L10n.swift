@@ -84,6 +84,7 @@ enum L10n {
     static var tripSummary: String { string("trip.summary") }
     static var estimatedFuel: String { string("label.estimated_fuel") }
     static var maxSpeed: String { string("label.max_speed") }
+    static var averageSpeed: String { string("label.average_speed") }
     static var fuelPetrol: String { string("fuel.petrol") }
     static var fuelDiesel: String { string("fuel.diesel") }
     static var fuelElectric: String { string("fuel.electric") }

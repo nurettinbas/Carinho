@@ -33,6 +33,19 @@ struct TripRowView: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
 
+                    Text("·")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+
+                    HStack(spacing: 3) {
+                        Image(systemName: "clock")
+                            .font(.system(size: 9, weight: .semibold))
+                        Text(TripListViewModel.durationText(for: trip))
+                            .font(.caption)
+                            .lineLimit(1)
+                    }
+                    .foregroundStyle(TrailhoundBrandColors.brandBottom)
+
                     if trip.categoryID == BuiltInCategory.businessID.uuidString {
                         Image(systemName: "briefcase.fill")
                             .font(.caption2)
@@ -43,11 +56,6 @@ struct TripRowView: View {
                 }
 
                 HStack(spacing: 6) {
-                    metricChip(
-                        icon: "clock",
-                        text: TripListViewModel.durationText(for: trip),
-                        tint: TrailhoundBrandColors.brandBottom
-                    )
                     metricChip(icon: "road.lanes", text: TripListViewModel.distanceText(for: trip))
 
                     if let fuel = TripListViewModel.fuelText(for: trip) {
@@ -56,6 +64,10 @@ struct TripRowView: View {
 
                     if let maxLabel = TripListViewModel.maxSpeedLabel(for: trip) {
                         metricChip(icon: "speedometer", text: maxLabel)
+                    }
+
+                    if let avgLabel = TripListViewModel.averageSpeedLabel(for: trip) {
+                        metricChip(icon: "gauge.with.dots.needle.33percent", text: avgLabel)
                     }
                 }
 

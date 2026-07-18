@@ -14,6 +14,7 @@ struct TripSummaryMetric: Identifiable {
         case duration(TimeInterval)
         case distance(Double)
         case maxSpeedKmh(Double)
+        case averageSpeedKmh(Double)
         case fuel(Double)
     }
 
@@ -32,6 +33,8 @@ struct TripSummaryMetric: Identifiable {
         case .distance(let meters):
             return DateFormatters.formatDistance(meters * eased)
         case .maxSpeedKmh(let kmh):
+            return L10n.formatSpeedKmh(kmh * eased)
+        case .averageSpeedKmh(let kmh):
             return L10n.formatSpeedKmh(kmh * eased)
         case .fuel(let cost):
             return FuelCostCalculator.formatCost(cost * eased)
@@ -115,6 +118,12 @@ struct TripDetailViewModel {
         return L10n.formatSpeedKmh(maxSpeed * 3.6)
     }
 
+    var averageSpeedKmh: Double? {
+        guard let duration = trip.duration, duration > 0, trip.distanceMeters > 0 else { return nil }
+        let kmh = trip.distanceMeters * 3.6 / duration
+        return kmh > 0 ? kmh : nil
+    }
+
     var fuelText: String? {
         let cost = StatsViewModel.fuelCost(for: trip)
         guard cost > 0 else { return nil }
@@ -147,6 +156,16 @@ struct TripDetailViewModel {
                     icon: "speedometer",
                     title: L10n.maxSpeed,
                     kind: .maxSpeedKmh(maxSpeed * 3.6)
+                )
+            )
+        }
+        if let averageSpeed = averageSpeedKmh {
+            items.append(
+                TripSummaryMetric(
+                    id: "averageSpeed",
+                    icon: "gauge.with.dots.needle.33percent",
+                    title: L10n.averageSpeed,
+                    kind: .averageSpeedKmh(averageSpeed)
                 )
             )
         }
