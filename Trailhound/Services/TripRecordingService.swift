@@ -695,6 +695,15 @@ final class TripRecordingService {
             distanceMeters: currentDistanceMeters,
             currentSpeedKmh: speedKmh
         )
+        if state.isActiveSession, let recordingStartedAt {
+            RecordingLiveActivityService.ensureActiveIfNeeded(
+                startedAt: recordingStartedAt,
+                elapsed: elapsedTime,
+                distanceMeters: currentDistanceMeters,
+                currentSpeedKmh: speedKmh,
+                isPaused: isPaused
+            )
+        }
         RecordingLiveActivityService.update(
             elapsed: elapsedTime,
             distanceMeters: currentDistanceMeters,

@@ -217,6 +217,14 @@ enum L10n {
     static var pairingShortcutsGuidePrerequisiteTitle: String { string("pairing.shortcuts.guide.prerequisite.title") }
     static var pairingShortcutsGuidePrerequisiteBody: String { string("pairing.shortcuts.guide.prerequisite.body") }
     static var pairingShortcutsGuideSilentStart: String { string("pairing.shortcuts.guide.silent_start") }
+    static var pairingShortcutsGuideTriggersTitle: String { string("pairing.shortcuts.guide.triggers.title") }
+    static var pairingShortcutsGuideTriggersIntro: String { string("pairing.shortcuts.guide.triggers.intro") }
+    static var pairingShortcutsGuideTriggersBluetoothTitle: String { string("pairing.shortcuts.guide.triggers.bluetooth.title") }
+    static var pairingShortcutsGuideTriggersBluetoothBody: String { string("pairing.shortcuts.guide.triggers.bluetooth.body") }
+    static var pairingShortcutsGuideTriggersCarPlayTitle: String { string("pairing.shortcuts.guide.triggers.carplay.title") }
+    static var pairingShortcutsGuideTriggersCarPlayBody: String { string("pairing.shortcuts.guide.triggers.carplay.body") }
+    static var pairingShortcutsGuideTriggersWiFiTitle: String { string("pairing.shortcuts.guide.triggers.wifi.title") }
+    static var pairingShortcutsGuideTriggersWiFiBody: String { string("pairing.shortcuts.guide.triggers.wifi.body") }
     static var pairingShortcutsGuideConnectTitle: String { string("pairing.shortcuts.guide.connect.title") }
     static var pairingShortcutsGuideConnectStep1: String { string("pairing.shortcuts.guide.connect.step1") }
     static var pairingShortcutsGuideConnectStep2: String { string("pairing.shortcuts.guide.connect.step2") }

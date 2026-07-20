@@ -6,37 +6,42 @@ struct PairingShortcutsAutomationCard: View {
 
     var body: some View {
         PairingCardContainer {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .top, spacing: 12) {
+            Button(action: onOpenGuide) {
+                HStack(alignment: .center, spacing: 12) {
                     ZStack {
-                        Circle()
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
                             .fill(TrailhoundBrandColors.brandBottom.opacity(0.12))
-                            .frame(width: 40, height: 40)
+                            .frame(width: 36, height: 36)
                         Image(systemName: "bolt.horizontal.circle.fill")
-                            .font(.title3)
+                            .font(.body)
                             .foregroundStyle(TrailhoundBrandColors.brandBottom)
                     }
 
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 3) {
                         Text(L10n.pairingShortcutsGuideCardTitle)
                             .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
                         Text(L10n.pairingShortcutsGuideCardSubtitle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                }
 
-                Button(action: onOpenGuide) {
+                    Spacer(minLength: 0)
+
                     Text(L10n.pairingShortcutsGuideCardButton)
-                        .font(.caption.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(TrailhoundBrandColors.brandBottom)
+                        .lineLimit(1)
+
+                    Image(systemName: "chevron.right")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.tertiary)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(TrailhoundBrandColors.brandBottom)
+                .padding(12)
+                .contentShape(Rectangle())
             }
-            .padding(12)
+            .buttonStyle(.plain)
         }
     }
 }
@@ -55,6 +60,7 @@ struct PairingShortcutsAutomationGuideView: View {
                         .fixedSize(horizontal: false, vertical: true)
 
                     prerequisiteSection
+                    triggerOptionsSection
                     automationSection(
                         title: L10n.pairingShortcutsGuideConnectTitle,
                         steps: connectSteps,
@@ -110,6 +116,78 @@ struct PairingShortcutsAutomationGuideView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private var triggerOptionsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label(L10n.pairingShortcutsGuideTriggersTitle, systemImage: "list.bullet.rectangle")
+                .font(.headline)
+
+            Text(L10n.pairingShortcutsGuideTriggersIntro)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            VStack(spacing: 0) {
+                triggerOptionRow(
+                    symbol: "bluetooth",
+                    tint: .blue,
+                    title: L10n.pairingShortcutsGuideTriggersBluetoothTitle,
+                    body: L10n.pairingShortcutsGuideTriggersBluetoothBody
+                )
+                Divider().padding(.leading, 52)
+                triggerOptionRow(
+                    symbol: "carplay",
+                    tint: .green,
+                    title: L10n.pairingShortcutsGuideTriggersCarPlayTitle,
+                    body: L10n.pairingShortcutsGuideTriggersCarPlayBody
+                )
+                Divider().padding(.leading, 52)
+                triggerOptionRow(
+                    symbol: "wifi",
+                    tint: .blue,
+                    title: L10n.pairingShortcutsGuideTriggersWiFiTitle,
+                    body: L10n.pairingShortcutsGuideTriggersWiFiBody
+                )
+            }
+            .background(Color(.tertiarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private func triggerOptionRow(
+        symbol: String,
+        tint: Color,
+        title: String,
+        body: String
+    ) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(tint.opacity(0.15))
+                    .frame(width: 36, height: 36)
+                Image(systemName: symbol)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(tint)
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                Text(body)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
     }
 
     private var connectSteps: [String] {

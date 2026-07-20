@@ -28,15 +28,6 @@ struct TripRowView: View {
                     .lineLimit(2)
 
                 HStack(spacing: 6) {
-                    Text(TripListViewModel.dateText(for: trip))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-
-                    Text("·")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-
                     HStack(spacing: 3) {
                         Image(systemName: "clock")
                             .font(.system(size: 9, weight: .semibold))
@@ -45,6 +36,19 @@ struct TripRowView: View {
                             .lineLimit(1)
                     }
                     .foregroundStyle(TrailhoundBrandColors.brandBottom)
+
+                    Text("·")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+
+                    HStack(spacing: 3) {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 9, weight: .semibold))
+                        Text(TripListViewModel.dateText(for: trip))
+                            .font(.caption)
+                            .lineLimit(1)
+                    }
+                    .foregroundStyle(.secondary)
 
                     if trip.categoryID == BuiltInCategory.businessID.uuidString {
                         Image(systemName: "briefcase.fill")
@@ -126,8 +130,8 @@ struct TripRowView: View {
     }
 
     private var accessibilitySummary: String {
-        var parts = [routeSummary, TripListViewModel.dateText(for: trip)]
-        parts.append(TripListViewModel.durationText(for: trip))
+        var parts = [routeSummary, TripListViewModel.durationText(for: trip)]
+        parts.append(TripListViewModel.dateText(for: trip))
         parts.append(TripListViewModel.distanceText(for: trip))
         if let label = trip.label, !label.isEmpty {
             parts.append(label)

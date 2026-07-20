@@ -42,6 +42,15 @@ struct PairingTabView: View {
 
     private var pairingList: some View {
         List {
+            Section {
+                PairingShortcutsAutomationCard {
+                    showShortcutsAutomationGuide = true
+                }
+                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            }
+
             if !settings.hasAutoTriggerVehicle {
                 Section {
                     LocationAlwaysRequiredBanner()
@@ -55,15 +64,6 @@ struct PairingTabView: View {
                     bluetoothService: bluetoothService,
                     refreshToken: refreshToken
                 )
-                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-            }
-
-            Section {
-                PairingShortcutsAutomationCard {
-                    showShortcutsAutomationGuide = true
-                }
                 .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)

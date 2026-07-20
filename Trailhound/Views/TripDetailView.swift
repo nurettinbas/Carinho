@@ -79,29 +79,20 @@ struct TripDetailView: View {
                             dismissNoteKeyboard()
                         }
 
-                    VStack(alignment: .trailing, spacing: 8) {
-                        if !networkMonitor.isConnected {
-                            Text(L10n.tripMapOfflineHint)
-                                .font(.caption2)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .background(.ultraThinMaterial)
-                                .clipShape(Capsule())
-                        }
-
-                        compactSpeedLegend
-
-                        Button {
-                            showFullscreenMap = true
-                        } label: {
-                            Image(systemName: "arrow.up.left.and.arrow.down.right")
-                                .font(.subheadline.weight(.semibold))
-                                .frame(width: 34, height: 34)
-                                .background(.ultraThinMaterial, in: Circle())
-                        }
-                        .accessibilityLabel(L10n.mapFullscreen)
+                    if !networkMonitor.isConnected {
+                        Text(L10n.tripMapOfflineHint)
+                            .font(.caption2)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Capsule())
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                            .padding(12)
                     }
-                    .padding(12)
+
+                    compactSpeedLegend
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                        .padding(12)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(.bottom, panelRisen ? panelHeight - 12 : 0)
@@ -119,7 +110,7 @@ struct TripDetailView: View {
         .navigationTitle(L10n.tripDetailTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
                 Button {
                     Task { await renderShareCard() }
                 } label: {
@@ -131,6 +122,13 @@ struct TripDetailView: View {
                 }
                 .disabled(isRenderingShareCard)
                 .accessibilityLabel(L10n.share)
+
+                Button {
+                    showFullscreenMap = true
+                } label: {
+                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                }
+                .accessibilityLabel(L10n.mapFullscreen)
             }
         }
         .sheet(isPresented: $showFullscreenMap) {
@@ -279,19 +277,39 @@ struct TripDetailView: View {
                         }
                     }
 
-                    detailSection(title: L10n.tripEditTimesSection) {
-                        DatePicker(L10n.tripStartedAt, selection: $editedStartedAt)
-                            .font(.subheadline)
-
-                        if trip.endedAt != nil {
-                            DatePicker(L10n.tripEndedAt, selection: $editedEndedAt)
-                                .font(.subheadline)
+                    if trip.endedAt != nil {
+                        detailSplitSection(title: L10n.tripEditTimesSection) {
+                            tripTimePicker(
+                                title: L10n.tripStartedAt,
+                                selection: $editedStartedAt
+                            )
+                        } right: {
+                            tripTimePicker(
+                                title: L10n.tripEndedAt,
+                                selection: $editedEndedAt
+                            )
+                        }
+                    } else {
+                        detailSection(title: L10n.tripEditTimesSection) {
+                            tripTimePicker(
+                                title: L10n.tripStartedAt,
+                                selection: $editedStartedAt
+                            )
                         }
                     }
 
-                    detailSection(title: L10n.tripTrimPointsSection) {
-                        Stepper(L10n.tripTrimHead, value: $trimHeadCount, in: 0...maxTrimHead)
-                        Stepper(L10n.tripTrimTail, value: $trimTailCount, in: 0...maxTrimTail)
+                    detailSplitSection(title: L10n.tripTrimPointsSection) {
+                        trimStepperCell(
+                            title: L10n.tripTrimHead,
+                            value: $trimHeadCount,
+                            range: 0...maxTrimHead
+                        )
+                    } right: {
+                        trimStepperCell(
+                            title: L10n.tripTrimTail,
+                            value: $trimTailCount,
+                            range: 0...maxTrimTail
+                        )
                     }
 
                     detailSection(title: L10n.tripLocationOverrides) {
@@ -301,19 +319,18 @@ struct TripDetailView: View {
                         compactTextField(L10n.tripEndAddress, text: $endAddressText)
                     }
 
-                    detailSection(title: "Kategori ve etiket") {
-                        Picker("Kategori", selection: $selectedCategoryID) {
+                    detailSplitSection(title: "Kategori ve etiket") {
+                        detailMenuPicker(title: "Kategori", selection: $selectedCategoryID) {
                             ForEach(categories) { category in
                                 Label(category.name, systemImage: category.systemImage)
                                     .tag(category.id.uuidString)
                             }
                         }
-                        .pickerStyle(.menu)
                         .onChange(of: selectedCategoryID) { _, _ in
                             dismissNoteKeyboard()
                         }
-
-                        Picker("Etiket", selection: $selectedLabel) {
+                    } right: {
+                        detailMenuPicker(title: "Etiket", selection: $selectedLabel) {
                             Text("Yok").tag("")
                             ForEach(TripLabelOption.allCases, id: \.rawValue) { option in
                                 Text(option.rawValue).tag(option.rawValue)
@@ -332,13 +349,16 @@ struct TripDetailView: View {
                             .onSubmit { dismissNoteKeyboard() }
                     }
 
-                    Button("Değişiklikleri kaydet") {
-                        saveEdits()
-                        dismissNoteKeyboard()
+                    HStack {
+                        Spacer()
+                        Button("Değişiklikleri kaydet") {
+                            saveEdits()
+                            dismissNoteKeyboard()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .buttonBorderShape(.roundedRectangle(radius: 8))
+                        .tint(TrailhoundBrandColors.brandBottom)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(TrailhoundBrandColors.brandBottom)
-                    .frame(maxWidth: .infinity)
                     .padding(.top, 4)
                 }
                 .padding(.horizontal, 16)
@@ -347,7 +367,7 @@ struct TripDetailView: View {
             .dismissKeyboardOnScroll()
         }
         .background {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color(.systemBackground))
                 .shadow(color: .black.opacity(0.08), radius: 16, y: -4)
                 .ignoresSafeArea(edges: .bottom)
@@ -370,13 +390,16 @@ struct TripDetailView: View {
     @ViewBuilder
     private var statsStrip: some View {
         let metrics = viewModel.summaryMetrics
-        let firstRow = Array(metrics.prefix(3))
-        let secondRow = Array(metrics.dropFirst(3))
+        let primaryIDs: Set<String> = ["duration", "distance", "maxSpeed"]
+        let primaryRow = metrics.filter { primaryIDs.contains($0.id) }
+        let secondaryRow = metrics.filter { !primaryIDs.contains($0.id) }
 
         VStack(spacing: 8) {
-            statsMetricRow(metrics: firstRow)
-            if !secondRow.isEmpty {
-                statsMetricRow(metrics: secondRow)
+            if !primaryRow.isEmpty {
+                statsMetricRow(metrics: primaryRow)
+            }
+            if !secondaryRow.isEmpty {
+                statsCenteredMetricRow(metrics: secondaryRow)
             }
         }
     }
@@ -386,6 +409,28 @@ struct TripDetailView: View {
             ForEach(metrics) { metric in
                 statsMetricCard(for: metric)
                     .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    private func statsCenteredMetricRow(metrics: [TripSummaryMetric]) -> some View {
+        HStack(spacing: 8) {
+            if metrics.count < 3 {
+                Color.clear
+                    .frame(maxWidth: .infinity)
+                    .layoutPriority(metrics.count == 2 ? 1 : 2)
+            }
+
+            ForEach(metrics) { metric in
+                statsMetricCard(for: metric)
+                    .frame(maxWidth: .infinity)
+                    .layoutPriority(2)
+            }
+
+            if metrics.count < 3 {
+                Color.clear
+                    .frame(maxWidth: .infinity)
+                    .layoutPriority(metrics.count == 2 ? 1 : 2)
             }
         }
     }
@@ -408,7 +453,7 @@ struct TripDetailView: View {
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .opacity(progress > 0.01 || reduceMotion ? 1 : 0.35)
         .scaleEffect(progress > 0.01 || reduceMotion ? 1 : 0.94)
     }
@@ -442,9 +487,116 @@ struct TripDetailView: View {
         }
         .padding(12)
         .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .opacity(progress > 0.01 || reduceMotion ? 1 : 0.35)
         .scaleEffect(progress > 0.01 || reduceMotion ? 1 : 0.98)
+    }
+
+    private func tripTimePicker(title: String, selection: Binding<Date>) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+
+            DatePicker(title, selection: selection)
+                .labelsHidden()
+                .datePickerStyle(.compact)
+                .font(.subheadline)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func trimStepperCell(
+        title: String,
+        value: Binding<Int>,
+        range: ClosedRange<Int>
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: 6) {
+                detailCompactStepButton(systemImage: "minus") {
+                    value.wrappedValue = max(range.lowerBound, value.wrappedValue - 1)
+                }
+                .disabled(value.wrappedValue <= range.lowerBound)
+
+                Text("\(value.wrappedValue)")
+                    .font(.body.weight(.semibold))
+                    .monospacedDigit()
+                    .frame(maxWidth: .infinity)
+
+                detailCompactStepButton(systemImage: "plus") {
+                    value.wrappedValue = min(range.upperBound, value.wrappedValue + 1)
+                }
+                .disabled(value.wrappedValue >= range.upperBound)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func detailCompactStepButton(
+        systemImage: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.caption2.weight(.bold))
+                .frame(width: 26, height: 26)
+                .background(Color(.tertiarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func detailMenuPicker<Selection: Hashable, Content: View>(
+        title: String,
+        selection: Binding<Selection>,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+
+            Picker(title, selection: selection, content: content)
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .font(.subheadline)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func detailMiniCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    private func detailSplitSection<Left: View, Right: View>(
+        title: String,
+        @ViewBuilder left: () -> Left,
+        @ViewBuilder right: () -> Right
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+
+            HStack(alignment: .top, spacing: 10) {
+                detailMiniCard(content: left)
+                detailMiniCard(content: right)
+            }
+        }
     }
 
     private func detailSection<Content: View>(
@@ -461,7 +613,7 @@ struct TripDetailView: View {
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(.secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
     }
 
@@ -475,7 +627,7 @@ struct TripDetailView: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
                 .background(Color(.tertiarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
         }
     }
 
