@@ -2907,6 +2907,380 @@
         }
       }
     },
+    "pairing.shortcuts.guide.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shortcuts automation"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kısayollar otomasyonu"
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.intro" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If in-app auto-start is unreliable in your car, iOS can start and stop recording when your phone connects or disconnects from the car over Bluetooth. Set this up once — about two minutes."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama içi otomatik başlatma arabanda tutarsızsa, iOS telefon araca Bluetooth ile bağlanınca kaydı başlatıp kopunca durdurabilir. Bir kez kurman yeterli — yaklaşık 2 dakika sürer."
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.card.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Most reliable auto-start"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En güvenilir otomatik başlatma"
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.card.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use the Shortcuts app to start when your car connects and stop when it disconnects. Works even when audio isn't playing."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kısayollar ile araca bağlanınca başlat, kopunca durdur. Ses açmadan da çalışır."
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.card.button" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setup guide"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kurulum rehberi"
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.prerequisite.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Before you start"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Başlamadan önce"
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.prerequisite.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automations should run without asking every time. Turn on the option below (or disable Confirm external start in Settings → Recording)."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otomasyonlar her seferinde sormamalı. Aşağıdaki seçeneği aç (veya Ayarlar → Kayıt'ta Harici başlatmayı onayla kapalı olsun)."
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.silent_start" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start from Shortcuts without asking"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kısayollardan sormadan başlat"
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.connect.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When car connects → start trip"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Araca bağlanınca → yolculuğu başlat"
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.connect.step1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Shortcuts and go to the Automation tab."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kısayollar'ı aç ve Otomasyon sekmesine git."
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.connect.step2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap + → Personal Automation."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+ → Kişisel Otomasyon'a dokun."
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.connect.step3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Bluetooth → select your car → Is Connected."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth'u seç → arabanı seç → Bağlandığında."
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.connect.step4" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Action → search Trailhound → choose Start trip."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eylem Ekle → Trailhound ara → Yolculuğu başlat'ı seç."
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.connect.step5" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off Ask Before Running (and Notify When Run if shown), then save."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çalıştırmadan Önce Sor'u kapat (Çalışınca Bildir varsa onu da), kaydet."
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.disconnect.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When car disconnects → end trip"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Araba kopunca → yolculuğu bitir"
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.disconnect.step1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create another Personal Automation."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeni bir Kişisel Otomasyon oluştur."
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.disconnect.step2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Bluetooth → your car → Is Disconnected."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth → arabanı seç → Bağlantı Kesildiğinde."
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.disconnect.step3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Action → Trailhound → End trip."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eylem Ekle → Trailhound → Yolculuğu bitir."
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.disconnect.step4" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off Ask Before Running, then save."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çalıştırmadan Önce Sor'u kapat, kaydet."
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.note" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tip: Trailhound actions appear under the app name in Shortcuts. Voice commands are separate — automations run silently when Bluetooth changes."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İpucu: Trailhound eylemleri Kısayollar'da uygulama adının altında. Sesli komutlar ayrı — otomasyonlar Bluetooth değişince sessizce çalışır."
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.open_shortcuts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Shortcuts"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kısayollar'ı aç"
+          }
+        }
+      }
+    },
+    "pairing.shortcuts.guide.done" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamam"
+          }
+        }
+      }
+    },
     "pairing.tab.confirm_vehicle_hint" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5710,6 +6084,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kısayolları aç"
+          }
+        }
+      }
+    },
+    "settings.shortcuts.automation_guide" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth auto-start setup guide"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth otomatik başlatma rehberi"
           }
         }
       }

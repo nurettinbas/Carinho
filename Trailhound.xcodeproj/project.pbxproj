@@ -118,6 +118,7 @@
 		A1PAIRINGSTAT000001 /* PairingConnectionStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGSTAT000001 /* PairingConnectionStatus.swift */; };
 		A1BTROUTEMATCH00001 /* BluetoothRouteMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2BTROUTEMATCH00001 /* BluetoothRouteMatcher.swift */; };
 		A1PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift */; };
+		A1PAIRINGSHCUT000001 /* PairingShortcutsAutomationGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGSHCUT000001 /* PairingShortcutsAutomationGuideView.swift */; };
 		A1PAIRINGSTYLE000001 /* PairingCardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGSTYLE000001 /* PairingCardStyle.swift */; };
 		A1PAIRINGVEHROW00001 /* PairingVehicleRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGVEHROW00001 /* PairingVehicleRow.swift */; };
 /* End PBXBuildFile section */
@@ -262,6 +263,7 @@
 		A2TABSELECTION000001 /* TabSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelection.swift; sourceTree = "<group>"; };
 		A2PAIRINGSTAT000001 /* PairingConnectionStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingConnectionStatus.swift; sourceTree = "<group>"; };
 		A2BTROUTEMATCH00001 /* BluetoothRouteMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothRouteMatcher.swift; sourceTree = "<group>"; };
+		A2PAIRINGSHCUT000001 /* PairingShortcutsAutomationGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingShortcutsAutomationGuideView.swift; sourceTree = "<group>"; };
 		A2PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingLiveConnectionBanner.swift; sourceTree = "<group>"; };
 		A2PAIRINGSTYLE000001 /* PairingCardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingCardStyle.swift; sourceTree = "<group>"; };
 		A2PAIRINGVEHROW00001 /* PairingVehicleRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingVehicleRow.swift; sourceTree = "<group>"; };
@@ -422,6 +424,7 @@
 			children = (
 				A2PAIRINGTAB000000001 /* PairingTabView.swift */,
 				A2PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift */,
+				A2PAIRINGSHCUT000001 /* PairingShortcutsAutomationGuideView.swift */,
 				A2PAIRINGVEHROW00001 /* PairingVehicleRow.swift */,
 				A2PAIRINGSTYLE000001 /* PairingCardStyle.swift */,
 				A2PAIRINGEMPTY000001 /* PairingEmptyState.swift */,
@@ -739,6 +742,7 @@
 				B10000000000000000000018 /* TrailhoundBrandColors.swift in Sources */,
 				A1PAIRINGTAB000000001 /* PairingTabView.swift in Sources */,
 				A1PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift in Sources */,
+				A1PAIRINGSHCUT000001 /* PairingShortcutsAutomationGuideView.swift in Sources */,
 				A1PAIRINGVEHROW00001 /* PairingVehicleRow.swift in Sources */,
 				A1PAIRINGSTYLE000001 /* PairingCardStyle.swift in Sources */,
 				A1PAIRINGEMPTY000001 /* PairingEmptyState.swift in Sources */,

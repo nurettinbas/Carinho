@@ -15,6 +15,7 @@ struct PairingTabView: View {
     @State private var vehiclePendingDeleteID: UUID?
     @State private var showDeleteConfirmation = false
     @State private var navigationPath = NavigationPath()
+    @State private var showShortcutsAutomationGuide = false
 
     private var sortedVehicles: [VehicleProfile] {
         vehicles.sorted { lhs, rhs in
@@ -54,6 +55,15 @@ struct PairingTabView: View {
                     bluetoothService: bluetoothService,
                     refreshToken: refreshToken
                 )
+                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            }
+
+            Section {
+                PairingShortcutsAutomationCard {
+                    showShortcutsAutomationGuide = true
+                }
                 .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
@@ -119,6 +129,9 @@ struct PairingTabView: View {
             // Bluetooth connect/disconnect surfaces as an audio route change;
             // refresh the live banner instantly instead of waiting for a tab re-entry.
             refreshConnectionState()
+        }
+        .sheet(isPresented: $showShortcutsAutomationGuide) {
+            PairingShortcutsAutomationGuideView()
         }
         .alert(L10n.pairingTabDeleteVehicleTitle, isPresented: $showDeleteConfirmation) {
             Button(L10n.delete, role: .destructive) {

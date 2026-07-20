@@ -209,6 +209,29 @@ enum L10n {
     static var pairingTabSetupSubtitle: String { string("pairing.tab.setup.subtitle") }
     static var pairingTabSelectVehicle: String { string("pairing.tab.select_vehicle") }
     static var pairingTabBluetoothSetupTitle: String { string("pairing.tab.bluetooth_setup.title") }
+    static var pairingShortcutsGuideTitle: String { string("pairing.shortcuts.guide.title") }
+    static var pairingShortcutsGuideIntro: String { string("pairing.shortcuts.guide.intro") }
+    static var pairingShortcutsGuideCardTitle: String { string("pairing.shortcuts.guide.card.title") }
+    static var pairingShortcutsGuideCardSubtitle: String { string("pairing.shortcuts.guide.card.subtitle") }
+    static var pairingShortcutsGuideCardButton: String { string("pairing.shortcuts.guide.card.button") }
+    static var pairingShortcutsGuidePrerequisiteTitle: String { string("pairing.shortcuts.guide.prerequisite.title") }
+    static var pairingShortcutsGuidePrerequisiteBody: String { string("pairing.shortcuts.guide.prerequisite.body") }
+    static var pairingShortcutsGuideSilentStart: String { string("pairing.shortcuts.guide.silent_start") }
+    static var pairingShortcutsGuideConnectTitle: String { string("pairing.shortcuts.guide.connect.title") }
+    static var pairingShortcutsGuideConnectStep1: String { string("pairing.shortcuts.guide.connect.step1") }
+    static var pairingShortcutsGuideConnectStep2: String { string("pairing.shortcuts.guide.connect.step2") }
+    static var pairingShortcutsGuideConnectStep3: String { string("pairing.shortcuts.guide.connect.step3") }
+    static var pairingShortcutsGuideConnectStep4: String { string("pairing.shortcuts.guide.connect.step4") }
+    static var pairingShortcutsGuideConnectStep5: String { string("pairing.shortcuts.guide.connect.step5") }
+    static var pairingShortcutsGuideDisconnectTitle: String { string("pairing.shortcuts.guide.disconnect.title") }
+    static var pairingShortcutsGuideDisconnectStep1: String { string("pairing.shortcuts.guide.disconnect.step1") }
+    static var pairingShortcutsGuideDisconnectStep2: String { string("pairing.shortcuts.guide.disconnect.step2") }
+    static var pairingShortcutsGuideDisconnectStep3: String { string("pairing.shortcuts.guide.disconnect.step3") }
+    static var pairingShortcutsGuideDisconnectStep4: String { string("pairing.shortcuts.guide.disconnect.step4") }
+    static var pairingShortcutsGuideNote: String { string("pairing.shortcuts.guide.note") }
+    static var pairingShortcutsGuideOpenShortcuts: String { string("pairing.shortcuts.guide.open_shortcuts") }
+    static var pairingShortcutsGuideDone: String { string("pairing.shortcuts.guide.done") }
+    static var settingsShortcutsAutomationGuide: String { string("settings.shortcuts.automation_guide") }
     static var pairingTabRecordingStatus: String { string("pairing.tab.recording_status") }
     static var pairingReadinessTitle: String { string("pairing.tab.readiness.title") }
     static var pairingReadinessLocationAlways: String { string("pairing.tab.readiness.location_always") }

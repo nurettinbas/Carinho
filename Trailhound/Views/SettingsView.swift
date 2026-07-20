@@ -17,6 +17,7 @@ struct SettingsView: View {
     @State private var exportURL: URL?
     @State private var showExportSheet = false
     @State private var showAppLockUnavailableAlert = false
+    @State private var showShortcutsAutomationGuide = false
     @State private var versionTapCount = 0
 
     @FocusState private var focusedField: SettingsFocusedField?
@@ -36,6 +37,11 @@ struct SettingsView: View {
                 ShortcutsLink()
                     .shortcutsLinkStyle(.automaticOutline)
                     .accessibilityLabel(L10n.settingsSiriShortcutsLink)
+                Button {
+                    showShortcutsAutomationGuide = true
+                } label: {
+                    Label(L10n.settingsShortcutsAutomationGuide, systemImage: "bolt.horizontal.circle")
+                }
             }
 
             Section(L10n.settingsRecordingSensitivitySection) {
@@ -212,6 +218,9 @@ struct SettingsView: View {
             if let exportURL {
                 ExportActivityShareSheet(items: [exportURL])
             }
+        }
+        .sheet(isPresented: $showShortcutsAutomationGuide) {
+            PairingShortcutsAutomationGuideView()
         }
         .alert(L10n.appLockUnavailableTitle, isPresented: $showAppLockUnavailableAlert) {
             Button(L10n.ok, role: .cancel) {}
