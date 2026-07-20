@@ -240,6 +240,8 @@ enum L10n {
     static var pairingShortcutsGuideOpenShortcuts: String { string("pairing.shortcuts.guide.open_shortcuts") }
     static var pairingShortcutsGuideDone: String { string("pairing.shortcuts.guide.done") }
     static var settingsShortcutsAutomationGuide: String { string("settings.shortcuts.automation_guide") }
+    static var shortcutStartTitle: String { string("shortcut.start.title") }
+    static var shortcutStopTitle: String { string("shortcut.stop.title") }
     static var pairingTabRecordingStatus: String { string("pairing.tab.recording_status") }
     static var pairingReadinessTitle: String { string("pairing.tab.readiness.title") }
     static var pairingReadinessLocationAlways: String { string("pairing.tab.readiness.location_always") }

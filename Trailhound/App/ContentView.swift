@@ -18,6 +18,7 @@ struct ContentView: View {
     }
 
     private var isRecordingSession: Bool {
+        
         tripRecordingService.state.isActiveSession
     }
 
