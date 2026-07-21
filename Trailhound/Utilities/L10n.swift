@@ -146,6 +146,7 @@ enum L10n {
     static var settingsExportCSV: String { string("settings.backup.csv") }
     static var settingsExportGPX: String { string("settings.backup.gpx") }
     static var settingsExportKML: String { string("settings.backup.kml") }
+    static var settingsExportPreparing: String { string("settings.backup.exporting") }
     static var settingsShareFile: String { string("settings.backup.share") }
     static var settingsAboutSection: String { string("settings.about.section") }
     static var settingsVersion: String { string("settings.about.version") }

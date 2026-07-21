@@ -6,17 +6,8 @@ enum TrailhoundMotion {
     static let snappy = Animation.snappy(duration: 0.35)
     static let gentle = Animation.easeInOut(duration: 0.3)
     static let cardSpring = Animation.spring(response: 0.45, dampingFraction: 0.82)
-    /// Recording banner mixed entrance (~3s total).
-    static let coldOpenPiece = Animation.easeOut(duration: 0.4)
-    static let coldOpenCar = Animation.easeOut(duration: 0.42)
-    static let coldOpenMap = Animation.easeOut(duration: 0.4)
-    static let coldOpenPill = Animation.easeOut(duration: 0.36)
-    static let coldOpenActions = Animation.easeOut(duration: 0.4)
-    /// Gap between major beats (car → map → pills → buttons).
-    static let coldOpenPieceGap: Duration = .milliseconds(480)
-    /// Cascade between the three stat pills.
-    static let coldOpenPillStagger: Duration = .milliseconds(75)
-    static let coldOpenCardSettle = Animation.easeOut(duration: 0.2)
+    /// Recording card entrance — single fade-in.
+    static let coldOpenFade = Animation.easeOut(duration: 0.3)
     /// Soft sheet rise for TripDetail panel.
     static let sheetRise = Animation.spring(response: 0.72, dampingFraction: 0.86)
     /// Map clarity / dark→clear open.

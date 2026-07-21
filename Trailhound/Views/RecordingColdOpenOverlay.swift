@@ -1,4 +1,4 @@
 import SwiftUI
 
-// Cold-open choreography lives on ActiveTripView (0.4s staggered piece reveal).
+// Cold-open fade lives on ActiveTripView (whole-card opacity).
 // This file kept only so existing project references remain valid.

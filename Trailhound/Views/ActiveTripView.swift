@@ -10,7 +10,7 @@ enum RecordingMorphID {
 struct ActiveTripView: View {
     var morphNamespace: Namespace.ID?
     var morphID: UUID?
-    /// Staggered premium entrance — each piece inserts in order.
+    /// Whole-card fade-in on trip start.
     var playEntranceReveal: Bool = false
     var onEntranceFinished: (() -> Void)?
     var onStop: (() -> Void)?
@@ -20,14 +20,7 @@ struct ActiveTripView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var breadcrumbCamera: MapCameraPosition = .automatic
-    @State private var showPanel = true
-    @State private var showStatus = true
-    @State private var showCar = true
-    @State private var showMap = true
-    @State private var showStatDuration = true
-    @State private var showStatSpeed = true
-    @State private var showStatDistance = true
-    @State private var showActions = true
+    @State private var cardVisible = true
     @State private var didRunEntrance = false
 
     init(
@@ -42,15 +35,7 @@ struct ActiveTripView: View {
         self.playEntranceReveal = playEntranceReveal
         self.onEntranceFinished = onEntranceFinished
         self.onStop = onStop
-        let visible = !playEntranceReveal
-        _showPanel = State(initialValue: visible)
-        _showStatus = State(initialValue: visible)
-        _showCar = State(initialValue: visible)
-        _showMap = State(initialValue: visible)
-        _showStatDuration = State(initialValue: visible)
-        _showStatSpeed = State(initialValue: visible)
-        _showStatDistance = State(initialValue: visible)
-        _showActions = State(initialValue: visible)
+        _cardVisible = State(initialValue: !playEntranceReveal)
     }
 
     private var isPaused: Bool {
@@ -92,82 +77,55 @@ struct ActiveTripView: View {
 
     private var recordingCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            if showStatus {
-                statusRow
-                    .transition(TrailhoundMotion.softRiseTransition)
-            }
+            statusRow
 
-            if showPanel {
-                HStack(alignment: .center, spacing: 10) {
-                    RecordingCarAnimationView(compact: true, isAnimating: !isPaused && showCar)
-                        .frame(maxWidth: .infinity)
-                        .matchedGeometryEffectIfAvailable(
-                            stringID: RecordingMorphID.car,
-                            namespace: morphNamespace,
-                            isSource: true
-                        )
-                        .opacity(showCar ? 1 : 0)
-                        .offset(x: showCar ? 0 : -28)
-                        .accessibilityHidden(!showCar)
+            HStack(alignment: .center, spacing: 10) {
+                RecordingCarAnimationView(compact: true, isAnimating: !isPaused && cardVisible)
+                    .frame(maxWidth: .infinity)
+                    .matchedGeometryEffectIfAvailable(
+                        stringID: RecordingMorphID.car,
+                        namespace: morphNamespace,
+                        isSource: true
+                    )
 
-                    liveBreadcrumbMap
-                        .frame(width: 96, height: 72)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .strokeBorder(Color.white.opacity(0.18), lineWidth: 0.5)
-                        }
-                        .matchedGeometryEffectIfAvailable(
-                            id: morphID,
-                            namespace: morphNamespace,
-                            isSource: true
-                        )
-                        // Keep MapKit warm at whisper opacity while hidden.
-                        .opacity(showMap ? 1 : 0.02)
-                        .scaleEffect(showMap ? 1 : 0.92)
-                        .accessibilityHidden(!showMap)
-                }
-                .frame(height: 72)
-            }
-
-            if showStatDuration || showStatSpeed || showStatDistance {
-                HStack(alignment: .top, spacing: 8) {
-                    if showStatDuration {
-                        statPill(icon: "clock.fill", label: L10n.duration, text: elapsedText)
-                            .transition(TrailhoundMotion.softRiseTransition)
+                liveBreadcrumbMap
+                    .frame(width: 96, height: 72)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.18), lineWidth: 0.5)
                     }
-                    if showStatSpeed {
-                        statPill(icon: "speedometer", label: L10n.currentSpeed, text: speedText)
-                            .transition(TrailhoundMotion.softRiseTransition)
-                    }
-                    if showStatDistance {
-                        statPill(
-                            icon: "location.fill",
-                            label: L10n.string("label.distance"),
-                            text: distanceText
-                        )
-                        .transition(TrailhoundMotion.softRiseTransition)
-                    }
-                }
+                    .matchedGeometryEffectIfAvailable(
+                        id: morphID,
+                        namespace: morphNamespace,
+                        isSource: true
+                    )
+            }
+            .frame(height: 72)
+
+            HStack(alignment: .top, spacing: 8) {
+                statPill(icon: "clock.fill", label: L10n.duration, text: elapsedText)
+                statPill(icon: "speedometer", label: L10n.currentSpeed, text: speedText)
+                statPill(
+                    icon: "location.fill",
+                    label: L10n.string("label.distance"),
+                    text: distanceText
+                )
             }
 
-            if showActions {
-                actionsRow
-                    .transition(TrailhoundMotion.softRiseFromBottomTransition)
-            }
+            actionsRow
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
-            if showPanel {
-                RecordingCardStyle.background(isPaused: isPaused)
-                    .transition(.opacity)
-            }
+            RecordingCardStyle.background(isPaused: isPaused)
         }
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .padding(.horizontal)
+        .opacity(cardVisible ? 1 : 0)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilitySummary)
+        .accessibilityHidden(!cardVisible)
         .task(id: morphID) {
             await runEntranceIfNeeded()
         }
@@ -247,22 +205,14 @@ struct ActiveTripView: View {
     private func prepareEntranceReplay() {
         didRunEntrance = false
         guard !reduceMotion else { return }
-        showPanel = false
-        showStatus = false
-        showCar = false
-        showMap = false
-        showStatDuration = false
-        showStatSpeed = false
-        showStatDistance = false
-        showActions = false
+        cardVisible = false
     }
 
     @MainActor
     private func runEntranceIfNeeded() async {
         guard playEntranceReveal else {
-            // Appearing mid-session (e.g. tab return) — show everything.
             if !didRunEntrance {
-                revealAll()
+                cardVisible = true
                 didRunEntrance = true
             }
             return
@@ -271,79 +221,21 @@ struct ActiveTripView: View {
         didRunEntrance = true
 
         if reduceMotion {
-            revealAll()
+            cardVisible = true
             onEntranceFinished?()
             return
         }
 
-        // 1) Shell + status (soft rise) — map row mounts hidden to warm MapKit.
-        withAnimation(TrailhoundMotion.coldOpenPiece) {
-            showPanel = true
-            showStatus = true
+        withAnimation(TrailhoundMotion.coldOpenFade) {
+            cardVisible = true
         }
-        try? await Task.sleep(for: .milliseconds(220))
-        if await entranceCancelled() { return }
-
-        // 2) Car — soft slide from leading + fade
-        withAnimation(TrailhoundMotion.coldOpenCar) {
-            showCar = true
+        try? await Task.sleep(for: .milliseconds(320))
+        if Task.isCancelled {
+            cardVisible = true
+            onEntranceFinished?()
+            return
         }
-        try? await Task.sleep(for: TrailhoundMotion.coldOpenPieceGap)
-        if await entranceCancelled() { return }
-
-        // 3) Map — scale 0.92 → 1 (no pop)
-        withAnimation(TrailhoundMotion.coldOpenMap) {
-            showMap = true
-        }
-        try? await Task.sleep(for: TrailhoundMotion.coldOpenPieceGap)
-        if await entranceCancelled() { return }
-
-        // 4) Pills — soft rise, left → right cascade (~75ms apart)
-        withAnimation(TrailhoundMotion.coldOpenPill) {
-            showStatDuration = true
-        }
-        try? await Task.sleep(for: TrailhoundMotion.coldOpenPillStagger)
-        if await entranceCancelled() { return }
-
-        withAnimation(TrailhoundMotion.coldOpenPill) {
-            showStatSpeed = true
-        }
-        try? await Task.sleep(for: TrailhoundMotion.coldOpenPillStagger)
-        if await entranceCancelled() { return }
-
-        withAnimation(TrailhoundMotion.coldOpenPill) {
-            showStatDistance = true
-        }
-        try? await Task.sleep(for: TrailhoundMotion.coldOpenPieceGap)
-        if await entranceCancelled() { return }
-
-        // 5) Buttons — rise from bottom together, single beat
-        withAnimation(TrailhoundMotion.coldOpenActions) {
-            showActions = true
-        }
-        try? await Task.sleep(for: .milliseconds(420))
-        if await entranceCancelled() { return }
-
         onEntranceFinished?()
-    }
-
-    @MainActor
-    private func entranceCancelled() async -> Bool {
-        guard Task.isCancelled else { return false }
-        revealAll()
-        onEntranceFinished?()
-        return true
-    }
-
-    private func revealAll() {
-        showPanel = true
-        showStatus = true
-        showCar = true
-        showMap = true
-        showStatDuration = true
-        showStatSpeed = true
-        showStatDistance = true
-        showActions = true
     }
 
     @ViewBuilder

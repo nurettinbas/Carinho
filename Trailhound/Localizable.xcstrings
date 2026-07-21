@@ -5172,6 +5172,23 @@
         }
       }
     },
+    "settings.backup.exporting" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing export…"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dışa aktarılıyor…"
+          }
+        }
+      }
+    },
     "settings.backup.gpx" : {
       "extractionState" : "stale",
       "localizations" : {
