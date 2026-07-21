@@ -42,11 +42,11 @@ enum KeyboardVisibility {
 
 extension View {
     /// Adds a done button above keyboards that lack a return key (decimal/number pad).
-    func keyboardDoneToolbar(label: String = "Tamam") -> some View {
+    func keyboardDoneToolbar(label: String? = nil) -> some View {
         toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button(label) {
+                Button(label ?? L10n.ok) {
                     KeyboardDismiss.dismiss()
                 }
             }

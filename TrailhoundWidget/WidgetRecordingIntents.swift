@@ -2,7 +2,7 @@
 import Foundation
 
 struct WidgetStopRecordingIntent: AppIntent {
-    static let title: LocalizedStringResource = "Kaydı durdur"
+    static let title: LocalizedStringResource = "shortcut.stop.title"
     static let openAppWhenRun = false
     static var isDiscoverable: Bool { false }
 
@@ -15,7 +15,7 @@ struct WidgetStopRecordingIntent: AppIntent {
 }
 
 struct WidgetPauseRecordingIntent: AppIntent {
-    static let title: LocalizedStringResource = "Kaydı duraklat"
+    static let title: LocalizedStringResource = "shortcut.pause.title"
     static let openAppWhenRun = false
     static var isDiscoverable: Bool { false }
 
@@ -28,7 +28,7 @@ struct WidgetPauseRecordingIntent: AppIntent {
 }
 
 struct WidgetResumeRecordingIntent: AppIntent {
-    static let title: LocalizedStringResource = "Kayda devam et"
+    static let title: LocalizedStringResource = "shortcut.resume.title"
     static let openAppWhenRun = false
     static var isDiscoverable: Bool { false }
 

@@ -25,7 +25,7 @@ enum PlaceMatchingService {
             let target = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
             let radius = max(place.radiusMeters, privacyRadius)
             if center.distance(from: target) <= radius {
-                return "\(place.name) yakını"
+                return L10n.placeNearName(place.name)
             }
         }
         return nil

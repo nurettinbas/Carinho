@@ -215,11 +215,11 @@ struct TripListView: View {
             if completedTrips.isEmpty {
                 if !recordingService.state.isActiveSession, endCredits == nil, coldOpenTripID == nil {
                     ContentUnavailableView(
-                        hasActiveFilters ? "Filtreye uygun yolculuk yok" : "Henüz yolculuk yok",
+                        hasActiveFilters ? L10n.tripsEmptyFilteredTitle : L10n.tripsEmptyTitle,
                         systemImage: "car",
                         description: Text(hasActiveFilters
-                            ? "Farklı bir filtre deneyin."
-                            : "Manuel başlat veya araca bindiğinde otomatik kayıt başlasın.")
+                            ? L10n.tripsEmptyFilteredMessage
+                            : L10n.tripsEmptyMessage)
                     )
                     .symbolEffect(.bounce, value: hasActiveFilters)
                     .transition(TrailhoundMotion.fadeScaleTransition(reduceMotion: reduceMotion))
@@ -250,7 +250,7 @@ struct TripListView: View {
             if let trip = trips.first(where: { $0.id == tripID }) {
                 TripDetailView(trip: trip)
             } else {
-                ContentUnavailableView("Yolculuk bulunamadı", systemImage: "car")
+                ContentUnavailableView(L10n.tripsSearchEmpty, systemImage: "car")
                     .onAppear {
                         DispatchQueue.main.async { dismiss() }
                     }
@@ -292,11 +292,11 @@ struct TripListView: View {
                 clearMorphingTripSoon(delayMilliseconds: reduceMotion ? 50 : 700)
             }
         }
-        .alert("Yolculukları birleştir", isPresented: $showMergeConfirm) {
-            Button("Birleştir") { performMerge() }
-            Button("İptal", role: .cancel) {}
+        .alert(L10n.tripsMergeTitle, isPresented: $showMergeConfirm) {
+            Button(L10n.actionMerge) { performMerge() }
+            Button(L10n.cancel, role: .cancel) {}
         } message: {
-            Text("\(mergeSelection.count) yolculuk birleştirilecek.")
+            Text(L10n.tripsMergeMessage(mergeSelection.count))
         }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -410,7 +410,7 @@ struct TripListView: View {
                 } label: {
                     HStack {
                         Image(systemName: mergeSelection.contains(trip.id) ? "checkmark.circle.fill" : "circle")
-                            .accessibilityLabel(mergeSelection.contains(trip.id) ? "Seçili" : "Seçili değil")
+                            .accessibilityLabel(mergeSelection.contains(trip.id) ? L10n.a11ySelected : L10n.a11yNotSelected)
                         TripRowView(
                             trip: trip,
                             places: places,

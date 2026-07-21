@@ -319,8 +319,8 @@ struct TripDetailView: View {
                         compactTextField(L10n.tripEndAddress, text: $endAddressText)
                     }
 
-                    detailSplitSection(title: "Kategori ve etiket") {
-                        detailMenuPicker(title: "Kategori", selection: $selectedCategoryID) {
+                    detailSplitSection(title: L10n.tripEditCategoryAndLabel) {
+                        detailMenuPicker(title: L10n.tripEditCategory, selection: $selectedCategoryID) {
                             ForEach(categories) { category in
                                 Label(category.name, systemImage: category.systemImage)
                                     .tag(category.id.uuidString)
@@ -330,10 +330,10 @@ struct TripDetailView: View {
                             dismissNoteKeyboard()
                         }
                     } right: {
-                        detailMenuPicker(title: "Etiket", selection: $selectedLabel) {
-                            Text("Yok").tag("")
+                        detailMenuPicker(title: L10n.tripEditLabel, selection: $selectedLabel) {
+                            Text(L10n.labelNone).tag("")
                             ForEach(TripLabelOption.allCases, id: \.rawValue) { option in
-                                Text(option.rawValue).tag(option.rawValue)
+                                Text(option.displayName).tag(option.rawValue)
                             }
                         }
                         .onChange(of: selectedLabel) { _, _ in
@@ -341,8 +341,8 @@ struct TripDetailView: View {
                         }
                     }
 
-                    detailSection(title: "Not") {
-                        TextField("Not ekle…", text: $noteText, axis: .vertical)
+                    detailSection(title: L10n.tripEditNote) {
+                        TextField(L10n.tripEditNotePlaceholder, text: $noteText, axis: .vertical)
                             .lineLimit(2...4)
                             .focused($noteFocused)
                             .submitLabel(.done)
@@ -351,7 +351,7 @@ struct TripDetailView: View {
 
                     HStack {
                         Spacer()
-                        Button("Değişiklikleri kaydet") {
+                        Button(L10n.tripEditSave) {
                             saveEdits()
                             dismissNoteKeyboard()
                         }
@@ -748,7 +748,7 @@ struct TripDetailView: View {
                 VStack(alignment: .trailing, spacing: 8) {
                     compactSpeedLegend
 
-                    Picker("Harita stili", selection: $mapStyle) {
+                    Picker(L10n.mapStylePicker, selection: $mapStyle) {
                         Text(L10n.mapStyleLight).tag(TripMapStyle.standard)
                         Text(L10n.mapStyleDark).tag(TripMapStyle.dark)
                     }
@@ -764,7 +764,7 @@ struct TripDetailView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Kapat") {
+                    Button(L10n.actionClose) {
                         showFullscreenMap = false
                     }
                 }

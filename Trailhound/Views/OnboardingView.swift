@@ -108,7 +108,7 @@ struct OnboardingView: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Step \(page + 1) of \(pageCount)")
+        .accessibilityLabel(String(format: L10n.string("onboarding.step_a11y"), page + 1, pageCount))
     }
 
     private var bottomBar: some View {

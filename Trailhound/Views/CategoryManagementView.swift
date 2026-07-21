@@ -14,14 +14,14 @@ struct CategoryManagementView: View {
     @State private var newCategoryName = ""
 
     var body: some View {
-        Section("Kategoriler") {
+        Section(L10n.categorySection) {
             ForEach(categories) { category in
                 HStack {
                     Image(systemName: category.systemImage)
                     Text(category.name)
                     if category.isBuiltIn {
                         Spacer()
-                        Text("Varsayılan")
+                        Text(L10n.categoryBuiltinBadge)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -30,9 +30,9 @@ struct CategoryManagementView: View {
             .onDelete(perform: deleteCategories)
 
             HStack {
-                TextField("Yeni kategori", text: $newCategoryName)
+                TextField(L10n.categoryNewPlaceholder, text: $newCategoryName)
                     .focused($focusedField, equals: .newCategory)
-                Button("Ekle") {
+                Button(L10n.actionAdd) {
                     addCategory()
                 }
                 .disabled(newCategoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)

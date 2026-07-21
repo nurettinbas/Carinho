@@ -49,6 +49,6 @@ final class VehicleProfile {
     }
 
     var consumptionLabel: String {
-        fuelType == .electric ? "kWh/100 km" : "L/100 km"
+        fuelType == .electric ? L10n.fuelUnitKWhPer100km : L10n.fuelUnitLPer100km
     }
 }

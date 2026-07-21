@@ -62,6 +62,41 @@ enum L10n {
     static var placeHome: String { string("place.home") }
     static var placeWork: String { string("place.work") }
     static var placeOther: String { string("place.other") }
+
+    static func placeNearName(_ name: String) -> String {
+        String(format: string("place.near_name"), name)
+    }
+
+    static var tripsEmptyTitle: String { string("trips.empty.title") }
+    static var tripsEmptyMessage: String { string("trips.empty.message") }
+    static var tripsEmptyFilteredTitle: String { string("trips.empty.filtered.title") }
+    static var tripsEmptyFilteredMessage: String { string("trips.empty.filtered.message") }
+    static var tripsSearchEmpty: String { string("trips.search.empty") }
+    static var tripsMergeTitle: String { string("trips.merge.title") }
+    static func tripsMergeMessage(_ count: Int) -> String {
+        String(format: string("trips.merge.message"), count)
+    }
+    static var a11ySelected: String { string("a11y.selected") }
+    static var a11yNotSelected: String { string("a11y.not_selected") }
+    static var tripEditCategoryAndLabel: String { string("trip.edit.category_and_label") }
+    static var tripEditCategory: String { string("trip.edit.category") }
+    static var tripEditLabel: String { string("trip.edit.label") }
+    static var tripEditNote: String { string("trip.edit.note") }
+    static var tripEditNotePlaceholder: String { string("trip.edit.note_placeholder") }
+    static var tripEditSave: String { string("trip.edit.save") }
+    static var labelNone: String { string("label.none") }
+    static var actionClose: String { string("action.close") }
+    static var actionAdd: String { string("action.add") }
+    static var mapStylePicker: String { string("map.style.picker") }
+    static func settingsAutoDeleteDays(_ days: Int) -> String {
+        String(format: string("settings.privacy.auto_delete.days"), days)
+    }
+    static var settingsPrivacyRadiusUnit: String { string("settings.privacy.radius_unit") }
+    static var categorySection: String { string("category.section") }
+    static var categoryBuiltinBadge: String { string("category.builtin_badge") }
+    static var categoryNewPlaceholder: String { string("category.new_placeholder") }
+    static var fuelUnitKWhPer100km: String { string("fuel.unit.kwh_per_100km") }
+    static var fuelUnitLPer100km: String { string("fuel.unit.l_per_100km") }
     static var labelWork: String { string("label.work") }
     static var labelMarket: String { string("label.market") }
     static var labelHoliday: String { string("label.holiday") }
@@ -343,7 +378,7 @@ enum L10n {
     }
 
     static func maxSpeedDetail(_ speed: String) -> String {
-        let format = string("Maks. hız: %@")
+        let format = string("trip.max_speed_detail")
         return String(format: format, speed)
     }
 

@@ -114,7 +114,7 @@ struct SettingsView: View {
                 Toggle(L10n.settingsAppLock, isOn: appLockEnabledBinding)
                 Toggle(L10n.settingsConfirmExternalStart, isOn: $settings.confirmExternalRecordingStart)
                 LabeledContent(L10n.settingsPrivacyRadius) {
-                    TextField("metre", value: $settings.privacyRadiusMeters, format: .number)
+                    TextField(L10n.settingsPrivacyRadiusUnit, value: $settings.privacyRadiusMeters, format: .number)
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
                         .focused($focusedField, equals: .privacyRadius)
@@ -122,9 +122,9 @@ struct SettingsView: View {
                 Toggle(L10n.settingsBlurExport, isOn: $settings.blurExportCoordinates)
                 Picker(L10n.settingsAutoDelete, selection: $settings.autoDeleteDays) {
                     Text(L10n.settingsAutoDeleteNever).tag(0)
-                    Text("30 gün").tag(30)
-                    Text("90 gün").tag(90)
-                    Text("365 gün").tag(365)
+                    Text(L10n.settingsAutoDeleteDays(30)).tag(30)
+                    Text(L10n.settingsAutoDeleteDays(90)).tag(90)
+                    Text(L10n.settingsAutoDeleteDays(365)).tag(365)
                 }
             }
 
