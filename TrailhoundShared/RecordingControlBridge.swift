@@ -37,6 +37,8 @@ public enum RecordingControlBridge {
         public static let isPaused = "recording.isPaused"
         public static let elapsed = "recording.elapsed"
         public static let distance = "recording.distance"
+        /// When true, external start (Shortcuts/Siri) opens the app for confirmation.
+        public static let confirmExternalRecordingStart = "confirmExternalRecordingStart"
     }
 
     private enum DarwinNotification: CaseIterable {

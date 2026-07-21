@@ -32,7 +32,7 @@ final class AppSettings {
         static let fuelPricePerLiter = "fuelPricePerLiter"
         static let evChargePricePerKWh = "evChargePricePerKWh"
         static let appLockEnabled = "appLockEnabled"
-        static let confirmExternalRecordingStart = "confirmExternalRecordingStart"
+        static let confirmExternalRecordingStart = RecordingControlBridge.Keys.confirmExternalRecordingStart
         static let privacyRadiusMeters = "privacyRadiusMeters"
         static let autoDeleteDays = "autoDeleteDays"
         static let blurExportCoordinates = "blurExportCoordinates"

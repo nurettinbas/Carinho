@@ -41,6 +41,34 @@ enum RecordingLiveActivityService {
         }
     }
 
+    /// Starts (or confirms) a Live Activity on the *current* task.
+    /// Required when invoking from a `LiveActivityIntent`: background
+    /// `Activity.request` is only authorized on that intent's `perform()` task,
+    /// not on a detached/enqueued Task (which hits `visibility` and fails until
+    /// the app is later opened).
+    static func startOnCurrentTask(
+        startedAt: Date,
+        elapsed: TimeInterval = 0,
+        distanceMeters: Double = 0,
+        currentSpeedKmh: Int = 0,
+        isPaused: Bool = false
+    ) async {
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
+        await operationChain?.value
+        if !Activity<TripRecordingAttributes>.activities.isEmpty { return }
+        await endAllImmediately()
+        await requestActivity(
+            startedAt: startedAt,
+            elapsed: elapsed,
+            distanceMeters: distanceMeters,
+            currentSpeedKmh: currentSpeedKmh,
+            isPaused: isPaused,
+            logMessage: "Live Activity started (intent)"
+        )
+        lastUpdateAt = nil
+        lastPublishedIsPaused = isPaused
+    }
+
     /// Re-creates the Live Activity if recording is active but the system dismissed it.
     static func ensureActiveIfNeeded(
         startedAt: Date,
@@ -148,7 +176,16 @@ enum RecordingLiveActivityService {
             DevLog.shared.log(logCategory, logMessage)
             await dedupeActivitiesIfNeeded()
         } catch {
-            DevLog.shared.log(logCategory, "Live Activity start failed: \(error.localizedDescription)", level: .error)
+            // Background `AppIntent` (non-LiveActivityIntent) hits `.visibility`; the
+            // Shortcuts path retries via `startOnCurrentTask` on the intent task.
+            let level: DevLogLevel = (error as? ActivityAuthorizationError) == .visibility
+                ? .warning
+                : .error
+            DevLog.shared.log(
+                logCategory,
+                "Live Activity start failed: \(error.localizedDescription)",
+                level: level
+            )
         }
     }
 

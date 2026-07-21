@@ -8,18 +8,35 @@ private func performRecordingShortcut(_ request: () -> Void) {
     AppServices.runtime.processPendingRecordingRequests()
 }
 
-struct StartTripRecordingIntent: AppIntent {
+/// `LiveActivityIntent` is required so Siri/Shortcuts can start a Live Activity /
+/// Dynamic Island presentation while the app stays in the background
+/// (`openAppWhenRun = false`). Plain `AppIntent` hits ActivityKit `visibility`.
+struct StartTripRecordingIntent: LiveActivityIntent {
     nonisolated static var title: LocalizedStringResource { "shortcut.start.title" }
     nonisolated static var description: IntentDescription {
         IntentDescription("shortcut.start.description")
     }
-    nonisolated static var openAppWhenRun: Bool { true }
+    // AppIntent requires a Bool literal (not a runtime value). Always silent like
+    // stop/pause/resume so Siri/Shortcuts/CarPlay don't force Face ID via App Lock.
+    // If confirmExternalRecordingStart is on, awaitingExternalStartConfirmation waits
+    // until the user next opens the app (ContentView alert).
+    nonisolated static var openAppWhenRun: Bool { false }
     nonisolated static var isDiscoverable: Bool { true }
 
     @MainActor
     func perform() async throws -> some IntentResult {
         performRecordingShortcut {
             RecordingControlBridge.requestStartFromControlSurface()
+        }
+        let recording = AppServices.runtime.tripRecordingService
+        if recording.state.isActiveSession, let startedAt = recording.recordingStartedAt {
+            await RecordingLiveActivityService.startOnCurrentTask(
+                startedAt: startedAt,
+                elapsed: recording.elapsedTime,
+                distanceMeters: recording.currentDistanceMeters,
+                currentSpeedKmh: Int(max(0, recording.currentSpeedMps) * 3.6),
+                isPaused: recording.state == .paused
+            )
         }
         return .result(dialog: IntentDialog("shortcut.start.success"))
     }
