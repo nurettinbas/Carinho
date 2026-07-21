@@ -32,6 +32,8 @@
 		A10000000000000000000014 /* TripRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* TripRowView.swift */; };
 		A10000000000000000000015 /* TripDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* TripDetailView.swift */; };
 		A10000000000000000000016 /* ActiveTripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* ActiveTripView.swift */; };
+		A1RECCOLDOPEN0000000001 /* RecordingColdOpenOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2RECCOLDOPEN0000000001 /* RecordingColdOpenOverlay.swift */; };
+		A1RECENDCREDITS00000001 /* RecordingEndCreditsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2RECENDCREDITS00000001 /* RecordingEndCreditsView.swift */; };
 		A10000000000000000000017 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* SettingsView.swift */; };
 		A10000000000000000000018 /* DistanceCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* DistanceCalculator.swift */; };
 		A1TRAILHOUNDMOTION00000001 /* TrailhoundMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2TRAILHOUNDMOTION00000001 /* TrailhoundMotion.swift */; };
@@ -116,6 +118,7 @@
 		A1PAIRINGSTAT000001 /* PairingConnectionStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGSTAT000001 /* PairingConnectionStatus.swift */; };
 		A1BTROUTEMATCH00001 /* BluetoothRouteMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2BTROUTEMATCH00001 /* BluetoothRouteMatcher.swift */; };
 		A1PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift */; };
+		A1PAIRINGSHCUT000001 /* PairingShortcutsAutomationGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGSHCUT000001 /* PairingShortcutsAutomationGuideView.swift */; };
 		A1PAIRINGSTYLE000001 /* PairingCardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGSTYLE000001 /* PairingCardStyle.swift */; };
 		A1PAIRINGVEHROW00001 /* PairingVehicleRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PAIRINGVEHROW00001 /* PairingVehicleRow.swift */; };
 /* End PBXBuildFile section */
@@ -181,6 +184,8 @@
 		A20000000000000000000014 /* TripRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripRowView.swift; sourceTree = "<group>"; };
 		A20000000000000000000015 /* TripDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripDetailView.swift; sourceTree = "<group>"; };
 		A20000000000000000000016 /* ActiveTripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveTripView.swift; sourceTree = "<group>"; };
+		A2RECCOLDOPEN0000000001 /* RecordingColdOpenOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingColdOpenOverlay.swift; sourceTree = "<group>"; };
+		A2RECENDCREDITS00000001 /* RecordingEndCreditsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingEndCreditsView.swift; sourceTree = "<group>"; };
 		A20000000000000000000017 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A20000000000000000000018 /* DistanceCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistanceCalculator.swift; sourceTree = "<group>"; };
 		A2TRAILHOUNDMOTION00000001 /* TrailhoundMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundMotion.swift; sourceTree = "<group>"; };
@@ -258,6 +263,7 @@
 		A2TABSELECTION000001 /* TabSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelection.swift; sourceTree = "<group>"; };
 		A2PAIRINGSTAT000001 /* PairingConnectionStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingConnectionStatus.swift; sourceTree = "<group>"; };
 		A2BTROUTEMATCH00001 /* BluetoothRouteMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothRouteMatcher.swift; sourceTree = "<group>"; };
+		A2PAIRINGSHCUT000001 /* PairingShortcutsAutomationGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingShortcutsAutomationGuideView.swift; sourceTree = "<group>"; };
 		A2PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingLiveConnectionBanner.swift; sourceTree = "<group>"; };
 		A2PAIRINGSTYLE000001 /* PairingCardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingCardStyle.swift; sourceTree = "<group>"; };
 		A2PAIRINGVEHROW00001 /* PairingVehicleRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingVehicleRow.swift; sourceTree = "<group>"; };
@@ -418,6 +424,7 @@
 			children = (
 				A2PAIRINGTAB000000001 /* PairingTabView.swift */,
 				A2PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift */,
+				A2PAIRINGSHCUT000001 /* PairingShortcutsAutomationGuideView.swift */,
 				A2PAIRINGVEHROW00001 /* PairingVehicleRow.swift */,
 				A2PAIRINGSTYLE000001 /* PairingCardStyle.swift */,
 				A2PAIRINGEMPTY000001 /* PairingEmptyState.swift */,
@@ -437,6 +444,8 @@
 				A20000000000000000000014 /* TripRowView.swift */,
 				A20000000000000000000015 /* TripDetailView.swift */,
 				A20000000000000000000016 /* ActiveTripView.swift */,
+				A2RECCOLDOPEN0000000001 /* RecordingColdOpenOverlay.swift */,
+				A2RECENDCREDITS00000001 /* RecordingEndCreditsView.swift */,
 				A2ONBOARDING00000000001 /* OnboardingView.swift */,
 				A2NOTIFLISTVIEW00000001 /* NotificationsListView.swift */,
 				A2AUTOEVENTLOGVIEW001 /* AutoRecordingEventLogView.swift */,
@@ -666,6 +675,8 @@
 				A10000000000000000000014 /* TripRowView.swift in Sources */,
 				A10000000000000000000015 /* TripDetailView.swift in Sources */,
 				A10000000000000000000016 /* ActiveTripView.swift in Sources */,
+				A1RECCOLDOPEN0000000001 /* RecordingColdOpenOverlay.swift in Sources */,
+				A1RECENDCREDITS00000001 /* RecordingEndCreditsView.swift in Sources */,
 				A1ONBOARDING00000000001 /* OnboardingView.swift in Sources */,
 				A1PERMBANNER00000000001 /* PermissionBanner.swift in Sources */,
 				A10000000000000000000017 /* SettingsView.swift in Sources */,
@@ -731,6 +742,7 @@
 				B10000000000000000000018 /* TrailhoundBrandColors.swift in Sources */,
 				A1PAIRINGTAB000000001 /* PairingTabView.swift in Sources */,
 				A1PAIRINGLIVE0000001 /* PairingLiveConnectionBanner.swift in Sources */,
+				A1PAIRINGSHCUT000001 /* PairingShortcutsAutomationGuideView.swift in Sources */,
 				A1PAIRINGVEHROW00001 /* PairingVehicleRow.swift in Sources */,
 				A1PAIRINGSTYLE000001 /* PairingCardStyle.swift in Sources */,
 				A1PAIRINGEMPTY000001 /* PairingEmptyState.swift in Sources */,

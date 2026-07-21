@@ -1,9 +1,42 @@
+import CoreLocation
+import MapKit
 import SwiftUI
 
+enum RecordingMorphID {
+    static let statusChip = "recording.statusChip"
+    static let car = "recording.car"
+}
+
 struct ActiveTripView: View {
+    var morphNamespace: Namespace.ID?
+    var morphID: UUID?
+    /// Whole-card fade-in on trip start.
+    var playEntranceReveal: Bool = false
+    var onEntranceFinished: (() -> Void)?
+    var onStop: (() -> Void)?
+
     @Environment(TripRecordingService.self) private var recordingService
     @Environment(LocationService.self) private var locationService
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    @State private var breadcrumbCamera: MapCameraPosition = .automatic
+    @State private var cardVisible = true
+    @State private var didRunEntrance = false
+
+    init(
+        morphNamespace: Namespace.ID? = nil,
+        morphID: UUID? = nil,
+        playEntranceReveal: Bool = false,
+        onEntranceFinished: (() -> Void)? = nil,
+        onStop: (() -> Void)? = nil
+    ) {
+        self.morphNamespace = morphNamespace
+        self.morphID = morphID
+        self.playEntranceReveal = playEntranceReveal
+        self.onEntranceFinished = onEntranceFinished
+        self.onStop = onStop
+        _cardVisible = State(initialValue: !playEntranceReveal)
+    }
 
     private var isPaused: Bool {
         recordingService.state == .paused
@@ -26,6 +59,14 @@ struct ActiveTripView: View {
         isPaused ? L10n.recordingPaused : L10n.recordingStarted
     }
 
+    private var breadcrumbCoordinates: [CLLocationCoordinate2D] {
+        recordingService.liveBreadcrumbCoordinates
+    }
+
+    private var liveDotCoordinate: CLLocationCoordinate2D? {
+        locationService.lastLocation?.coordinate ?? breadcrumbCoordinates.last
+    }
+
     var body: some View {
         if recordingService.state.isActiveSession {
             recordingCard
@@ -36,66 +77,228 @@ struct ActiveTripView: View {
 
     private var recordingCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                HStack(spacing: 6) {
-                    Image(systemName: statusIcon)
-                        .font(.subheadline)
-                        .foregroundStyle(statusColor)
-                        .symbolEffect(.pulse, options: .repeating, isActive: !isPaused && !reduceMotion)
-                    Text(statusText)
-                        .font(.subheadline.weight(.bold))
-                        .foregroundStyle(.white)
-                }
+            statusRow
 
-                Spacer(minLength: 4)
+            HStack(alignment: .center, spacing: 10) {
+                RecordingCarAnimationView(compact: true, isAnimating: !isPaused && cardVisible)
+                    .frame(maxWidth: .infinity)
+                    .matchedGeometryEffectIfAvailable(
+                        stringID: RecordingMorphID.car,
+                        namespace: morphNamespace,
+                        isSource: true
+                    )
 
-                GPSQualityBadge(quality: locationService.gpsQuality)
+                liveBreadcrumbMap
+                    .frame(width: 96, height: 72)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.18), lineWidth: 0.5)
+                    }
+                    .matchedGeometryEffectIfAvailable(
+                        id: morphID,
+                        namespace: morphNamespace,
+                        isSource: true
+                    )
             }
-            .animation(reduceMotion ? nil : TrailhoundMotion.gentle, value: statusText)
-
-            RecordingCarAnimationView(compact: true, isAnimating: !isPaused)
+            .frame(height: 72)
 
             HStack(alignment: .top, spacing: 8) {
                 statPill(icon: "clock.fill", label: L10n.duration, text: elapsedText)
                 statPill(icon: "speedometer", label: L10n.currentSpeed, text: speedText)
-                statPill(icon: "location.fill", label: L10n.string("label.distance"), text: distanceText)
+                statPill(
+                    icon: "location.fill",
+                    label: L10n.string("label.distance"),
+                    text: distanceText
+                )
             }
 
-            HStack(spacing: 8) {
-                Button {
-                    if isPaused {
-                        recordingService.resumeRecording()
-                    } else {
-                        recordingService.pauseRecording()
-                    }
-                } label: {
-                    Label(isPaused ? L10n.resume : L10n.pause, systemImage: isPaused ? "play.fill" : "pause.fill")
-                        .font(.subheadline.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                .tint(.white)
-
-                Button(role: .destructive) {
-                    recordingService.stopManualRecording()
-                } label: {
-                    Text(L10n.stop)
-                        .font(.subheadline.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
-                .tint(.red)
-            }
+            actionsRow
         }
         .padding(14)
-        .background(RecordingCardStyle.background(isPaused: isPaused))
-        .animation(reduceMotion ? nil : TrailhoundMotion.gentle, value: isPaused)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            RecordingCardStyle.background(isPaused: isPaused)
+        }
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .padding(.horizontal)
+        .opacity(cardVisible ? 1 : 0)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilitySummary)
+        .accessibilityHidden(!cardVisible)
+        .task(id: morphID) {
+            await runEntranceIfNeeded()
+        }
+        .onChange(of: playEntranceReveal) { wasPlaying, shouldPlay in
+            guard shouldPlay, !wasPlaying else { return }
+            prepareEntranceReplay()
+            Task { await runEntranceIfNeeded() }
+        }
+        .onAppear { syncBreadcrumbCamera(animated: false) }
+        .onChange(of: breadcrumbCoordinates.count) { _, _ in
+            syncBreadcrumbCamera(animated: !reduceMotion)
+        }
+        .onChange(of: locationService.lastLocation?.coordinate.latitude) { _, _ in
+            syncBreadcrumbCamera(animated: !reduceMotion)
+        }
+    }
+
+    private var statusRow: some View {
+        HStack(spacing: 8) {
+            HStack(spacing: 6) {
+                Image(systemName: statusIcon)
+                    .font(.subheadline)
+                    .foregroundStyle(statusColor)
+                    .symbolEffect(.pulse, options: .repeating, isActive: !isPaused && !reduceMotion)
+                Text(statusText)
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(.white)
+                    .contentTransition(.numericText())
+            }
+            .matchedGeometryEffectIfAvailable(
+                stringID: RecordingMorphID.statusChip,
+                namespace: morphNamespace,
+                isSource: true
+            )
+
+            Spacer(minLength: 4)
+
+            GPSQualityBadge(quality: locationService.gpsQuality)
+        }
+    }
+
+    private var actionsRow: some View {
+        HStack(spacing: 8) {
+            Button {
+                if isPaused {
+                    recordingService.resumeRecording()
+                } else {
+                    recordingService.pauseRecording()
+                }
+            } label: {
+                Label(isPaused ? L10n.resume : L10n.pause, systemImage: isPaused ? "play.fill" : "pause.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(SoftPressBorderedButtonStyle(reduceMotion: reduceMotion))
+            .controlSize(.small)
+            .tint(.white)
+
+            Button(role: .destructive) {
+                if let onStop {
+                    onStop()
+                } else {
+                    recordingService.stopManualRecording()
+                }
+            } label: {
+                Text(L10n.stop)
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+            .tint(.red)
+        }
+    }
+
+    @MainActor
+    private func prepareEntranceReplay() {
+        didRunEntrance = false
+        guard !reduceMotion else { return }
+        cardVisible = false
+    }
+
+    @MainActor
+    private func runEntranceIfNeeded() async {
+        guard playEntranceReveal else {
+            if !didRunEntrance {
+                cardVisible = true
+                didRunEntrance = true
+            }
+            return
+        }
+        guard !didRunEntrance else { return }
+        didRunEntrance = true
+
+        if reduceMotion {
+            cardVisible = true
+            onEntranceFinished?()
+            return
+        }
+
+        withAnimation(TrailhoundMotion.coldOpenFade) {
+            cardVisible = true
+        }
+        try? await Task.sleep(for: .milliseconds(320))
+        if Task.isCancelled {
+            cardVisible = true
+            onEntranceFinished?()
+            return
+        }
+        onEntranceFinished?()
+    }
+
+    @ViewBuilder
+    private var liveBreadcrumbMap: some View {
+        Map(position: $breadcrumbCamera, interactionModes: []) {
+            if breadcrumbCoordinates.count >= 2 {
+                MapPolyline(coordinates: breadcrumbCoordinates)
+                    .stroke(
+                        Color.white.opacity(0.85),
+                        style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round)
+                    )
+            }
+
+            if let liveDotCoordinate {
+                Annotation("", coordinate: liveDotCoordinate) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.red.opacity(0.28))
+                            .frame(width: 16, height: 16)
+                        Circle()
+                            .fill(Color.red)
+                            .frame(width: 7, height: 7)
+                            .overlay(Circle().strokeBorder(.white, lineWidth: 1.5))
+                    }
+                }
+            }
+        }
+        .mapStyle(.standard(elevation: .flat))
+        .disabled(true)
+        .accessibilityHidden(true)
+    }
+
+    private func syncBreadcrumbCamera(animated: Bool) {
+        let path = breadcrumbCoordinates
+        let center = liveDotCoordinate ?? path.last
+        guard let center else { return }
+
+        var minLat = center.latitude
+        var maxLat = center.latitude
+        var minLon = center.longitude
+        var maxLon = center.longitude
+        for coordinate in path.suffix(40) {
+            minLat = min(minLat, coordinate.latitude)
+            maxLat = max(maxLat, coordinate.latitude)
+            minLon = min(minLon, coordinate.longitude)
+            maxLon = max(maxLon, coordinate.longitude)
+        }
+
+        let region = MKCoordinateRegion(
+            center: center,
+            span: MKCoordinateSpan(
+                latitudeDelta: max(0.004, (maxLat - minLat) * 1.8),
+                longitudeDelta: max(0.004, (maxLon - minLon) * 1.8)
+            )
+        )
+
+        if animated {
+            withAnimation(TrailhoundMotion.gentle) {
+                breadcrumbCamera = .region(region)
+            }
+        } else {
+            breadcrumbCamera = .region(region)
+        }
     }
 
     private var statusIcon: String {
@@ -137,7 +340,7 @@ struct ActiveTripView: View {
 }
 
 #Preview {
-    ActiveTripView()
+    ActiveTripView(playEntranceReveal: true)
         .environment(PreviewData.shared.recordingService)
         .environment(LocationService())
 }

@@ -1,0 +1,365 @@
+import CoreLocation
+import SwiftUI
+
+struct RecordingEndCreditsSnapshot: Equatable {
+    /// Unique per Stop tap so credits always remount and replay.
+    let sessionID: UUID
+    let tripID: UUID
+    let durationText: String
+    let distanceText: String
+    let coordinates: [CLLocationCoordinate2D]
+
+    static func == (lhs: RecordingEndCreditsSnapshot, rhs: RecordingEndCreditsSnapshot) -> Bool {
+        lhs.sessionID == rhs.sessionID
+    }
+}
+
+/// Compact end-of-trip card that brakes, then the parent slides it into the list.
+struct RecordingEndCreditsView: View {
+    let snapshot: RecordingEndCreditsSnapshot
+    var reduceMotion: Bool
+    var onFinished: () -> Void
+
+    @State private var brakeProgress: CGFloat = 0
+    @State private var showBrakeLights = false
+    @State private var carNoseDive: CGFloat = 0
+    @State private var sceneOpacity: Double = 1
+    @State private var showStats = false
+    @State private var statsOpacity: Double = 0
+    @State private var stoppedBadgeOpacity: Double = 0
+    @State private var chromeOpacity: Double = 1
+    @State private var routeProgress: CGFloat = 0
+    @State private var routeSide: CGFloat = 44
+    @State private var didFinish = false
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 8) {
+            BrakeToStopScene(
+                brakeProgress: brakeProgress,
+                showBrakeLights: showBrakeLights,
+                noseDive: carNoseDive
+            )
+            .frame(width: 56, height: 36)
+            .opacity(sceneOpacity)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(L10n.tripEndedTitle)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.7))
+                    .textCase(.uppercase)
+                    .opacity(max(stoppedBadgeOpacity, 0.35))
+
+                if showStats {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text(snapshot.durationText)
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                        Text(snapshot.distanceText)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.white.opacity(0.88))
+                            .lineLimit(1)
+                    }
+                    .opacity(statsOpacity)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("\(snapshot.durationText), \(snapshot.distanceText)")
+                } else {
+                    Text("…")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.35))
+                        .opacity(chromeOpacity)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            creditsRoute
+                .frame(width: routeSide, height: routeSide)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.2), lineWidth: 0.5)
+                }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background {
+            ZStack {
+                RecordingCardStyle.background(isPaused: false)
+                    .opacity(1 - Double(brakeProgress) * 0.35)
+                RecordingCardStyle.background(isPaused: true)
+                    .opacity(Double(brakeProgress) * 0.85)
+                RadialGradient(
+                    colors: [
+                        Color.red.opacity(0.14 * Double(showBrakeLights ? 1 : 0)),
+                        Color.clear
+                    ],
+                    center: .leading,
+                    startRadius: 2,
+                    endRadius: 90
+                )
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .allowsHitTesting(false)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(L10n.tripEndedTitle). \(snapshot.durationText). \(snapshot.distanceText)")
+        .task(id: snapshot.sessionID) {
+            await playCredits()
+        }
+    }
+
+    private var creditsRoute: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color.black.opacity(0.28))
+
+            RecordingCreditsRouteCanvas(
+                coordinates: snapshot.coordinates,
+                progress: routeProgress
+            )
+            .padding(4)
+        }
+    }
+
+    @MainActor
+    private func playCredits() async {
+        if reduceMotion {
+            brakeProgress = 1
+            showBrakeLights = true
+            showStats = true
+            statsOpacity = 1
+            stoppedBadgeOpacity = 1
+            routeProgress = 1
+            routeSide = 44
+            finishOnce()
+            return
+        }
+
+        TrailhoundHaptics.recordingStopped()
+
+        showBrakeLights = true
+        withAnimation(.easeOut(duration: 0.45)) {
+            brakeProgress = 1
+        }
+        withAnimation(.easeInOut(duration: 0.16)) {
+            carNoseDive = -2.5
+        }
+        try? await Task.sleep(for: .milliseconds(140))
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.68)) {
+            carNoseDive = 0.8
+        }
+        try? await Task.sleep(for: .milliseconds(120))
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.84)) {
+            carNoseDive = 0
+        }
+        try? await Task.sleep(for: .milliseconds(120))
+
+        showStats = true
+        withAnimation(.easeOut(duration: 0.18)) {
+            stoppedBadgeOpacity = 1
+            chromeOpacity = 0
+            statsOpacity = 1
+            sceneOpacity = 0.8
+        }
+        try? await Task.sleep(for: .milliseconds(260))
+
+        let steps = 20
+        for step in 1...steps {
+            try? await Task.sleep(for: .milliseconds(18))
+            guard !Task.isCancelled else {
+                finishOnce()
+                return
+            }
+            routeProgress = CGFloat(step) / CGFloat(steps)
+        }
+
+        try? await Task.sleep(for: .milliseconds(280))
+        // Keep the blue bar fully visible — parent slides it into the list.
+        finishOnce()
+    }
+
+    private func finishOnce() {
+        guard !didFinish else { return }
+        didFinish = true
+        onFinished()
+    }
+}
+
+// MARK: - Brake scene
+
+private struct BrakeToStopScene: View {
+    var brakeProgress: CGFloat
+    var showBrakeLights: Bool
+    var noseDive: CGFloat
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1 / 30)) { timeline in
+            let time = timeline.date.timeIntervalSinceReferenceDate
+            let speedFactor = max(0.02, 1 - brakeProgress)
+            let roadTime = time * Double(speedFactor)
+
+            GeometryReader { geo in
+                let width = geo.size.width
+                let height = geo.size.height
+                let roadHeight: CGFloat = 16
+                let carSize: CGFloat = 22
+                let carX = width * 0.58
+                let carY = height - roadHeight - carSize * 0.18 + noseDive
+
+                ZStack(alignment: .bottom) {
+                    LinearGradient(
+                        colors: [
+                            Color.black.opacity(0.18 + 0.1 * Double(brakeProgress)),
+                            Color.black.opacity(0.32 + 0.08 * Double(brakeProgress))
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: roadHeight)
+                    .overlay(alignment: .top) {
+                        Rectangle()
+                            .fill(Color.white.opacity(0.25))
+                            .frame(height: 1.5)
+                    }
+
+                    laneDashes(width: width, roadHeight: roadHeight, time: roadTime)
+
+                    if brakeProgress < 0.85 {
+                        Circle()
+                            .fill(Color.white.opacity(0.16 * (1 - brakeProgress)))
+                            .frame(width: 8, height: 8)
+                            .blur(radius: 2)
+                            .position(x: carX - carSize * 0.55, y: carY + 3)
+                    }
+
+                    Image(systemName: "car.side.fill")
+                        .font(.system(size: carSize, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .scaleEffect(x: -1, y: 1)
+                        .rotationEffect(.degrees(Double(noseDive) * 0.35))
+                        .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
+                        .overlay(alignment: .trailing) {
+                            HStack(spacing: 2) {
+                                Capsule()
+                                    .fill(Color.red.opacity(showBrakeLights ? 0.95 : 0))
+                                    .frame(width: 4, height: 6)
+                                Capsule()
+                                    .fill(Color.red.opacity(showBrakeLights ? 0.95 : 0))
+                                    .frame(width: 4, height: 6)
+                            }
+                            .offset(x: 1, y: 1)
+                            .shadow(color: .red.opacity(showBrakeLights ? 0.75 : 0), radius: 4)
+                        }
+                        .position(x: carX, y: carY)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            }
+        }
+        .background(Color.white.opacity(0.06))
+    }
+
+    private func laneDashes(width: CGFloat, roadHeight: CGFloat, time: TimeInterval) -> some View {
+        let dashWidth: CGFloat = 14
+        let dashSpacing: CGFloat = 12
+        let pattern = dashWidth + dashSpacing
+        let scrollSpeed: CGFloat = 80
+        let offset = -CGFloat(time.truncatingRemainder(dividingBy: Double(pattern / scrollSpeed))) * scrollSpeed
+        let count = Int(width / pattern) + 4
+
+        return ZStack(alignment: .leading) {
+            ForEach(0..<count, id: \.self) { index in
+                Capsule()
+                    .fill(Color.white.opacity(0.75))
+                    .frame(width: dashWidth, height: 2.5)
+                    .offset(x: offset + CGFloat(index) * pattern)
+            }
+        }
+        .frame(height: roadHeight)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        .offset(y: -roadHeight * 0.38)
+        .mask(
+            Rectangle()
+                .frame(height: roadHeight)
+                .frame(maxHeight: .infinity, alignment: .bottom)
+        )
+    }
+}
+
+// MARK: - Route canvas
+
+private struct RecordingCreditsRouteCanvas: View {
+    let coordinates: [CLLocationCoordinate2D]
+    var progress: CGFloat
+
+    var body: some View {
+        Canvas { context, size in
+            let points = projectedPoints(in: size)
+            guard points.count >= 2 else {
+                let center = CGPoint(x: size.width * 0.5, y: size.height * 0.5)
+                var dot = Path()
+                dot.addEllipse(in: CGRect(x: center.x - 3, y: center.y - 3, width: 6, height: 6))
+                context.fill(dot, with: .color(.red.opacity(0.9)))
+                return
+            }
+
+            let revealedCount = max(
+                2,
+                Int(ceil(Double(points.count - 1) * Double(min(1, max(0, progress)))) + 1)
+            )
+            let revealed = Array(points.prefix(revealedCount))
+
+            var path = Path()
+            path.move(to: revealed[0])
+            for point in revealed.dropFirst() {
+                path.addLine(to: point)
+            }
+
+            context.stroke(
+                path,
+                with: .color(.white.opacity(0.92)),
+                style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round)
+            )
+
+            if let tip = revealed.last {
+                var glow = Path()
+                glow.addEllipse(in: CGRect(x: tip.x - 5, y: tip.y - 5, width: 10, height: 10))
+                context.fill(glow, with: .color(.red.opacity(0.28)))
+
+                var tipDot = Path()
+                tipDot.addEllipse(in: CGRect(x: tip.x - 2.5, y: tip.y - 2.5, width: 5, height: 5))
+                context.fill(tipDot, with: .color(.red))
+                context.stroke(tipDot, with: .color(.white), lineWidth: 1)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
+    private func projectedPoints(in size: CGSize) -> [CGPoint] {
+        guard let first = coordinates.first else { return [] }
+
+        var minLat = first.latitude
+        var maxLat = first.latitude
+        var minLon = first.longitude
+        var maxLon = first.longitude
+        for coordinate in coordinates {
+            minLat = min(minLat, coordinate.latitude)
+            maxLat = max(maxLat, coordinate.latitude)
+            minLon = min(minLon, coordinate.longitude)
+            maxLon = max(maxLon, coordinate.longitude)
+        }
+
+        let latSpan = max(maxLat - minLat, 0.00025)
+        let lonSpan = max(maxLon - minLon, 0.00025)
+        let inset: CGFloat = 6
+        let drawWidth = max(size.width - inset * 2, 1)
+        let drawHeight = max(size.height - inset * 2, 1)
+
+        return coordinates.map { coordinate in
+            let x = inset + CGFloat((coordinate.longitude - minLon) / lonSpan) * drawWidth
+            let y = inset + CGFloat(1 - (coordinate.latitude - minLat) / latSpan) * drawHeight
+            return CGPoint(x: x, y: y)
+        }
+    }
+}

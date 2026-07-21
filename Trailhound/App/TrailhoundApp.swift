@@ -87,10 +87,12 @@ final class AppRuntime {
     }
 
     private func reconcileRecordingStateAfterLaunch() {
+        let settings = AppSettings.shared
         let recordingService = tripRecordingService
         guard !recordingService.state.isActiveSession else { return }
+        guard !settings.pendingStartRecordingRequest else { return }
 
-        AppSettings.shared.syncRecordingState(
+        settings.syncRecordingState(
             isRecording: false,
             isPaused: false,
             elapsed: 0,
@@ -98,7 +100,14 @@ final class AppRuntime {
             currentSpeedKmh: 0
         )
 
+        // Shortcuts / widget intents can start recording immediately after bootstrap.
+        // Re-check session state before tearing down Live Activities so we don't race
+        // with RecordingLiveActivityService.start().
         Task { @MainActor in
+            await Task.yield()
+            let hasActiveSession = tripRecordingService.state.isActiveSession
+                || AppSettings.shared.pendingStartRecordingRequest
+            guard !hasActiveSession else { return }
             await RecordingLiveActivityService.reconcileAfterLaunch(hasActiveSession: false)
             WidgetCenter.shared.reloadAllTimelines()
         }
@@ -149,7 +158,8 @@ final class AppRuntime {
     }
 
     func refreshVehicleConnections() {
-        bluetoothService.readConnectionState()
+        // Re-evaluate with snapshot reporting so foreground/wake can drive connect.
+        bluetoothService.syncRouteSnapshot()
         VehicleConnectionCoordinator.shared.refreshLiveSnapshots()
     }
 

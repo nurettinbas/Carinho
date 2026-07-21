@@ -17,11 +17,17 @@ struct ContentView: View {
         }
     }
 
+    private var isRecordingSession: Bool {
+        
+        tripRecordingService.state.isActiveSession
+    }
+
     private var mainTabs: some View {
         TabView(selection: $tabSelection.selectedTab) {
             NavigationStack { TripListView() }
-                .tabItem { Label(L10n.tabTrips, systemImage: "list.bullet") }
-                .badge(tripRecordingService.state.isActiveSession ? "" : nil)
+                .tabItem { Label(L10n.tabTrips, systemImage: "map.fill") }
+                // Empty-string badge = system red recording dot on the Trips tab.
+                .badge(isRecordingSession ? "" : nil)
                 .tag(AppTab.trips)
 
             NavigationStack { StatsView() }

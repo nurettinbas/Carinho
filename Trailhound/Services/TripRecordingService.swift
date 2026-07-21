@@ -21,6 +21,8 @@ final class TripRecordingService {
     private(set) var currentSpeedMps: Double = 0
     private(set) var recordingStartedAt: Date?
     private(set) var elapsedTime: TimeInterval = 0
+    /// Live breadcrumb path for the active session (updates as points are recorded).
+    private(set) var liveBreadcrumbCoordinates: [CLLocationCoordinate2D] = []
 
     var activeTripID: UUID? { activeTrip?.id }
 
@@ -233,6 +235,7 @@ final class TripRecordingService {
         elapsedTime = Date().timeIntervalSince(trip.startedAt)
         maxSpeedMps = trip.maxSpeedMps ?? 0
         lastRecordedLocation = trip.sortedPoints.last?.location
+        liveBreadcrumbCoordinates = trip.coordinates
         currentStopStartedAt = nil
         currentStopCoordinate = nil
         pointsSinceLastSave = 0
@@ -393,6 +396,7 @@ final class TripRecordingService {
         maxSpeedMps = 0
         currentStopStartedAt = nil
         currentStopCoordinate = nil
+        liveBreadcrumbCoordinates = []
 
         let trip = Trip(startedAt: resolvedStartedAt)
         let vehicleTrigger: VehicleRecordingTrigger = switch trigger {
@@ -447,6 +451,7 @@ final class TripRecordingService {
         trip.points.append(point)
         trip.distanceMeters = currentDistanceMeters
         trip.invalidatePointCaches()
+        liveBreadcrumbCoordinates.append(location.coordinate)
         modelContext.insert(point)
         pointsSinceLastSave += 1
         if pointsSinceLastSave >= saveBatchSize {
@@ -470,6 +475,12 @@ final class TripRecordingService {
             .recording,
             "stopRecording: reason=\(reason), saveTrip=\(saveTrip), distance=\(Int(currentDistanceMeters))m, elapsed=\(Int(elapsedTime))s"
         )
+
+        defer {
+            if reason == .manual {
+                VehicleConnectionCoordinator.shared.notifyManualRecordingStopped()
+            }
+        }
 
         finalizeRecordingLocation()
         finalizeStopIfNeeded()
@@ -589,6 +600,7 @@ final class TripRecordingService {
         pointSequence += 1
         trip.points.append(point)
         trip.invalidatePointCaches()
+        liveBreadcrumbCoordinates.append(location.coordinate)
         modelContext.insert(point)
         pointsSinceLastSave += 1
     }
@@ -605,6 +617,7 @@ final class TripRecordingService {
         maxSpeedMps = 0
         currentStopStartedAt = nil
         currentStopCoordinate = nil
+        liveBreadcrumbCoordinates = []
     }
 
     private func logAutoRecordingStart(for trigger: RecordingTrigger) {
@@ -682,6 +695,15 @@ final class TripRecordingService {
             distanceMeters: currentDistanceMeters,
             currentSpeedKmh: speedKmh
         )
+        if state.isActiveSession, let recordingStartedAt {
+            RecordingLiveActivityService.ensureActiveIfNeeded(
+                startedAt: recordingStartedAt,
+                elapsed: elapsedTime,
+                distanceMeters: currentDistanceMeters,
+                currentSpeedKmh: speedKmh,
+                isPaused: isPaused
+            )
+        }
         RecordingLiveActivityService.update(
             elapsed: elapsedTime,
             distanceMeters: currentDistanceMeters,

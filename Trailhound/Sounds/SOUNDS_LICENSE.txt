@@ -1,6 +1,15 @@
-Trip recording sound effects from Mixkit (https://mixkit.co)
-Licensed under the Mixkit Sound Effects Free License.
-Free for commercial and non-commercial use; no attribution required.
+Trip recording sound effects — free for commercial use.
 
-- trip_start.caf — Mixkit item #1531 (Car engine start)
-- trip_stop.caf — Mixkit item #1529 (Short car ignition off / key turn)
+- trip_start.caf — Ferrari 458 Italia launch/rev (edited excerpt)
+  Source: https://commons.wikimedia.org/wiki/File:Ferrari_458_Italia.ogg
+  Author: Edvvc
+  License: CC BY-SA 3.0
+  https://creativecommons.org/licenses/by-sa/3.0/
+
+- trip_stop.caf — Ferrari California pull-away settle (edited excerpt)
+  Source: https://commons.wikimedia.org/wiki/File:Ferrari_California_(2009).ogg
+  Author: Edvvc
+  License: CC BY-SA 3.0
+  https://creativecommons.org/licenses/by-sa/3.0/
+
+Attribution required by CC BY-SA 3.0 (this file satisfies that for redistributed audio assets).

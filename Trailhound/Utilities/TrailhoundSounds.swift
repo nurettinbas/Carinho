@@ -21,14 +21,15 @@ enum TrailhoundSounds {
             let player: AVAudioPlayer
             if let cached = players[name] {
                 player = cached
-                player.currentTime = 0
             } else {
                 guard let url = Bundle.main.url(forResource: name, withExtension: "caf") else { return }
                 player = try AVAudioPlayer(contentsOf: url)
+                player.volume = 1
                 player.prepareToPlay()
                 players[name] = player
             }
-            player.play()
+            player.currentTime = 0
+            _ = player.play()
         } catch {
             // Non-critical feedback; haptics still fire.
         }
@@ -37,7 +38,10 @@ enum TrailhoundSounds {
     private static func configureSessionIfNeeded() throws {
         guard !sessionConfigured else { return }
         let session = AVAudioSession.sharedInstance()
-        try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
+        // `.playback` ignores the silent switch so recording cues still play in
+        // Simulator / when the Mac or device is on mute-ringer. Mix with others
+        // so we don't interrupt Music / CarPlay.
+        try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
         try session.setActive(true)
         sessionConfigured = true
     }

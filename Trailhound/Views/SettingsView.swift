@@ -16,7 +16,9 @@ struct SettingsView: View {
 
     @State private var exportURL: URL?
     @State private var showExportSheet = false
+    @State private var isExporting = false
     @State private var showAppLockUnavailableAlert = false
+    @State private var showShortcutsAutomationGuide = false
     @State private var versionTapCount = 0
 
     @FocusState private var focusedField: SettingsFocusedField?
@@ -36,48 +38,17 @@ struct SettingsView: View {
                 ShortcutsLink()
                     .shortcutsLinkStyle(.automaticOutline)
                     .accessibilityLabel(L10n.settingsSiriShortcutsLink)
+                Button {
+                    showShortcutsAutomationGuide = true
+                } label: {
+                    Label(L10n.settingsShortcutsAutomationGuide, systemImage: "bolt.horizontal.circle")
+                }
             }
 
             Section(L10n.settingsRecordingSensitivitySection) {
-                sensitivityRow(
-                    title: L10n.settingsStopSpeed,
-                    value: Binding(
-                        get: { Int(settings.stopSpeedKmh) },
-                        set: { settings.stopSpeedKmh = Double($0) }
-                    ),
-                    range: 1...10,
-                    step: 1
-                )
-
-                sensitivityRow(
-                    title: L10n.settingsStopMinimumDistance,
-                    value: Binding(
-                        get: { Int(settings.stopMinimumDistanceMeters) },
-                        set: { settings.stopMinimumDistanceMeters = Double($0) }
-                    ),
-                    range: 50...1000,
-                    step: 50
-                )
-
-                sensitivityRow(
-                    title: L10n.settingsStopMinimumDuration,
-                    value: Binding(
-                        get: { Int(settings.stopMinimumDurationSeconds) },
-                        set: { settings.stopMinimumDurationSeconds = TimeInterval($0) }
-                    ),
-                    range: 60...600,
-                    step: 30
-                )
-
-                sensitivityRow(
-                    title: L10n.settingsTripStopMinimumDuration,
-                    value: Binding(
-                        get: { Int(settings.tripStopMinimumDurationSeconds) },
-                        set: { settings.tripStopMinimumDurationSeconds = TimeInterval($0) }
-                    ),
-                    range: 60...900,
-                    step: 30
-                )
+                sensitivityGrid
+                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                    .listRowBackground(Color.clear)
             }
 
             Section {
@@ -177,9 +148,13 @@ struct SettingsView: View {
 
             Section(L10n.settingsBackupSection) {
                 Button(L10n.settingsExportJSON) { export(format: .json) }
+                    .disabled(isExporting)
                 Button(L10n.settingsExportCSV) { export(format: .csv) }
+                    .disabled(isExporting)
                 Button(L10n.settingsExportGPX) { export(format: .gpx) }
+                    .disabled(isExporting)
                 Button(L10n.settingsExportKML) { export(format: .kml) }
+                    .disabled(isExporting)
             }
 
             Section(L10n.settingsAboutSection) {
@@ -213,44 +188,91 @@ struct SettingsView: View {
                 ExportActivityShareSheet(items: [exportURL])
             }
         }
+        .sheet(isPresented: $showShortcutsAutomationGuide) {
+            PairingShortcutsAutomationGuideView()
+        }
         .alert(L10n.appLockUnavailableTitle, isPresented: $showAppLockUnavailableAlert) {
             Button(L10n.ok, role: .cancel) {}
         } message: {
             Text(L10n.appLockUnavailable)
         }
+        .overlay {
+            if isExporting {
+                ZStack {
+                    Color.black.opacity(0.2)
+                        .ignoresSafeArea()
+                    VStack(spacing: 14) {
+                        ProgressView()
+                            .controlSize(.large)
+                        Text(L10n.settingsExportPreparing)
+                            .font(.subheadline.weight(.medium))
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 24)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: isExporting)
     }
 
-    private enum ExportFormat { case json, csv, gpx, kml }
+    private enum ExportFormat {
+        case json, csv, gpx, kml
+
+        var fileExtension: String {
+            switch self {
+            case .json: "json"
+            case .csv: "csv"
+            case .gpx: "gpx"
+            case .kml: "kml"
+            }
+        }
+
+        var exportFileFormat: ExportService.FileFormat {
+            switch self {
+            case .json: .json
+            case .csv: .csv
+            case .gpx: .gpx
+            case .kml: .kml
+            }
+        }
+    }
 
     private func export(format: ExportFormat) {
+        guard !isExporting else { return }
+
+        isExporting = true
         let completed = trips.filter { $0.endedAt != nil }
-        let fileExtension: String
-        switch format {
-        case .json: fileExtension = "json"
-        case .csv: fileExtension = "csv"
-        case .gpx: fileExtension = "gpx"
-        case .kml: fileExtension = "kml"
-        }
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("trailhound-export.\(fileExtension)")
-        do {
-            switch format {
-            case .json:
-                let data = try ExportService.exportJSON(trips: completed, blurCoordinates: settings.blurExportCoordinates)
-                try data.write(to: url)
-            case .csv:
-                let csv = ExportService.exportCSV(trips: completed)
-                try csv.write(to: url, atomically: true, encoding: .utf8)
-            case .gpx:
-                let gpx = ExportService.exportGPX(trips: completed, blurCoordinates: settings.blurExportCoordinates)
-                try gpx.write(to: url, atomically: true, encoding: .utf8)
-            case .kml:
-                let kml = ExportService.exportKML(trips: completed, blurCoordinates: settings.blurExportCoordinates)
-                try kml.write(to: url, atomically: true, encoding: .utf8)
+        let blurCoordinates = settings.blurExportCoordinates
+        let privacyRadius = settings.privacyRadiusMeters
+        let savedPlaces = places
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("trailhound-export.\(format.fileExtension)")
+
+        Task { @MainActor in
+            let snapshots = ExportService.snapshots(
+                from: completed,
+                blurCoordinates: blurCoordinates,
+                places: savedPlaces,
+                privacyRadius: privacyRadius
+            )
+
+            do {
+                try await Task.detached(priority: .userInitiated) {
+                    try ExportService.write(
+                        snapshots: snapshots,
+                        format: format.exportFileFormat,
+                        to: url
+                    )
+                }.value
+                exportURL = url
+                showExportSheet = true
+            } catch {
+                AppErrorPresenter.shared.present(error.localizedDescription)
             }
-            exportURL = url
-            showExportSheet = true
-        } catch {
-            AppErrorPresenter.shared.present(error.localizedDescription)
+            isExporting = false
         }
     }
 
@@ -268,25 +290,105 @@ struct SettingsView: View {
         _ = try? TripCleanupService.cleanupOldTrips(in: modelContext, olderThanDays: days)
     }
 
-    private func sensitivityRow(
+    private var sensitivityGrid: some View {
+        LazyVGrid(
+            columns: [
+                GridItem(.flexible(), spacing: 10),
+                GridItem(.flexible(), spacing: 10)
+            ],
+            spacing: 10
+        ) {
+            sensitivityCell(
+                title: L10n.settingsStopSpeed,
+                value: Binding(
+                    get: { Int(settings.stopSpeedKmh) },
+                    set: { settings.stopSpeedKmh = Double($0) }
+                ),
+                range: 1...10,
+                step: 1
+            )
+
+            sensitivityCell(
+                title: L10n.settingsStopMinimumDistance,
+                value: Binding(
+                    get: { Int(settings.stopMinimumDistanceMeters) },
+                    set: { settings.stopMinimumDistanceMeters = Double($0) }
+                ),
+                range: 50...1000,
+                step: 50
+            )
+
+            sensitivityCell(
+                title: L10n.settingsStopMinimumDuration,
+                value: Binding(
+                    get: { Int(settings.stopMinimumDurationSeconds) },
+                    set: { settings.stopMinimumDurationSeconds = TimeInterval($0) }
+                ),
+                range: 60...600,
+                step: 30
+            )
+
+            sensitivityCell(
+                title: L10n.settingsTripStopMinimumDuration,
+                value: Binding(
+                    get: { Int(settings.tripStopMinimumDurationSeconds) },
+                    set: { settings.tripStopMinimumDurationSeconds = TimeInterval($0) }
+                ),
+                range: 60...900,
+                step: 30
+            )
+        }
+    }
+
+    private func sensitivityCell(
         title: String,
         value: Binding<Int>,
         range: ClosedRange<Int>,
         step: Int
     ) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(title)
-                Spacer()
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: 6) {
+                sensitivityStepButton(systemImage: "minus") {
+                    value.wrappedValue = max(range.lowerBound, value.wrappedValue - step)
+                }
+                .disabled(value.wrappedValue <= range.lowerBound)
+
                 Text("\(value.wrappedValue)")
-                    .foregroundStyle(.secondary)
+                    .font(.body.weight(.semibold))
                     .monospacedDigit()
+                    .frame(maxWidth: .infinity)
+
+                sensitivityStepButton(systemImage: "plus") {
+                    value.wrappedValue = min(range.upperBound, value.wrappedValue + step)
+                }
+                .disabled(value.wrappedValue >= range.upperBound)
             }
-            Stepper(value: value, in: range, step: step) {
-                EmptyView()
-            }
-            .labelsHidden()
         }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    private func sensitivityStepButton(
+        systemImage: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.caption2.weight(.bold))
+                .frame(width: 26, height: 26)
+                .background(Color(.tertiarySystemGroupedBackground))
+                .clipShape(Circle())
+        }
+        .buttonStyle(.plain)
     }
 
     private var appLockEnabledBinding: Binding<Bool> {

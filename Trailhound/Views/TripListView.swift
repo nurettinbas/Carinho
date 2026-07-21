@@ -23,6 +23,19 @@ struct TripListView: View {
     @State private var orphanTrips: [TripRecoveryService.OrphanTrip] = []
     @State private var showMergeConfirm = false
     @State private var searchText = ""
+    @Namespace private var tripMorphNamespace
+    @State private var morphingTripID: UUID?
+    @State private var endCredits: RecordingEndCreditsSnapshot?
+    /// How far the floating blue bar has slid down toward the trip list.
+    @State private var creditsSlideY: CGFloat = 0
+    @State private var isCreditsSliding = false
+    @State private var listLandingMinY: CGFloat = 0
+    @State private var creditsCardAnchor = CreditsCardAnchor()
+    /// Pinned at Stop so overlay keeps the live recording card's exact frame.
+    @State private var pinnedCreditsCardAnchor = CreditsCardAnchor()
+    /// Armed before recording state flips so entrance anim can't lose the race on device.
+    @State private var coldOpenArmed = false
+    @State private var coldOpenTripID: UUID?
 
     private var hasActiveFilters: Bool {
         selectedLabel != nil || selectedCategoryID != nil || !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -132,10 +145,30 @@ struct TripListView: View {
                 }
             }
 
-            if recordingService.state.isActiveSession {
+            if recordingService.state.isActiveSession, endCredits == nil {
                 Section {
-                    ActiveTripView()
-                        .trailhoundCardTransition(reduceMotion: reduceMotion)
+                    ActiveTripView(
+                        morphNamespace: tripMorphNamespace,
+                        morphID: recordingService.activeTripID,
+                        playEntranceReveal: coldOpenArmed,
+                        onEntranceFinished: finishColdOpen,
+                        onStop: beginEndCredits
+                    )
+                    .id(recordingService.activeTripID)
+                    .transition(.opacity)
+                    .background {
+                        GeometryReader { geo in
+                            let frame = geo.frame(in: .global)
+                            Color.clear.preference(
+                                key: CreditsCardAnchorKey.self,
+                                value: CreditsCardAnchor(
+                                    minX: frame.minX,
+                                    minY: frame.minY,
+                                    width: frame.width
+                                )
+                            )
+                        }
+                    }
                 }
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
@@ -164,14 +197,23 @@ struct TripListView: View {
             }
 
             Section {
-                TripFilterChips(selectedLabel: $selectedLabel, selectedCategoryID: $selectedCategoryID)
+                TripFilterChips(selectedCategoryID: $selectedCategoryID)
+                    .background {
+                        GeometryReader { geo in
+                            Color.clear.preference(
+                                key: CreditsListLandingYKey.self,
+                                // Land just under the filters — top of the trip list.
+                                value: geo.frame(in: .global).maxY + 6
+                            )
+                        }
+                    }
             }
             .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
 
             if completedTrips.isEmpty {
-                if !recordingService.state.isActiveSession {
+                if !recordingService.state.isActiveSession, endCredits == nil, coldOpenTripID == nil {
                     ContentUnavailableView(
                         hasActiveFilters ? "Filtreye uygun yolculuk yok" : "Henüz yolculuk yok",
                         systemImage: "car",
@@ -186,11 +228,21 @@ struct TripListView: View {
                 ForEach(groupedTrips, id: \.section) { group in
                     Section(group.section.title) {
                         ForEach(group.trips) { trip in
-                            tripRow(for: trip)
+                            // Keep the new trip hidden until the blue bar finishes sliding onto it.
+                            if endCredits?.tripID != trip.id {
+                                tripRow(for: trip)
+                            }
                         }
                     }
                 }
                 .animation(reduceMotion ? nil : TrailhoundMotion.gentle, value: completedTrips.count)
+            }
+        }
+        .listSectionSpacing(12)
+        .onPreferenceChange(CreditsListLandingYKey.self) { listLandingMinY = $0 }
+        .onPreferenceChange(CreditsCardAnchorKey.self) { newValue in
+            if newValue.width > 0 {
+                creditsCardAnchor = newValue
             }
         }
         .searchable(text: $searchText, prompt: L10n.searchTrips)
@@ -211,10 +263,33 @@ struct TripListView: View {
         }
         .onAppear {
             refreshOrphans()
+            beginColdOpenIfNeeded(onlyIfRecentlyStarted: true)
         }
         .onChange(of: recordingService.state) { _, newState in
             if !newState.isActiveSession {
                 refreshOrphans()
+                coldOpenArmed = false
+                coldOpenTripID = nil
+            }
+        }
+        .onChange(of: recordingService.state.isActiveSession) { wasActive, isActive in
+            if isActive {
+                // New recording must never be blocked by a stuck credits card.
+                if endCredits != nil {
+                    endCredits = nil
+                }
+            }
+            if !wasActive, isActive, endCredits == nil {
+                beginColdOpenIfNeeded()
+            }
+            // Vehicle auto-stop (and other external stops) still get a light morph —
+            // full credits play only for manual Stop.
+            if wasActive, !isActive, endCredits == nil, morphingTripID == nil,
+               let newest = completedTrips.first,
+               let endedAt = newest.endedAt,
+               Date().timeIntervalSince(endedAt) < 2.5 {
+                morphingTripID = newest.id
+                clearMorphingTripSoon(delayMilliseconds: reduceMotion ? 50 : 700)
             }
         }
         .alert("Yolculukları birleştir", isPresented: $showMergeConfirm) {
@@ -231,13 +306,22 @@ struct TripListView: View {
                     }
                     .disabled(mergeSelection.count < 2)
                 } else if !recordingService.state.isActiveSession {
-                    Button { _ = recordingService.startManualRecording() } label: {
+                    Button {
+                        coldOpenArmed = true
+                        if recordingService.startManualRecording(),
+                           let tripID = recordingService.activeTripID {
+                            coldOpenTripID = tripID
+                        } else {
+                            coldOpenArmed = false
+                            coldOpenTripID = nil
+                        }
+                    } label: {
                         HStack(spacing: 6) {
                             Image(systemName: "record.circle")
                             Text(L10n.string("action.start"))
                         }
                     }
-                    .transition(.scale.combined(with: .opacity))
+                    .transition(.opacity)
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
@@ -274,10 +358,51 @@ struct TripListView: View {
             }
         }
         .animation(reduceMotion ? nil : TrailhoundMotion.gentle, value: recordingService.state.isActiveSession)
+        .animation(reduceMotion ? nil : TrailhoundMotion.cardSpring, value: morphingTripID)
+        .overlay {
+            if let endCredits {
+                GeometryReader { geo in
+                    let containerFrame = geo.frame(in: .global)
+                    let anchor = pinnedCreditsCardAnchor.width > 0
+                        ? pinnedCreditsCardAnchor
+                        : creditsCardAnchor
+                    let startY = anchor.minY > 0
+                        ? anchor.minY - containerFrame.minY
+                        : 12
+                    let xOffset = anchor.minX > 0
+                        ? anchor.minX - containerFrame.minX
+                        : 0
+
+                    Group {
+                        if anchor.width > 0 {
+                            RecordingEndCreditsView(
+                                snapshot: endCredits,
+                                reduceMotion: reduceMotion,
+                                onFinished: startCreditsSlideIntoList
+                            )
+                            .frame(width: anchor.width)
+                        } else {
+                            RecordingEndCreditsView(
+                                snapshot: endCredits,
+                                reduceMotion: reduceMotion,
+                                onFinished: startCreditsSlideIntoList
+                            )
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal)
+                        }
+                    }
+                    .id(endCredits.sessionID)
+                    .offset(x: xOffset, y: startY + creditsSlideY)
+                }
+                .allowsHitTesting(false)
+                .zIndex(50)
+            }
+        }
     }
 
     @ViewBuilder
     private func tripRow(for trip: Trip) -> some View {
+        let isMorphing = morphingTripID == trip.id
         Group {
             if isMergeMode {
                 Button {
@@ -286,19 +411,39 @@ struct TripListView: View {
                     HStack {
                         Image(systemName: mergeSelection.contains(trip.id) ? "checkmark.circle.fill" : "circle")
                             .accessibilityLabel(mergeSelection.contains(trip.id) ? "Seçili" : "Seçili değil")
-                        TripRowView(trip: trip, places: places, privacyRadius: settings.privacyRadiusMeters)
+                        TripRowView(
+                            trip: trip,
+                            places: places,
+                            privacyRadius: settings.privacyRadiusMeters,
+                            morphNamespace: tripMorphNamespace,
+                            morphID: morphingTripID,
+                            emphasizeLanding: isMorphing
+                        )
                     }
                 }
                 .buttonStyle(.plain)
                 .accessibilityElement(children: .combine)
             } else {
                 NavigationLink(value: trip.id) {
-                    TripRowView(trip: trip, places: places, privacyRadius: settings.privacyRadiusMeters)
-                        .contentShape(Rectangle())
+                    TripRowView(
+                        trip: trip,
+                        places: places,
+                        privacyRadius: settings.privacyRadiusMeters,
+                        morphNamespace: tripMorphNamespace,
+                        morphID: morphingTripID,
+                        emphasizeLanding: isMorphing
+                    )
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }
         }
+        .matchedGeometryEffectIfAvailable(
+            id: isMorphing ? trip.id : nil,
+            namespace: tripMorphNamespace,
+            isSource: false
+        )
+        .transition(.opacity)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
                 deleteTrip(trip)
@@ -326,6 +471,130 @@ struct TripListView: View {
                 Label(L10n.actionCategory, systemImage: "tag")
             }
             .tint(.orange)
+        }
+    }
+
+    private func beginColdOpenIfNeeded(onlyIfRecentlyStarted: Bool = false) {
+        guard endCredits == nil,
+              recordingService.state.isActiveSession,
+              let tripID = recordingService.activeTripID
+        else { return }
+
+        // Already armed for this trip.
+        if coldOpenTripID == tripID, coldOpenArmed { return }
+
+        if onlyIfRecentlyStarted {
+            guard let startedAt = recordingService.recordingStartedAt,
+                  Date().timeIntervalSince(startedAt) < 2.0
+            else { return }
+        }
+
+        coldOpenArmed = true
+        coldOpenTripID = tripID
+    }
+
+    private func finishColdOpen() {
+        coldOpenArmed = false
+        // Only clear once this trip's entrance finished — don't block a newer start.
+        if let active = recordingService.activeTripID, coldOpenTripID == active {
+            coldOpenTripID = nil
+        } else if coldOpenTripID != nil, recordingService.activeTripID == nil {
+            coldOpenTripID = nil
+        }
+    }
+
+    private func beginEndCredits() {
+        guard let tripID = recordingService.activeTripID else {
+            recordingService.stopManualRecording()
+            return
+        }
+
+        resetTripFiltersToAll()
+
+        let snapshot = RecordingEndCreditsSnapshot(
+            sessionID: UUID(),
+            tripID: tripID,
+            durationText: DateFormatters.formatDuration(recordingService.elapsedTime),
+            distanceText: DateFormatters.formatDistance(recordingService.currentDistanceMeters),
+            coordinates: recordingService.liveBreadcrumbCoordinates
+        )
+
+        morphingTripID = tripID
+        coldOpenArmed = false
+        coldOpenTripID = nil
+        creditsSlideY = 0
+        isCreditsSliding = false
+        pinnedCreditsCardAnchor = creditsCardAnchor
+
+        if reduceMotion {
+            recordingService.stopManualRecording()
+            endCredits = nil
+            clearMorphingTripSoon(delayMilliseconds: 50)
+            return
+        }
+
+        endCredits = snapshot
+        recordingService.stopManualRecording()
+
+        let sessionID = snapshot.sessionID
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(5))
+            if endCredits?.sessionID == sessionID, !isCreditsSliding {
+                startCreditsSlideIntoList()
+            }
+        }
+    }
+
+    private func resetTripFiltersToAll() {
+        guard selectedCategoryID != nil else { return }
+
+        if reduceMotion {
+            selectedCategoryID = nil
+        } else {
+            withAnimation(TrailhoundMotion.cardSpring) {
+                selectedCategoryID = nil
+            }
+        }
+    }
+
+    private func startCreditsSlideIntoList() {
+        guard endCredits != nil, !isCreditsSliding else { return }
+
+        let startGlobal = pinnedCreditsCardAnchor.minY > 0
+            ? pinnedCreditsCardAnchor.minY
+            : creditsCardAnchor.minY
+        let measured = listLandingMinY - startGlobal
+        let distance = measured > 40 ? measured : 140
+
+        isCreditsSliding = true
+
+        withAnimation(.spring(response: 0.55, dampingFraction: 0.86)) {
+            creditsSlideY = distance
+        }
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(560))
+            // Swap overlay → real row with no List insert morph / empty-cell fade.
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                endCredits = nil
+                creditsSlideY = 0
+                isCreditsSliding = false
+                pinnedCreditsCardAnchor = CreditsCardAnchor()
+            }
+            TrailhoundHaptics.selection()
+            clearMorphingTripSoon(delayMilliseconds: 900)
+        }
+    }
+
+    private func clearMorphingTripSoon(delayMilliseconds: Int = 700) {
+        let clearingID = morphingTripID
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(delayMilliseconds))
+            if morphingTripID == clearingID {
+                morphingTripID = nil
+            }
         }
     }
 
@@ -382,6 +651,29 @@ struct TripListView: View {
         } catch {
             AppErrorPresenter.shared.present(error.localizedDescription)
         }
+    }
+}
+
+private struct CreditsCardAnchor: Equatable {
+    var minX: CGFloat = 0
+    var minY: CGFloat = 0
+    var width: CGFloat = 0
+}
+
+private struct CreditsCardAnchorKey: PreferenceKey {
+    static var defaultValue: CreditsCardAnchor { CreditsCardAnchor() }
+    static func reduce(value: inout CreditsCardAnchor, nextValue: () -> CreditsCardAnchor) {
+        let next = nextValue()
+        if next.width > 0 {
+            value = next
+        }
+    }
+}
+
+private struct CreditsListLandingYKey: PreferenceKey {
+    static var defaultValue: CGFloat { 0 }
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 

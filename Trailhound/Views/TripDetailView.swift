@@ -1,4 +1,3 @@
-import Charts
 import CoreLocation
 import MapKit
 import SwiftData
@@ -17,6 +16,12 @@ private enum TripMapStyle {
             return .standard(elevation: .realistic, emphasis: .muted)
         }
     }
+}
+
+private struct RevealedRouteSegment: Identifiable {
+    let id: String
+    let coordinates: [CLLocationCoordinate2D]
+    let color: Color
 }
 
 struct TripDetailView: View {
@@ -46,7 +51,14 @@ struct TripDetailView: View {
     @State private var editedEndedAt: Date = Date()
     @State private var trimHeadCount: Int = 0
     @State private var trimTailCount: Int = 0
-    @State private var didAppear = false
+    @State private var routeRevealProgress: Double = 0
+    @State private var startPinVisible = false
+    @State private var endPinVisible = false
+    @State private var didStartDetailReveal = false
+    @State private var detailRevealTask: Task<Void, Never>?
+    @State private var panelRisen = false
+    @State private var statCountProgress: [String: Double] = [:]
+    @State private var speedChartRevealProgress: Double = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var sortedStops: [TripStop] {
@@ -59,50 +71,46 @@ struct TripDetailView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            VStack(spacing: 0) {
+            let panelHeight = geometry.size.height * 0.52
+            ZStack(alignment: .bottom) {
                 ZStack(alignment: .topTrailing) {
-                    tripMapView(style: mapStyle, interactive: true)
+                    tripMapView(style: mapStyle, interactive: panelRisen)
                         .onTapGesture {
                             dismissNoteKeyboard()
                         }
 
-                    VStack(alignment: .trailing, spacing: 8) {
-                        if !networkMonitor.isConnected {
-                            Text(L10n.tripMapOfflineHint)
-                                .font(.caption2)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .background(.ultraThinMaterial)
-                                .clipShape(Capsule())
-                        }
-
-                        compactSpeedLegend
-
-                        Button {
-                            showFullscreenMap = true
-                        } label: {
-                            Image(systemName: "arrow.up.left.and.arrow.down.right")
-                                .font(.subheadline.weight(.semibold))
-                                .frame(width: 34, height: 34)
-                                .background(.ultraThinMaterial, in: Circle())
-                        }
-                        .accessibilityLabel(L10n.mapFullscreen)
+                    if !networkMonitor.isConnected {
+                        Text(L10n.tripMapOfflineHint)
+                            .font(.caption2)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Capsule())
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                            .padding(12)
                     }
-                    .padding(12)
+
+                    compactSpeedLegend
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                        .padding(12)
                 }
-                .frame(height: geometry.size.height * 0.48)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.bottom, panelRisen ? panelHeight - 12 : 0)
+                .animation(reduceMotion ? nil : TrailhoundMotion.sheetRise, value: panelRisen)
 
                 detailPanel
-                    .frame(maxHeight: .infinity)
+                    .frame(height: panelHeight)
+                    .offset(y: panelRisen ? 0 : panelHeight + 24)
+                    .opacity(panelRisen ? 1 : 0)
+                    .animation(reduceMotion ? nil : TrailhoundMotion.sheetRise, value: panelRisen)
+                    .allowsHitTesting(panelRisen)
             }
         }
-        .opacity(didAppear ? 1 : 0)
-        .offset(y: didAppear ? 0 : 12)
         .dismissKeyboardOnTap(focus: $noteFocused)
         .navigationTitle(L10n.tripDetailTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
                 Button {
                     Task { await renderShareCard() }
                 } label: {
@@ -114,6 +122,13 @@ struct TripDetailView: View {
                 }
                 .disabled(isRenderingShareCard)
                 .accessibilityLabel(L10n.share)
+
+                Button {
+                    showFullscreenMap = true
+                } label: {
+                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                }
+                .accessibilityLabel(L10n.mapFullscreen)
             }
         }
         .sheet(isPresented: $showFullscreenMap) {
@@ -136,16 +151,100 @@ struct TripDetailView: View {
             endPlaceNameText = trip.endPlaceName ?? ""
             editedStartedAt = trip.startedAt
             editedEndedAt = trip.endedAt ?? Date()
-            if let region = viewModel.mapRegion {
-                cameraPosition = .region(region)
-            }
             if reduceMotion {
-                didAppear = true
+                finishDetailRevealInstant()
             } else {
-                withAnimation(TrailhoundMotion.gentle) {
-                    didAppear = true
-                }
+                startDetailReveal()
             }
+        }
+        .onDisappear {
+            detailRevealTask?.cancel()
+            detailRevealTask = nil
+            didStartDetailReveal = false
+        }
+    }
+
+    private func startDetailReveal() {
+        guard !didStartDetailReveal else { return }
+        didStartDetailReveal = true
+
+        panelRisen = false
+        routeRevealProgress = 0
+        startPinVisible = false
+        endPinVisible = false
+        statCountProgress = Dictionary(
+            uniqueKeysWithValues: viewModel.summaryMetrics.map { ($0.id, 0.0) }
+        )
+        speedChartRevealProgress = 0
+
+        if let region = viewModel.mapRegion(fit: .detailWithPanel) {
+            cameraPosition = .region(region)
+        }
+
+        detailRevealTask?.cancel()
+        detailRevealTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(60))
+            guard !Task.isCancelled else { return }
+
+            withAnimation(TrailhoundMotion.pinPop) {
+                startPinVisible = true
+            }
+
+            withAnimation(TrailhoundMotion.sheetRise) {
+                panelRisen = true
+            }
+
+            await runContentReveal()
+        }
+    }
+
+    private func runContentReveal() async {
+        let metrics = viewModel.summaryMetrics
+        let pathCount = max(viewModel.routeCoordinates.count, viewModel.coordinates.count)
+        let ticks = pathCount >= 2 ? 48 : 16
+        let stepSleep: Duration = pathCount >= 2 ? .milliseconds(32) : .milliseconds(22)
+
+        for tick in 1...ticks {
+            try? await Task.sleep(for: stepSleep)
+            guard !Task.isCancelled else { return }
+            let progress = Self.smoothstep(Double(tick) / Double(ticks))
+            routeRevealProgress = progress
+            for metric in metrics {
+                statCountProgress[metric.id] = progress
+            }
+            speedChartRevealProgress = progress
+        }
+
+        routeRevealProgress = 1
+        for metric in metrics {
+            statCountProgress[metric.id] = 1
+        }
+        speedChartRevealProgress = 1
+
+        withAnimation(TrailhoundMotion.pinPop) {
+            endPinVisible = true
+        }
+    }
+
+    private static func smoothstep(_ t: Double) -> Double {
+        let x = min(1, max(0, t))
+        return x * x * (3 - 2 * x)
+    }
+
+    private func finishDetailRevealInstant() {
+        didStartDetailReveal = true
+        detailRevealTask?.cancel()
+        detailRevealTask = nil
+        routeRevealProgress = 1
+        startPinVisible = true
+        endPinVisible = true
+        panelRisen = true
+        statCountProgress = Dictionary(
+            uniqueKeysWithValues: viewModel.summaryMetrics.map { ($0.id, 1.0) }
+        )
+        speedChartRevealProgress = 1
+        if let region = viewModel.mapRegion(fit: .detailWithPanel) {
+            cameraPosition = .region(region)
         }
     }
 
@@ -178,19 +277,39 @@ struct TripDetailView: View {
                         }
                     }
 
-                    detailSection(title: L10n.tripEditTimesSection) {
-                        DatePicker(L10n.tripStartedAt, selection: $editedStartedAt)
-                            .font(.subheadline)
-
-                        if trip.endedAt != nil {
-                            DatePicker(L10n.tripEndedAt, selection: $editedEndedAt)
-                                .font(.subheadline)
+                    if trip.endedAt != nil {
+                        detailSplitSection(title: L10n.tripEditTimesSection) {
+                            tripTimePicker(
+                                title: L10n.tripStartedAt,
+                                selection: $editedStartedAt
+                            )
+                        } right: {
+                            tripTimePicker(
+                                title: L10n.tripEndedAt,
+                                selection: $editedEndedAt
+                            )
+                        }
+                    } else {
+                        detailSection(title: L10n.tripEditTimesSection) {
+                            tripTimePicker(
+                                title: L10n.tripStartedAt,
+                                selection: $editedStartedAt
+                            )
                         }
                     }
 
-                    detailSection(title: L10n.tripTrimPointsSection) {
-                        Stepper(L10n.tripTrimHead, value: $trimHeadCount, in: 0...maxTrimHead)
-                        Stepper(L10n.tripTrimTail, value: $trimTailCount, in: 0...maxTrimTail)
+                    detailSplitSection(title: L10n.tripTrimPointsSection) {
+                        trimStepperCell(
+                            title: L10n.tripTrimHead,
+                            value: $trimHeadCount,
+                            range: 0...maxTrimHead
+                        )
+                    } right: {
+                        trimStepperCell(
+                            title: L10n.tripTrimTail,
+                            value: $trimTailCount,
+                            range: 0...maxTrimTail
+                        )
                     }
 
                     detailSection(title: L10n.tripLocationOverrides) {
@@ -200,19 +319,18 @@ struct TripDetailView: View {
                         compactTextField(L10n.tripEndAddress, text: $endAddressText)
                     }
 
-                    detailSection(title: "Kategori ve etiket") {
-                        Picker("Kategori", selection: $selectedCategoryID) {
+                    detailSplitSection(title: "Kategori ve etiket") {
+                        detailMenuPicker(title: "Kategori", selection: $selectedCategoryID) {
                             ForEach(categories) { category in
                                 Label(category.name, systemImage: category.systemImage)
                                     .tag(category.id.uuidString)
                             }
                         }
-                        .pickerStyle(.menu)
                         .onChange(of: selectedCategoryID) { _, _ in
                             dismissNoteKeyboard()
                         }
-
-                        Picker("Etiket", selection: $selectedLabel) {
+                    } right: {
+                        detailMenuPicker(title: "Etiket", selection: $selectedLabel) {
                             Text("Yok").tag("")
                             ForEach(TripLabelOption.allCases, id: \.rawValue) { option in
                                 Text(option.rawValue).tag(option.rawValue)
@@ -231,13 +349,16 @@ struct TripDetailView: View {
                             .onSubmit { dismissNoteKeyboard() }
                     }
 
-                    Button("Değişiklikleri kaydet") {
-                        saveEdits()
-                        dismissNoteKeyboard()
+                    HStack {
+                        Spacer()
+                        Button("Değişiklikleri kaydet") {
+                            saveEdits()
+                            dismissNoteKeyboard()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .buttonBorderShape(.roundedRectangle(radius: 8))
+                        .tint(TrailhoundBrandColors.brandBottom)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(TrailhoundBrandColors.brandBottom)
-                    .frame(maxWidth: .infinity)
                     .padding(.top, 4)
                 }
                 .padding(.horizontal, 16)
@@ -246,7 +367,7 @@ struct TripDetailView: View {
             .dismissKeyboardOnScroll()
         }
         .background {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color(.systemBackground))
                 .shadow(color: .black.opacity(0.08), radius: 16, y: -4)
                 .ignoresSafeArea(edges: .bottom)
@@ -266,60 +387,216 @@ struct TripDetailView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    @ViewBuilder
     private var statsStrip: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(Array(viewModel.summaryItems.enumerated()), id: \.offset) { _, item in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Label(item.title, systemImage: item.icon)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .labelStyle(.titleAndIcon)
-                        Text(item.value)
-                            .font(.subheadline.weight(.semibold))
-                            .lineLimit(1)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    .background(Color(.secondarySystemGroupedBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                }
+        let metrics = viewModel.summaryMetrics
+        let primaryIDs: Set<String> = ["duration", "distance", "maxSpeed"]
+        let primaryRow = metrics.filter { primaryIDs.contains($0.id) }
+        let secondaryRow = metrics.filter { !primaryIDs.contains($0.id) }
+
+        VStack(spacing: 8) {
+            if !primaryRow.isEmpty {
+                statsMetricRow(metrics: primaryRow)
+            }
+            if !secondaryRow.isEmpty {
+                statsCenteredMetricRow(metrics: secondaryRow)
             }
         }
     }
 
+    private func statsMetricRow(metrics: [TripSummaryMetric]) -> some View {
+        HStack(spacing: 8) {
+            ForEach(metrics) { metric in
+                statsMetricCard(for: metric)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    private func statsCenteredMetricRow(metrics: [TripSummaryMetric]) -> some View {
+        HStack(spacing: 8) {
+            if metrics.count < 3 {
+                Color.clear
+                    .frame(maxWidth: .infinity)
+                    .layoutPriority(metrics.count == 2 ? 1 : 2)
+            }
+
+            ForEach(metrics) { metric in
+                statsMetricCard(for: metric)
+                    .frame(maxWidth: .infinity)
+                    .layoutPriority(2)
+            }
+
+            if metrics.count < 3 {
+                Color.clear
+                    .frame(maxWidth: .infinity)
+                    .layoutPriority(metrics.count == 2 ? 1 : 2)
+            }
+        }
+    }
+
+    private func statsMetricCard(for metric: TripSummaryMetric) -> some View {
+        let progress = statCountProgress[metric.id] ?? (panelRisen ? 1 : 0)
+        return VStack(alignment: .leading, spacing: 2) {
+            Label(metric.title, systemImage: metric.icon)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .labelStyle(.titleAndIcon)
+            Text(metric.formatted(progress: progress))
+                .font(.subheadline.weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .contentTransition(.numericText())
+                .animation(reduceMotion ? nil : TrailhoundMotion.snappy, value: progress)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .opacity(progress > 0.01 || reduceMotion ? 1 : 0.35)
+        .scaleEffect(progress > 0.01 || reduceMotion ? 1 : 0.94)
+    }
+
     private var speedChartCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        let progress = speedChartRevealProgress
+
+        return VStack(alignment: .leading, spacing: 8) {
             Text(L10n.tripSpeedChart)
                 .font(.subheadline.weight(.semibold))
 
-            Chart(viewModel.speedSamples, id: \.id) { sample in
-                AreaMark(
-                    x: .value("Zaman", sample.date),
-                    y: .value("Hız", sample.speedKmh)
-                )
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [TrailhoundBrandColors.brandBottom.opacity(0.28), TrailhoundBrandColors.brandBottom.opacity(0.04)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+            HStack(alignment: .top, spacing: 6) {
+                VStack(alignment: .trailing, spacing: 0) {
+                    Text(L10n.formatSpeedKmh(viewModel.speedChartMaxKmh))
+                        .font(.caption2)
+                    Spacer(minLength: 0)
+                    Text(L10n.formatSpeedKmh(0))
+                        .font(.caption2)
+                }
+                .foregroundStyle(.secondary)
+                .frame(width: 34, height: 120)
 
-                LineMark(
-                    x: .value("Zaman", sample.date),
-                    y: .value("Hız", sample.speedKmh)
+                SpeedChartRouteCanvas(
+                    samples: viewModel.speedSamples,
+                    maxKmh: viewModel.speedChartMaxKmh,
+                    progress: progress
                 )
-                .foregroundStyle(TrailhoundBrandColors.brandBottom)
-                .lineStyle(StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+                .frame(maxWidth: .infinity)
+                .frame(height: 120)
             }
-            .chartYScale(domain: 0...viewModel.speedChartMaxKmh)
-            .chartYAxisLabel(L10n.speedKmh)
-            .frame(height: 120)
         }
         .padding(12)
         .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .opacity(progress > 0.01 || reduceMotion ? 1 : 0.35)
+        .scaleEffect(progress > 0.01 || reduceMotion ? 1 : 0.98)
+    }
+
+    private func tripTimePicker(title: String, selection: Binding<Date>) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+
+            DatePicker(title, selection: selection)
+                .labelsHidden()
+                .datePickerStyle(.compact)
+                .font(.subheadline)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func trimStepperCell(
+        title: String,
+        value: Binding<Int>,
+        range: ClosedRange<Int>
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: 6) {
+                detailCompactStepButton(systemImage: "minus") {
+                    value.wrappedValue = max(range.lowerBound, value.wrappedValue - 1)
+                }
+                .disabled(value.wrappedValue <= range.lowerBound)
+
+                Text("\(value.wrappedValue)")
+                    .font(.body.weight(.semibold))
+                    .monospacedDigit()
+                    .frame(maxWidth: .infinity)
+
+                detailCompactStepButton(systemImage: "plus") {
+                    value.wrappedValue = min(range.upperBound, value.wrappedValue + 1)
+                }
+                .disabled(value.wrappedValue >= range.upperBound)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func detailCompactStepButton(
+        systemImage: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.caption2.weight(.bold))
+                .frame(width: 26, height: 26)
+                .background(Color(.tertiarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func detailMenuPicker<Selection: Hashable, Content: View>(
+        title: String,
+        selection: Binding<Selection>,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+
+            Picker(title, selection: selection, content: content)
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .font(.subheadline)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func detailMiniCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    private func detailSplitSection<Left: View, Right: View>(
+        title: String,
+        @ViewBuilder left: () -> Left,
+        @ViewBuilder right: () -> Right
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+
+            HStack(alignment: .top, spacing: 10) {
+                detailMiniCard(content: left)
+                detailMiniCard(content: right)
+            }
+        }
     }
 
     private func detailSection<Content: View>(
@@ -336,7 +613,7 @@ struct TripDetailView: View {
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(.secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
     }
 
@@ -350,7 +627,7 @@ struct TripDetailView: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
                 .background(Color(.tertiarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
         }
     }
 
@@ -385,46 +662,66 @@ struct TripDetailView: View {
     }
 
     @ViewBuilder
-    private func tripMapView(style: TripMapStyle, interactive: Bool) -> some View {
+    private func tripMapView(
+        style: TripMapStyle,
+        interactive: Bool,
+        revealProgress: Double? = nil
+    ) -> some View {
+        let progress = revealProgress ?? routeRevealProgress
+        let revealedSegments = viewModel.revealedSpeedColoredSegments(progress: progress)
+        let revealedFallback = viewModel.revealedFallbackCoordinates(progress: progress)
+        let revealTick = Int((progress * 200).rounded())
+        let revealedItems = revealedSegments.map { segment in
+            RevealedRouteSegment(
+                id: "\(segment.id)-\(segment.coordinates.count)-\(revealTick)",
+                coordinates: segment.coordinates,
+                color: segment.color
+            )
+        }
+
         Map(position: $cameraPosition, interactionModes: interactive ? .all : []) {
-            ForEach(viewModel.speedColoredSegments) { segment in
+            ForEach(revealedItems) { segment in
                 MapPolyline(coordinates: segment.coordinates)
                     .stroke(
-                        segment.color,
-                        style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)
+                        segment.color.opacity(0.38),
+                        style: StrokeStyle(lineWidth: 11, lineCap: .round, lineJoin: .round)
                     )
                     .mapOverlayLevel(level: .aboveRoads)
             }
 
-            if viewModel.speedColoredSegments.isEmpty, viewModel.coordinates.count >= 2 {
-                MapPolyline(coordinates: viewModel.coordinates)
-                    .stroke(.blue, lineWidth: 4)
+            ForEach(revealedItems) { segment in
+                MapPolyline(coordinates: segment.coordinates)
+                    .stroke(
+                        segment.color,
+                        style: StrokeStyle(lineWidth: 4.5, lineCap: .round, lineJoin: .round)
+                    )
+                    .mapOverlayLevel(level: .aboveRoads)
             }
 
-            if let start = viewModel.routeStartCoordinate {
+            if revealedItems.isEmpty, revealedFallback.count >= 2 {
+                MapPolyline(coordinates: revealedFallback)
+                    .stroke(Color.cyan.opacity(0.35), style: StrokeStyle(lineWidth: 11, lineCap: .round, lineJoin: .round))
+                MapPolyline(coordinates: revealedFallback)
+                    .stroke(.cyan, lineWidth: 4.5)
+            }
+
+            if startPinVisible, let start = viewModel.routeStartCoordinate {
                 Annotation(L10n.tripPointStart, coordinate: start) {
-                    Image(systemName: "flag.fill")
-                        .padding(6)
-                        .background(.green, in: Circle())
-                        .foregroundStyle(.white)
+                    routeAnnotationMark(systemName: "flag.fill", color: .green, popped: startPinVisible)
                 }
             }
 
-            if let end = viewModel.routeEndCoordinate {
+            if endPinVisible, let end = viewModel.routeEndCoordinate {
                 Annotation(L10n.tripPointEnd, coordinate: end) {
-                    Image(systemName: "mappin.circle.fill")
-                        .padding(6)
-                        .background(.red, in: Circle())
-                        .foregroundStyle(.white)
+                    routeAnnotationMark(systemName: "mappin.circle.fill", color: .red, popped: endPinVisible)
                 }
             }
 
-            ForEach(Array(trip.stops.enumerated()), id: \.offset) { _, stop in
-                Annotation(L10n.tripPointStop, coordinate: stop.coordinate) {
-                    Image(systemName: "pause.circle.fill")
-                        .padding(6)
-                        .background(.orange, in: Circle())
-                        .foregroundStyle(.white)
+            ForEach(Array(sortedStops.enumerated()), id: \.element.persistentModelID) { _, stop in
+                if progress >= viewModel.annotationRevealProgress(forStopAt: stop.coordinate) {
+                    Annotation(L10n.tripPointStop, coordinate: stop.coordinate) {
+                        routeAnnotationMark(systemName: "pause.circle.fill", color: .orange, popped: true)
+                    }
                 }
             }
         }
@@ -432,10 +729,21 @@ struct TripDetailView: View {
         .preferredColorScheme(style == .dark ? .dark : nil)
     }
 
+    private func routeAnnotationMark(systemName: String, color: Color, popped: Bool) -> some View {
+        Image(systemName: systemName)
+            .padding(6)
+            .background(color, in: Circle())
+            .foregroundStyle(.white)
+            .scaleEffect(popped ? 1 : 0.35)
+            .opacity(popped ? 1 : 0)
+            .shadow(color: color.opacity(0.4), radius: popped ? 4 : 0, y: 1)
+            .animation(reduceMotion ? nil : TrailhoundMotion.pinPop, value: popped)
+    }
+
     private var fullscreenMapSheet: some View {
         NavigationStack {
             ZStack(alignment: .topTrailing) {
-                tripMapView(style: mapStyle, interactive: true)
+                tripMapView(style: mapStyle, interactive: true, revealProgress: 1)
 
                 VStack(alignment: .trailing, spacing: 8) {
                     compactSpeedLegend
@@ -459,6 +767,11 @@ struct TripDetailView: View {
                     Button("Kapat") {
                         showFullscreenMap = false
                     }
+                }
+            }
+            .onAppear {
+                if let region = viewModel.mapRegion(fit: .fullscreen) {
+                    cameraPosition = .region(region)
                 }
             }
         }
@@ -584,6 +897,134 @@ private struct ActivityShareSheet: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
+// MARK: - Speed chart route draw
+
+private struct SpeedChartRouteCanvas: View {
+    let samples: [(id: Int, date: Date, speedKmh: Double)]
+    let maxKmh: Double
+    let progress: Double
+
+    private var brandColor: Color { TrailhoundBrandColors.brandBottom }
+
+    var body: some View {
+        Canvas { context, size in
+            let revealed = revealedSamples(progress: progress)
+            let points = projectedPoints(for: revealed, in: size)
+            guard points.count >= 1 else { return }
+
+            let baselineY = size.height - 2
+
+            if points.count == 1 {
+                var dot = Path()
+                dot.addEllipse(in: CGRect(x: points[0].x - 2, y: points[0].y - 2, width: 4, height: 4))
+                context.fill(dot, with: .color(brandColor))
+                return
+            }
+
+            var line = Path()
+            line.move(to: points[0])
+            for point in points.dropFirst() {
+                line.addLine(to: point)
+            }
+
+            var area = Path()
+            area.move(to: CGPoint(x: points[0].x, y: baselineY))
+            area.addLine(to: points[0])
+            for point in points.dropFirst() {
+                area.addLine(to: point)
+            }
+            area.addLine(to: CGPoint(x: points[points.count - 1].x, y: baselineY))
+            area.closeSubpath()
+
+            context.fill(
+                area,
+                with: .linearGradient(
+                    Gradient(colors: [brandColor.opacity(0.28), brandColor.opacity(0.04)]),
+                    startPoint: CGPoint(x: 0, y: 0),
+                    endPoint: CGPoint(x: 0, y: size.height)
+                )
+            )
+
+            context.stroke(
+                line,
+                with: .color(brandColor.opacity(0.35)),
+                style: StrokeStyle(lineWidth: 5.5, lineCap: .round, lineJoin: .round)
+            )
+            context.stroke(
+                line,
+                with: .color(brandColor),
+                style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round)
+            )
+
+            if progress < 0.995, let tip = points.last {
+                var glow = Path()
+                glow.addEllipse(in: CGRect(x: tip.x - 4.5, y: tip.y - 4.5, width: 9, height: 9))
+                context.fill(glow, with: .color(brandColor.opacity(0.28)))
+
+                var tipDot = Path()
+                tipDot.addEllipse(in: CGRect(x: tip.x - 2.5, y: tip.y - 2.5, width: 5, height: 5))
+                context.fill(tipDot, with: .color(brandColor))
+                context.stroke(tipDot, with: .color(.white.opacity(0.9)), lineWidth: 1)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
+    private func revealedSamples(progress: Double) -> [(date: Date, speedKmh: Double)] {
+        guard samples.count >= 2 else {
+            return samples.map { ($0.date, $0.speedKmh) }
+        }
+
+        let clamped = min(1, max(0, progress))
+        if clamped <= 0 {
+            return [(samples[0].date, samples[0].speedKmh)]
+        }
+        if clamped >= 1 {
+            return samples.map { ($0.date, $0.speedKmh) }
+        }
+
+        let segmentCount = samples.count - 1
+        let exact = Double(segmentCount) * clamped
+        let index = min(segmentCount - 1, Int(exact))
+        let fraction = exact - Double(index)
+        var result = samples.prefix(index + 1).map { ($0.date, $0.speedKmh) }
+        let start = samples[index]
+        let end = samples[index + 1]
+        let startTime = start.date.timeIntervalSince1970
+        let endTime = end.date.timeIntervalSince1970
+        result.append((
+            date: Date(timeIntervalSince1970: startTime + (endTime - startTime) * fraction),
+            speedKmh: start.speedKmh + (end.speedKmh - start.speedKmh) * fraction
+        ))
+        return result
+    }
+
+    private func projectedPoints(
+        for samples: [(date: Date, speedKmh: Double)],
+        in size: CGSize
+    ) -> [CGPoint] {
+        guard let firstDate = samples.first?.date,
+              let lastDate = samples.last?.date
+        else { return [] }
+
+        let dateSpan = max(lastDate.timeIntervalSince(firstDate), 1)
+        let inset: CGFloat = 2
+        let drawWidth = max(size.width - inset * 2, 1)
+        let drawHeight = max(size.height - inset * 2, 1)
+        let baselineY = size.height - inset
+        let speedMax = max(maxKmh, 1)
+
+        return samples.map { sample in
+            let xFraction = sample.date.timeIntervalSince(firstDate) / dateSpan
+            let yFraction = min(1, max(0, sample.speedKmh / speedMax))
+            return CGPoint(
+                x: inset + CGFloat(xFraction) * drawWidth,
+                y: baselineY - CGFloat(yFraction) * drawHeight
+            )
+        }
+    }
 }
 
 #Preview {

@@ -16,7 +16,7 @@ enum ExportService {
         let points: [ExportPoint]
     }
 
-    struct ExportPoint: Codable {
+    struct ExportPoint: Codable, Sendable {
         let timestamp: Date
         let latitude: Double
         let longitude: Double
@@ -24,9 +24,49 @@ enum ExportService {
         let speedMps: Double?
     }
 
-    static func exportJSON(trips: [Trip], blurCoordinates: Bool) throws -> Data {
-        let payload = trips.map { trip in
-            ExportTrip(
+    struct TripExportSnapshot: Sendable {
+        let id: UUID
+        let startedAt: Date
+        let endedAt: Date?
+        let distanceMeters: Double
+        let startAddress: String?
+        let endAddress: String?
+        let note: String?
+        let label: String?
+        let categoryRaw: String
+        let estimatedFuelCost: Double?
+        let displayStartName: String
+        let displayEndName: String
+        let routeSummary: String
+        let kmlName: String
+        let points: [ExportPoint]
+    }
+
+    enum FileFormat: Sendable {
+        case json, csv, gpx, kml
+    }
+
+    @MainActor
+    static func snapshots(
+        from trips: [Trip],
+        blurCoordinates: Bool,
+        places: [SavedPlace],
+        privacyRadius: Double
+    ) -> [TripExportSnapshot] {
+        trips.map { trip in
+            let points = trip.sortedPoints.map { point in
+                let coordinate = blurCoordinates
+                    ? PlaceMatchingService.blurredCoordinate(point.coordinate)
+                    : point.coordinate
+                return ExportPoint(
+                    timestamp: point.timestamp,
+                    latitude: coordinate.latitude,
+                    longitude: coordinate.longitude,
+                    sequence: point.sequence,
+                    speedMps: point.speedMps
+                )
+            }
+            return TripExportSnapshot(
                 id: trip.id,
                 startedAt: trip.startedAt,
                 endedAt: trip.endedAt,
@@ -35,20 +75,60 @@ enum ExportService {
                 endAddress: trip.endAddress,
                 note: trip.note,
                 label: trip.label,
-                category: trip.categoryRaw,
+                categoryRaw: trip.categoryRaw,
                 estimatedFuelCost: trip.estimatedFuelCost,
-                points: trip.sortedPoints.map { point in
-                    let coordinate = blurCoordinates
-                        ? PlaceMatchingService.blurredCoordinate(point.coordinate)
-                        : point.coordinate
-                    return ExportPoint(
-                        timestamp: point.timestamp,
-                        latitude: coordinate.latitude,
-                        longitude: coordinate.longitude,
-                        sequence: point.sequence,
-                        speedMps: point.speedMps
-                    )
-                }
+                displayStartName: trip.displayStartName,
+                displayEndName: trip.displayEndName,
+                routeSummary: TripListViewModel.routeSummary(
+                    for: trip,
+                    places: places,
+                    privacyRadius: privacyRadius
+                ),
+                kmlName: trip.label ?? DateFormatters.tripDate.string(from: trip.startedAt),
+                points: points
+            )
+        }
+    }
+
+    nonisolated static func write(
+        snapshots: [TripExportSnapshot],
+        format: FileFormat,
+        to url: URL
+    ) throws {
+        switch format {
+        case .json:
+            let data = try exportJSON(snapshots: snapshots)
+            try data.write(to: url)
+        case .csv:
+            let csv = exportCSV(snapshots: snapshots)
+            try csv.write(to: url, atomically: true, encoding: .utf8)
+        case .gpx:
+            let gpx = exportGPX(snapshots: snapshots)
+            try gpx.write(to: url, atomically: true, encoding: .utf8)
+        case .kml:
+            let kml = exportKML(snapshots: snapshots)
+            try kml.write(to: url, atomically: true, encoding: .utf8)
+        }
+    }
+
+    static func exportJSON(trips: [Trip], blurCoordinates: Bool) throws -> Data {
+        try exportJSON(snapshots: trips.map { snapshot(from: $0, blurCoordinates: blurCoordinates) })
+    }
+
+    nonisolated static func exportJSON(snapshots: [TripExportSnapshot]) throws -> Data {
+        let payload = snapshots.map { snapshot in
+            ExportTrip(
+                id: snapshot.id,
+                startedAt: snapshot.startedAt,
+                endedAt: snapshot.endedAt,
+                distanceMeters: snapshot.distanceMeters,
+                startAddress: snapshot.startAddress,
+                endAddress: snapshot.endAddress,
+                note: snapshot.note,
+                label: snapshot.label,
+                category: snapshot.categoryRaw,
+                estimatedFuelCost: snapshot.estimatedFuelCost,
+                points: snapshot.points
             )
         }
         let encoder = JSONEncoder()
@@ -58,21 +138,25 @@ enum ExportService {
     }
 
     static func exportCSV(trips: [Trip]) -> String {
+        exportCSV(snapshots: trips.map { snapshot(from: $0, blurCoordinates: false) })
+    }
+
+    nonisolated static func exportCSV(snapshots: [TripExportSnapshot]) -> String {
         var lines = ["id,startedAt,endedAt,distanceKm,start,end,label,category,note,fuelCost"]
         let formatter = ISO8601DateFormatter()
-        for trip in trips {
-            let distanceKm = String(format: "%.2f", trip.distanceMeters / 1000)
-            let fuel = trip.estimatedFuelCost.map { String(format: "%.0f", $0) } ?? ""
+        for snapshot in snapshots {
+            let distanceKm = String(format: "%.2f", snapshot.distanceMeters / 1000)
+            let fuel = snapshot.estimatedFuelCost.map { String(format: "%.0f", $0) } ?? ""
             let row = [
-                trip.id.uuidString,
-                formatter.string(from: trip.startedAt),
-                trip.endedAt.map { formatter.string(from: $0) } ?? "",
+                snapshot.id.uuidString,
+                formatter.string(from: snapshot.startedAt),
+                snapshot.endedAt.map { formatter.string(from: $0) } ?? "",
                 distanceKm,
-                csvEscape(trip.displayStartName),
-                csvEscape(trip.displayEndName),
-                csvEscape(trip.label ?? ""),
-                trip.categoryRaw,
-                csvEscape(trip.note ?? ""),
+                csvEscape(snapshot.displayStartName),
+                csvEscape(snapshot.displayEndName),
+                csvEscape(snapshot.label ?? ""),
+                snapshot.categoryRaw,
+                csvEscape(snapshot.note ?? ""),
                 fuel
             ].joined(separator: ",")
             lines.append(row)
@@ -80,30 +164,27 @@ enum ExportService {
         return lines.joined(separator: "\n")
     }
 
-    private static func csvEscape(_ value: String) -> String {
-        "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
+    static func exportGPX(trips: [Trip], blurCoordinates: Bool) -> String {
+        exportGPX(snapshots: trips.map { snapshot(from: $0, blurCoordinates: blurCoordinates) })
     }
 
-    static func exportGPX(trips: [Trip], blurCoordinates: Bool) -> String {
+    nonisolated static func exportGPX(snapshots: [TripExportSnapshot]) -> String {
         var lines = [
             #"<?xml version="1.0" encoding="UTF-8"?>"#,
             #"<gpx version="1.1" creator="Trailhound">"#
         ]
         let formatter = ISO8601DateFormatter()
 
-        for trip in trips {
+        for snapshot in snapshots {
             lines.append(#"<trk>"#)
-            lines.append(#"<name>\#(xmlEscape(trip.label ?? trip.id.uuidString))</name>"#)
-            if let note = trip.note, !note.isEmpty {
+            lines.append(#"<name>\#(xmlEscape(snapshot.label ?? snapshot.id.uuidString))</name>"#)
+            if let note = snapshot.note, !note.isEmpty {
                 lines.append(#"<desc>\#(xmlEscape(note))</desc>"#)
             }
             lines.append(#"<trkseg>"#)
-            for point in trip.sortedPoints {
-                let coordinate = blurCoordinates
-                    ? PlaceMatchingService.blurredCoordinate(point.coordinate)
-                    : point.coordinate
+            for point in snapshot.points {
                 lines.append(
-                    #"<trkpt lat="\#(coordinate.latitude)" lon="\#(coordinate.longitude)">"#
+                    #"<trkpt lat="\#(point.latitude)" lon="\#(point.longitude)">"#
                 )
                 lines.append(#"<time>\#(formatter.string(from: point.timestamp))</time>"#)
                 if let speed = point.speedMps, speed > 0 {
@@ -120,23 +201,23 @@ enum ExportService {
     }
 
     static func exportKML(trips: [Trip], blurCoordinates: Bool) -> String {
+        exportKML(snapshots: trips.map { snapshot(from: $0, blurCoordinates: blurCoordinates) })
+    }
+
+    nonisolated static func exportKML(snapshots: [TripExportSnapshot]) -> String {
         var lines = [
             #"<?xml version="1.0" encoding="UTF-8"?>"#,
             #"<kml xmlns="http://www.opengis.net/kml/2.2">"#,
             "<Document>"
         ]
 
-        for trip in trips {
-            let name = trip.label ?? DateFormatters.tripDate.string(from: trip.startedAt)
+        for snapshot in snapshots {
             lines.append(#"<Placemark>"#)
-            lines.append(#"<name>\#(xmlEscape(name))</name>"#)
-            lines.append(#"<description>\#(xmlEscape(TripListViewModel.routeSummary(for: trip)))</description>"#)
+            lines.append(#"<name>\#(xmlEscape(snapshot.kmlName))</name>"#)
+            lines.append(#"<description>\#(xmlEscape(snapshot.routeSummary))</description>"#)
             lines.append(#"<LineString><tessellate>1</tessellate><coordinates>"#)
-            let coordinates = trip.sortedPoints.map { point -> String in
-                let coordinate = blurCoordinates
-                    ? PlaceMatchingService.blurredCoordinate(point.coordinate)
-                    : point.coordinate
-                return "\(coordinate.longitude),\(coordinate.latitude),0"
+            let coordinates = snapshot.points.map { point in
+                "\(point.longitude),\(point.latitude),0"
             }.joined(separator: " ")
             lines.append(coordinates)
             lines.append(#"</coordinates></LineString>"#)
@@ -146,6 +227,42 @@ enum ExportService {
         lines.append("</Document>")
         lines.append("</kml>")
         return lines.joined(separator: "\n")
+    }
+
+    private static func snapshot(from trip: Trip, blurCoordinates: Bool) -> TripExportSnapshot {
+        let points = trip.sortedPoints.map { point in
+            let coordinate = blurCoordinates
+                ? PlaceMatchingService.blurredCoordinate(point.coordinate)
+                : point.coordinate
+            return ExportPoint(
+                timestamp: point.timestamp,
+                latitude: coordinate.latitude,
+                longitude: coordinate.longitude,
+                sequence: point.sequence,
+                speedMps: point.speedMps
+            )
+        }
+        return TripExportSnapshot(
+            id: trip.id,
+            startedAt: trip.startedAt,
+            endedAt: trip.endedAt,
+            distanceMeters: trip.distanceMeters,
+            startAddress: trip.startAddress,
+            endAddress: trip.endAddress,
+            note: trip.note,
+            label: trip.label,
+            categoryRaw: trip.categoryRaw,
+            estimatedFuelCost: trip.estimatedFuelCost,
+            displayStartName: trip.displayStartName,
+            displayEndName: trip.displayEndName,
+            routeSummary: "\(trip.displayStartName) → \(trip.displayEndName)",
+            kmlName: trip.label ?? DateFormatters.tripDate.string(from: trip.startedAt),
+            points: points
+        )
+    }
+
+    private static func csvEscape(_ value: String) -> String {
+        "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
     }
 
     private static func xmlEscape(_ value: String) -> String {
