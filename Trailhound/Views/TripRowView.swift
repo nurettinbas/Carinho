@@ -86,21 +86,22 @@ struct TripRowView: View {
                 }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
+        .padding(.horizontal, 4)
         .background {
             if emphasizeLanding, !reduceMotion {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(TrailhoundBrandColors.brandBottom.opacity(0.14))
-                    .padding(.horizontal, -8)
-                    .padding(.vertical, -6)
+                    .padding(.horizontal, -4)
+                    .padding(.vertical, -4)
             }
         }
         .overlay {
             if emphasizeLanding, !reduceMotion {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .strokeBorder(TrailhoundBrandColors.brandBottom.opacity(0.35), lineWidth: 1)
-                    .padding(.horizontal, -8)
-                    .padding(.vertical, -6)
+                    .padding(.horizontal, -4)
+                    .padding(.vertical, -4)
             }
         }
         .scaleEffect(emphasizeLanding && !reduceMotion ? 1.03 : 1)

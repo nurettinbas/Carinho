@@ -21,20 +21,34 @@ struct NotificationsListView: View {
                         Section {
                             activeRecordingCard
                         }
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     }
 
                     ForEach(visibleItems) { item in
                         notificationRow(item)
+                            .background {
+                                if !item.isRead {
+                                    RoundedRectangle(cornerRadius: GlassTokens.cardRadius, style: .continuous)
+                                        .fill(TrailhoundBrandColors.brandBottom.opacity(0.07))
+                                }
+                            }
+                            .glassCard()
+                            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) {
                                     store.delete(item.id)
                                 } label: {
                                     Label(L10n.delete, systemImage: "trash")
                                 }
+                                .destructiveTint()
                             }
                     }
                 }
                 .listStyle(.plain)
+                .glassListChrome()
             }
         }
         .navigationTitle(L10n.notificationsTitle)
@@ -42,11 +56,6 @@ struct NotificationsListView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button(L10n.notificationsMarkAllRead) {
-                        store.markAllRead()
-                    }
-                    .disabled(store.unreadCount == 0)
-
                     Button(L10n.notificationsClearAll, role: .destructive) {
                         store.clearAll()
                     }
@@ -58,7 +67,6 @@ struct NotificationsListView: View {
         }
         .onAppear {
             store.reload()
-            store.markAllRead()
         }
     }
 
@@ -132,9 +140,15 @@ struct NotificationsListView: View {
             }
         }
         .padding(14)
-        .background(RecordingCardStyle.background(isPaused: isPaused))
+        .background {
+            RecordingCardStyle.glassSurface(isPaused: isPaused)
+        }
         .animation(.easeInOut(duration: 0.25), value: isPaused)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: RecordingCardStyle.cornerRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: RecordingCardStyle.cornerRadius, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.28), lineWidth: 1)
+        }
         .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
@@ -202,7 +216,8 @@ struct NotificationsListView: View {
                         Label(L10n.delete, systemImage: "trash")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.borderedProminent)
+                    .destructiveTint()
                 }
                 .padding(.leading, 40)
             }
@@ -235,8 +250,7 @@ struct NotificationsListView: View {
                     .monospacedDigit()
             }
         }
-        .padding(.vertical, 4)
-        .listRowBackground(item.isRead ? Color.clear : Color.blue.opacity(0.06))
+        .padding(.vertical, 2)
     }
 
     private var liveSessionTint: Color {

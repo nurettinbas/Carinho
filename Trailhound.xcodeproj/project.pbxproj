@@ -37,6 +37,7 @@
 		A10000000000000000000017 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* SettingsView.swift */; };
 		A10000000000000000000018 /* DistanceCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* DistanceCalculator.swift */; };
 		A1TRAILHOUNDMOTION00000001 /* TrailhoundMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2TRAILHOUNDMOTION00000001 /* TrailhoundMotion.swift */; };
+		A1GLASSSTYLE000000000001 /* GlassStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2GLASSSTYLE000000000001 /* GlassStyle.swift */; };
 		A1TRAILHOUNDSOUNDS00000001 /* TrailhoundSounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2TRAILHOUNDSOUNDS00000001 /* TrailhoundSounds.swift */; };
 		A1TRIPSTARTCAF000000001 /* trip_start.caf in Resources */ = {isa = PBXBuildFile; fileRef = A2TRIPSTARTCAF000000001 /* trip_start.caf */; };
 		A1TRIPSTOPCAF0000000001 /* trip_stop.caf in Resources */ = {isa = PBXBuildFile; fileRef = A2TRIPSTOPCAF0000000001 /* trip_stop.caf */; };
@@ -189,6 +190,7 @@
 		A20000000000000000000017 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A20000000000000000000018 /* DistanceCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistanceCalculator.swift; sourceTree = "<group>"; };
 		A2TRAILHOUNDMOTION00000001 /* TrailhoundMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundMotion.swift; sourceTree = "<group>"; };
+		A2GLASSSTYLE000000000001 /* GlassStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassStyle.swift; sourceTree = "<group>"; };
 		A2TRAILHOUNDSOUNDS00000001 /* TrailhoundSounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundSounds.swift; sourceTree = "<group>"; };
 		A2TRIPSTARTCAF000000001 /* trip_start.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = trip_start.caf; sourceTree = "<group>"; };
 		A2TRIPSTOPCAF0000000001 /* trip_stop.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = trip_stop.caf; sourceTree = "<group>"; };
@@ -470,6 +472,7 @@
 				A2APPERRORPRES0000001 /* AppErrorPresenter.swift */,
 				A20000000000000000000018 /* DistanceCalculator.swift */,
 				A2TRAILHOUNDMOTION00000001 /* TrailhoundMotion.swift */,
+				A2GLASSSTYLE000000000001 /* GlassStyle.swift */,
 				A2TRAILHOUNDSOUNDS00000001 /* TrailhoundSounds.swift */,
 				A20000000000000000000020 /* AppSettings.swift */,
 				A20000000000000000000021 /* PreviewData.swift */,
@@ -682,6 +685,7 @@
 				A10000000000000000000017 /* SettingsView.swift in Sources */,
 				A10000000000000000000018 /* DistanceCalculator.swift in Sources */,
 				A1TRAILHOUNDMOTION00000001 /* TrailhoundMotion.swift in Sources */,
+				A1GLASSSTYLE000000000001 /* GlassStyle.swift in Sources */,
 				A1TRAILHOUNDSOUNDS00000001 /* TrailhoundSounds.swift in Sources */,
 				A10000000000000000000020 /* AppSettings.swift in Sources */,
 				A10000000000000000000021 /* PreviewData.swift in Sources */,

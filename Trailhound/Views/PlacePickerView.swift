@@ -48,7 +48,7 @@ struct PlacePickerView: View {
     Form {
       if !suggestions.isEmpty && !isEditing {
         Section(L10n.placeSuggestionSection) {
-          ForEach(suggestions, id: \.name) { suggestion in
+          ForEach(Array(suggestions.enumerated()), id: \.element.name) { index, suggestion in
             Button {
               applySuggestion(suggestion)
             } label: {
@@ -64,6 +64,7 @@ struct PlacePickerView: View {
               }
             }
             .buttonStyle(.plain)
+            .glassRow(position: GlassRowPosition.index(index, in: suggestions.count))
           }
         }
       }
@@ -73,13 +74,17 @@ struct PlacePickerView: View {
           .focused($isNameFocused)
           .submitLabel(.done)
           .onSubmit { dismissNameKeyboard() }
+          .glassRow(position: .first)
 
         Picker(L10n.string("place.kind.field"), selection: $kind) {
           ForEach(SavedPlaceKind.allCases, id: \.self) { kind in
             Text(kind.displayName).tag(kind)
           }
         }
+        .glassRow(position: .middle)
+
         Toggle(L10n.string("place.privacy_zone"), isOn: $isPrivacyZone)
+          .glassRow(position: .last)
       } header: {
         Text(L10n.string("place.info.section"))
       } footer: {
@@ -88,19 +93,22 @@ struct PlacePickerView: View {
 
       Section(L10n.string("place.location.section")) {
         mapPicker
-          .listRowInsets(EdgeInsets())
+          .glassRow(position: .first)
 
         selectedLocationCard
+          .glassRow(position: .middle)
 
         if let suggestedName, name != suggestedName {
           Button(L10n.placePickerUseAddressAsName) {
             name = suggestedName
           }
+          .glassRow(position: .middle)
         }
 
         Button(L10n.placePickerUseCurrentLocation) {
           useCurrentLocation()
         }
+        .glassRow(position: .last)
       }
 
       if isLoadingNearby || !nearbyPlaces.isEmpty {
@@ -112,9 +120,10 @@ struct PlacePickerView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }
+            .glassRow(position: nearbyPlaces.isEmpty ? .only : .first)
           }
 
-          ForEach(nearbyPlaces) { place in
+          ForEach(Array(nearbyPlaces.enumerated()), id: \.element.id) { index, place in
             Button {
               selectNearbyPlace(place)
             } label: {
@@ -140,6 +149,7 @@ struct PlacePickerView: View {
               .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .glassRow(position: nearbyRowPosition(placeIndex: index))
           }
         }
       }
@@ -150,9 +160,11 @@ struct PlacePickerView: View {
           savePlace()
         }
         .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        .glassListRow()
       }
     }
     .navigationTitle(isEditing ? L10n.placePickerEditTitle : L10n.placePickerNewTitle)
+    .glassListChrome()
     .dismissKeyboardOnScroll()
     .keyboardDoneToolbar()
     .onAppear {
@@ -197,9 +209,9 @@ struct PlacePickerView: View {
       }
     }
     .frame(height: 260)
-    .clipShape(RoundedRectangle(cornerRadius: 12))
-    .padding(.horizontal, 16)
-    .padding(.vertical, 8)
+    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .padding(.top, 4)
+    .padding(.bottom, 8)
     .accessibilityLabel(L10n.placePickerSelectedLocation)
     .accessibilityValue(selectedLocationSummary)
   }
@@ -220,6 +232,15 @@ struct PlacePickerView: View {
     }
     .offset(y: -20)
     .allowsHitTesting(false)
+  }
+
+  private var nearbyRowCount: Int {
+    (isLoadingNearby ? 1 : 0) + nearbyPlaces.count
+  }
+
+  private func nearbyRowPosition(placeIndex: Int) -> GlassRowPosition {
+    let offset = isLoadingNearby ? 1 : 0
+    return GlassRowPosition.index(placeIndex + offset, in: nearbyRowCount)
   }
 
   private var selectedLocationCard: some View {

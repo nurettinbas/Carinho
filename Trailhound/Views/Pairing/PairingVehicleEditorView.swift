@@ -38,6 +38,7 @@ private struct PairingVehicleEditorForm: View {
         Form {
             Section(L10n.pairingTabVehicleSection) {
                 TextField(L10n.pairingTabVehicleName, text: $vehicle.name)
+                    .glassRow(position: .first)
                 Picker(L10n.pairingTabFuelType, selection: Binding(
                     get: { vehicle.fuelType },
                     set: { vehicle.fuelType = $0 }
@@ -46,11 +47,13 @@ private struct PairingVehicleEditorForm: View {
                         Text(type.displayName).tag(type)
                     }
                 }
+                .glassRow(position: .middle)
                 LabeledContent(vehicle.consumptionLabel) {
                     TextField(vehicle.consumptionLabel, value: $vehicle.consumption, format: .number)
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                 }
+                .glassRow(position: vehicle.fuelType == .electric ? .middle : .last)
                 if vehicle.fuelType == .electric {
                     LabeledContent(L10n.pairingTabChargePrice) {
                         TextField("TL/kWh", value: Binding(
@@ -60,6 +63,7 @@ private struct PairingVehicleEditorForm: View {
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                     }
+                    .glassRow(position: .last)
                 }
             }
 
@@ -67,6 +71,7 @@ private struct PairingVehicleEditorForm: View {
                 Text(L10n.pairingTabEditorPairingHint)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                    .glassListRow()
             }
 
             Section {
@@ -78,9 +83,14 @@ private struct PairingVehicleEditorForm: View {
                         AppErrorPresenter.shared.present(L10n.pairingTabSaveFailed(error.localizedDescription))
                     }
                 }
+                .frame(maxWidth: .infinity)
+                .tint(TrailhoundBrandColors.brandBottom)
+                .glassListRow()
             }
         }
+        .glassListChrome()
         .navigationTitle(vehicle.name)
         .navigationBarTitleDisplayMode(.inline)
+        .keyboardDoneToolbar()
     }
 }

@@ -9,26 +9,29 @@ struct OnboardingView: View {
     private let pageCount = 2
 
     var body: some View {
-        VStack(spacing: 0) {
-            Group {
-                switch page {
-                case 0:
-                    welcomePage
-                default:
-                    vehicleSetupPage
+        ZStack {
+            AtmosphericBackground()
+
+            VStack(spacing: 0) {
+                Group {
+                    switch page {
+                    case 0:
+                        welcomePage
+                    default:
+                        vehicleSetupPage
+                    }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .animation(TrailhoundMotion.gentle, value: page)
+
+                pageIndicator
+                    .padding(.top, 8)
+
+                bottomBar
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 32)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .animation(TrailhoundMotion.gentle, value: page)
-
-            pageIndicator
-                .padding(.top, 8)
-
-            bottomBar
-                .padding(.horizontal, 24)
-                .padding(.bottom, 32)
         }
-        .background(Color(.systemGroupedBackground))
     }
 
     private var welcomePage: some View {
@@ -89,9 +92,7 @@ struct OnboardingView: View {
             }
             .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(.systemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
+            .glassCard(contentInset: 0)
             .padding(.horizontal, 24)
 
             Spacer()
@@ -129,11 +130,13 @@ struct OnboardingView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(TrailhoundBrandColors.brandBottom)
             } else {
                 Button(L10n.string("onboarding.finish")) {
                     skipVehicleSetup()
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(TrailhoundBrandColors.brandBottom)
             }
         }
     }

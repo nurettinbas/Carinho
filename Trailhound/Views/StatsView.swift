@@ -13,6 +13,7 @@ struct StatsView: View {
     @State private var customStart = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
     @State private var customEnd = Date()
     @State private var animatedProgress: Double = 0
+    @Namespace private var periodChipNamespace
 
     private var completedTrips: [Trip] {
         trips.filter { $0.endedAt != nil }
@@ -87,27 +88,8 @@ struct StatsView: View {
 
     var body: some View {
         List {
-            Picker(L10n.string("stats.period.title"), selection: $selectedPeriod) {
-                ForEach(StatsPeriod.allCases) { period in
-                    Text(period.title).tag(period)
-                }
-            }
-            .pickerStyle(.segmented)
-
-            if selectedPeriod == .custom {
-                Section(L10n.string("stats.period.custom")) {
-                    DatePicker(L10n.string("stats.period.start"), selection: $customStart, displayedComponents: .date)
-                    DatePicker(L10n.string("stats.period.end"), selection: $customEnd, displayedComponents: .date)
-                }
-            }
-
-            Picker(L10n.string("filter.category"), selection: $selectedCategoryID) {
-                Text(L10n.all).tag(String?.none)
-                ForEach(categories) { category in
-                    Text(category.name).tag(Optional(category.storageKey))
-                }
-            }
-            .pickerStyle(.menu)
+            statsFilterCard
+                .glassListRow()
 
             Section(L10n.string("stats.goal.section")) {
                 HStack(spacing: 20) {
@@ -135,14 +117,20 @@ struct StatsView: View {
                     }
                 }
                 .padding(.vertical, 4)
+                .glassListRow()
             }
 
             Section(L10n.string("stats.summary.section")) {
                 trendRow(L10n.string("stats.trips"), value: "\(stats.tripCount)", trend: tripCountTrendText)
+                    .glassRow(position: .first)
                 trendRow(L10n.string("stats.total_distance"), value: stats.totalDistanceText, trend: distanceTrendText)
+                    .glassRow(position: .middle)
                 statRow(L10n.string("stats.average_duration"), value: stats.averageDurationText)
+                    .glassRow(position: .middle)
                 statRow(L10n.estimatedFuel, value: stats.fuelCostText)
+                    .glassRow(position: .middle)
                 statRow(L10n.string("stats.night_driving"), value: stats.nightDrivingText)
+                    .glassRow(position: .last)
             }
             .transition(TrailhoundMotion.fadeScaleTransition(reduceMotion: reduceMotion))
 
@@ -153,10 +141,11 @@ struct StatsView: View {
                             x: .value(L10n.string("stats.chart.day"), item.day, unit: .day),
                             y: .value(L10n.string("stats.chart.distance_km"), item.distanceKilometers)
                         )
-                        .foregroundStyle(.blue.gradient)
+                        .foregroundStyle(TrailhoundBrandColors.brandBottom.gradient)
                     }
                     .chartYAxisLabel(L10n.string("stats.chart.distance_km"))
                     .frame(height: 200)
+                    .glassListRow()
                 }
                 .animation(reduceMotion ? nil : TrailhoundMotion.gentle, value: selectedPeriod)
             }
@@ -172,12 +161,14 @@ struct StatsView: View {
                         .foregroundStyle(by: .value(L10n.string("filter.category"), item.name))
                     }
                     .frame(height: 220)
+                    .glassRow(position: .first)
 
-                    ForEach(categoryChartData) { item in
+                    ForEach(Array(categoryChartData.enumerated()), id: \.element.id) { index, item in
                         LabeledContent(item.name) {
                             Text(DateFormatters.formatDistance(item.distanceMeters))
                                 .foregroundStyle(.secondary)
                         }
+                        .glassRow(position: GlassRowPosition.index(index + 1, in: categoryChartData.count + 1))
                     }
                 }
                 .animation(reduceMotion ? nil : TrailhoundMotion.gentle, value: selectedCategoryID)
@@ -185,6 +176,7 @@ struct StatsView: View {
         }
         .animation(reduceMotion ? nil : TrailhoundMotion.gentle, value: selectedPeriod)
         .animation(reduceMotion ? nil : TrailhoundMotion.gentle, value: selectedCategoryID)
+        .glassListChrome()
         .navigationTitle(L10n.string("stats.title"))
         .onAppear {
             updateAnimatedProgress(animated: false)
@@ -195,6 +187,94 @@ struct StatsView: View {
         .onChange(of: monthDistanceMeters) { _, _ in
             updateAnimatedProgress(animated: true)
         }
+    }
+
+    private var selectedCategoryName: String {
+        guard let selectedCategoryID,
+              let category = categories.first(where: { $0.storageKey == selectedCategoryID }) else {
+            return L10n.all
+        }
+        return category.name
+    }
+
+    private var statsFilterCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 8) {
+                ForEach(StatsPeriod.allCases) { period in
+                    GlassFilterChip(
+                        title: period.title,
+                        isSelected: selectedPeriod == period,
+                        namespace: periodChipNamespace,
+                        highlightID: "statsPeriodHighlight",
+                        expands: true
+                    ) {
+                        if reduceMotion {
+                            selectedPeriod = period
+                        } else {
+                            withAnimation(TrailhoundMotion.gentle) {
+                                selectedPeriod = period
+                            }
+                        }
+                        TrailhoundHaptics.selection()
+                    }
+                }
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(L10n.string("stats.period.title"))
+
+            if selectedPeriod == .custom {
+                HStack(alignment: .top, spacing: 10) {
+                    statsCustomDateField(
+                        title: L10n.string("stats.period.start"),
+                        date: $customStart
+                    )
+                    statsCustomDateField(
+                        title: L10n.string("stats.period.end"),
+                        date: $customEnd
+                    )
+                }
+                .transition(reduceMotion ? .identity : .opacity.combined(with: .move(edge: .top)))
+            }
+
+            HStack(spacing: 12) {
+                Text(L10n.string("filter.category"))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                Spacer(minLength: 8)
+
+                Picker(L10n.string("filter.category"), selection: $selectedCategoryID) {
+                    Text(L10n.all).tag(String?.none)
+                    ForEach(categories) { category in
+                        Text(category.name).tag(Optional(category.storageKey))
+                    }
+                }
+                .pickerStyle(.menu)
+                .tint(TrailhoundBrandColors.brandBottom)
+                .labelsHidden()
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(L10n.string("filter.category"))
+            .accessibilityValue(selectedCategoryName)
+        }
+        .padding(.vertical, 6)
+        .animation(reduceMotion ? nil : TrailhoundMotion.gentle, value: selectedPeriod)
+    }
+
+    private func statsCustomDateField(title: String, date: Binding<Date>) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+
+            DatePicker(title, selection: date, displayedComponents: .date)
+                .labelsHidden()
+                .datePickerStyle(.compact)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var goalRing: some View {

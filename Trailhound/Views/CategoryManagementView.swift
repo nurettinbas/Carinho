@@ -13,9 +13,13 @@ struct CategoryManagementView: View {
     @FocusState.Binding var focusedField: SettingsFocusedField?
     @State private var newCategoryName = ""
 
+    private var rowCount: Int {
+        categories.count + 1
+    }
+
     var body: some View {
         Section(L10n.categorySection) {
-            ForEach(categories) { category in
+            ForEach(Array(categories.enumerated()), id: \.element.id) { index, category in
                 HStack {
                     Image(systemName: category.systemImage)
                     Text(category.name)
@@ -26,8 +30,18 @@ struct CategoryManagementView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                .glassRow(position: GlassRowPosition.index(index, in: rowCount))
+                .swipeActions(edge: .trailing, allowsFullSwipe: !category.isBuiltIn) {
+                    if !category.isBuiltIn {
+                        Button(role: .destructive) {
+                            deleteCategory(category)
+                        } label: {
+                            Label(L10n.delete, systemImage: "trash")
+                        }
+                        .destructiveTint()
+                    }
+                }
             }
-            .onDelete(perform: deleteCategories)
 
             HStack {
                 TextField(L10n.categoryNewPlaceholder, text: $newCategoryName)
@@ -37,6 +51,7 @@ struct CategoryManagementView: View {
                 }
                 .disabled(newCategoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
+            .glassRow(position: .last)
         }
     }
 
@@ -50,12 +65,9 @@ struct CategoryManagementView: View {
         newCategoryName = ""
     }
 
-    private func deleteCategories(at offsets: IndexSet) {
-        for index in offsets {
-            let category = categories[index]
-            guard !category.isBuiltIn else { continue }
-            modelContext.delete(category)
-        }
+    private func deleteCategory(_ category: UserCategory) {
+        guard !category.isBuiltIn else { return }
+        modelContext.delete(category)
         try? modelContext.save()
     }
 }

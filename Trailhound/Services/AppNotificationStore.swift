@@ -138,14 +138,6 @@ final class AppNotificationStore {
         persist()
     }
 
-    func markAllRead() {
-        guard unreadCount > 0 else { return }
-        for index in items.indices {
-            items[index].isRead = true
-        }
-        persist()
-    }
-
     func delete(_ id: UUID) {
         items.removeAll { $0.id == id }
         persist()

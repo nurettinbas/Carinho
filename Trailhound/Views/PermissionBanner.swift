@@ -76,7 +76,7 @@ struct LocationAlwaysRequiredBanner: View {
       .padding(12)
       .frame(maxWidth: .infinity, alignment: .leading)
       .background(Color.orange.opacity(0.12))
-      .clipShape(RoundedRectangle(cornerRadius: 10))
+      .glassCard(cornerRadius: 12, contentInset: 0)
     }
   }
 
@@ -160,7 +160,7 @@ struct LocationPermissionBanner: View {
     }
     .padding(12)
     .background(Color.orange.opacity(0.12))
-    .clipShape(RoundedRectangle(cornerRadius: 10))
+    .glassCard(cornerRadius: 12, contentInset: 0)
     .padding(.horizontal)
   }
 }

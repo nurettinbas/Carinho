@@ -62,33 +62,21 @@ struct TripFilterChips: View {
         isSelected: Bool,
         action: @escaping () -> Void
     ) -> some View {
-        Button {
-            if reduceMotion {
-                action()
-            } else {
-                withAnimation(TrailhoundMotion.cardSpring) {
+        GlassFilterChip(
+            title: title,
+            isSelected: isSelected,
+            namespace: chipNamespace,
+            highlightID: "tripFilterHighlight",
+            action: {
+                if reduceMotion {
                     action()
-                }
-            }
-        } label: {
-            Text(title)
-                .font(.caption.weight(isSelected ? .semibold : .regular))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .foregroundStyle(isSelected ? Color.white : Color.primary)
-                .background {
-                    if isSelected {
-                        Capsule()
-                            .fill(Color.accentColor)
-                            .matchedGeometryEffect(id: "tripFilterHighlight", in: chipNamespace)
-                    } else {
-                        Capsule()
-                            .fill(Color.secondary.opacity(0.15))
+                } else {
+                    withAnimation(TrailhoundMotion.cardSpring) {
+                        action()
                     }
                 }
-        }
-        .buttonStyle(.plain)
+            }
+        )
         .id(key)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

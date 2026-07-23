@@ -38,6 +38,7 @@ struct PairingTabView: View {
                     PairingVehicleEditorView(vehicleID: vehicleID)
                 }
         }
+        .background(Color.clear)
     }
 
     private var pairingList: some View {
@@ -79,8 +80,9 @@ struct PairingTabView: View {
                 }
             } else {
                 Section(sortedVehicles.count == 1 ? L10n.pairingTabVehicleSection : L10n.pairingTabSavedVehicles) {
-                    ForEach(sortedVehicles, id: \.id) { vehicle in
+                    ForEach(Array(sortedVehicles.enumerated()), id: \.element.id) { index, vehicle in
                         vehicleRow(vehicle)
+                            .glassRow(position: GlassRowPosition.index(index, in: sortedVehicles.count + 1))
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) {
                                     vehiclePendingDeleteID = vehicle.id
@@ -88,6 +90,7 @@ struct PairingTabView: View {
                                 } label: {
                                     Label(L10n.delete, systemImage: "trash")
                                 }
+                                .destructiveTint()
                             }
                     }
 
@@ -98,6 +101,7 @@ struct PairingTabView: View {
                             .padding(.vertical, 4)
                     }
                     .tint(TrailhoundBrandColors.brandBottom)
+                    .glassRow(position: .last)
                 }
             }
 
@@ -106,6 +110,7 @@ struct PairingTabView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .glassListChrome()
         .navigationTitle(L10n.pairingTabTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -151,15 +156,21 @@ struct PairingTabView: View {
     }
 
     private func vehicleRow(_ vehicle: VehicleProfile) -> some View {
-        PairingVehicleRow(
-            vehicle: vehicle,
-            isAutoStartActive: isAutoStartActive(for: vehicle),
-            subtitle: vehicleSubtitle(vehicle),
-            showsAutoStartButton: showsAutoStartButton(for: vehicle),
-            onOpen: { openEditor(for: vehicle.id) },
-            onAutoStart: { confirmVehicleIdentity(vehicle) },
-            onRemoveAutoStart: { removeAutoStart(for: vehicle) }
-        )
+        PairingCardContainer {
+            PairingVehicleRow(
+                vehicle: vehicle,
+                isAutoStartActive: isAutoStartActive(for: vehicle),
+                subtitle: vehicleSubtitle(vehicle),
+                showsAutoStartButton: showsAutoStartButton(for: vehicle),
+                onOpen: { openEditor(for: vehicle.id) },
+                onAutoStart: { confirmVehicleIdentity(vehicle) },
+                onRemoveAutoStart: { removeAutoStart(for: vehicle) }
+            )
+            .padding(12)
+        }
+        .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
     }
 
     private func isAutoStartActive(for vehicle: VehicleProfile) -> Bool {

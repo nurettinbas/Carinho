@@ -85,9 +85,9 @@ struct RecordingEndCreditsView: View {
         .padding(.vertical, 8)
         .background {
             ZStack {
-                RecordingCardStyle.background(isPaused: false)
+                RecordingCardStyle.glassSurface(isPaused: false)
                     .opacity(1 - Double(brakeProgress) * 0.35)
-                RecordingCardStyle.background(isPaused: true)
+                RecordingCardStyle.glassSurface(isPaused: true)
                     .opacity(Double(brakeProgress) * 0.85)
                 RadialGradient(
                     colors: [
@@ -101,7 +101,11 @@ struct RecordingEndCreditsView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: RecordingCardStyle.cornerRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: RecordingCardStyle.cornerRadius, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.28), lineWidth: 1)
+        }
         .allowsHitTesting(false)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(L10n.tripEndedTitle). \(snapshot.durationText). \(snapshot.distanceText)")

@@ -9,6 +9,11 @@ public enum TrailhoundBrandColors {
     public static let stop = Color.red
     public static let start = brandBottom
 
+    /// Light-mode atmospheric shell (behind glass) — clearly blue, not near-white.
+    public static let atmosphereTop = Color(red: 0.52, green: 0.78, blue: 0.96)
+    public static let atmosphereMid = Color(red: 0.68, green: 0.86, blue: 0.98)
+    public static let atmosphereBottom = Color(red: 0.38, green: 0.66, blue: 0.92)
+
     public static let activeGradient = LinearGradient(
         colors: [brandTop, brandBottom],
         startPoint: .topLeading,

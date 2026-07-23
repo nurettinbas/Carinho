@@ -23,29 +23,48 @@ struct ContentView: View {
     }
 
     private var mainTabs: some View {
-        TabView(selection: $tabSelection.selectedTab) {
-            NavigationStack { TripListView() }
+        ZStack {
+            AtmosphericBackground()
+
+            TabView(selection: $tabSelection.selectedTab) {
+                NavigationStack {
+                    TripListView()
+                }
+                .background(Color.clear)
                 .tabItem { Label(L10n.tabTrips, systemImage: "map.fill") }
-                // Empty-string badge = system red recording dot on the Trips tab.
                 .badge(isRecordingSession ? "" : nil)
                 .tag(AppTab.trips)
 
-            NavigationStack { StatsView() }
+                NavigationStack {
+                    StatsView()
+                }
+                .background(Color.clear)
                 .tabItem { Label(L10n.tabStats, systemImage: "chart.bar") }
                 .tag(AppTab.stats)
 
-            PairingTabView()
-                .tabItem { Label(L10n.tabPairing, systemImage: "link.circle") }
-                .tag(AppTab.pairing)
+                PairingTabView()
+                    .tabItem { Label(L10n.tabPairing, systemImage: "link.circle") }
+                    .tag(AppTab.pairing)
 
-            NavigationStack { SettingsView() }
+                NavigationStack {
+                    SettingsView()
+                }
+                .background(Color.clear)
                 .tabItem { Label(L10n.tabSettings, systemImage: "gearshape") }
                 .tag(AppTab.settings)
 
-            NavigationStack { DevLogView() }
+                NavigationStack {
+                    DevLogView()
+                }
+                .background(Color.clear)
                 .tabItem { Label(L10n.string("Dev Log"), systemImage: "ladybug") }
                 .tag(AppTab.devLog)
+            }
+            .background(Color.clear)
         }
+        .tint(TrailhoundBrandColors.brandBottom)
+        .toolbarBackground(.ultraThinMaterial, for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
         .task {
             await authenticateOnLaunch()
             processPendingRecordingRequests()

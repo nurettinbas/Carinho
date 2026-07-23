@@ -118,9 +118,13 @@ struct ActiveTripView: View {
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
-            RecordingCardStyle.background(isPaused: isPaused)
+            RecordingCardStyle.glassSurface(isPaused: isPaused)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: RecordingCardStyle.cornerRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: RecordingCardStyle.cornerRadius, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.28), lineWidth: 1)
+        }
         .padding(.horizontal)
         .opacity(cardVisible ? 1 : 0)
         .accessibilityElement(children: .combine)

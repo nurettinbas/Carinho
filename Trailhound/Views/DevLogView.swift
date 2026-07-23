@@ -115,7 +115,7 @@ struct DevLogView: View {
                 .font(.caption)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
-                .background(isSelected ? Color.accentColor : Color.secondary.opacity(0.15))
+                .background(isSelected ? TrailhoundBrandColors.brandBottom : Color.secondary.opacity(0.15))
                 .foregroundStyle(isSelected ? Color.white : Color.primary)
                 .clipShape(Capsule())
         }

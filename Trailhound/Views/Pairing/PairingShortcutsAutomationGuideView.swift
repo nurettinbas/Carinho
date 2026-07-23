@@ -98,8 +98,10 @@ struct PairingShortcutsAutomationGuideView: View {
                     .frame(width: geometry.size.width, alignment: .leading)
                 }
             }
+            .background { AtmosphericBackground().ignoresSafeArea() }
             .navigationTitle(L10n.pairingShortcutsGuideTitle)
             .navigationBarTitleDisplayMode(.inline)
+            .glassNavigationChrome()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(L10n.pairingShortcutsGuideDone) {
@@ -125,8 +127,7 @@ struct PairingShortcutsAutomationGuideView: View {
         }
         .padding(14)
         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .glassChrome(cornerRadius: 12)
     }
 
     private var triggerOptionsSection: some View {
@@ -157,13 +158,11 @@ struct PairingShortcutsAutomationGuideView: View {
                     body: L10n.pairingShortcutsGuideTriggersWiFiBody
                 )
             }
-            .background(Color(.tertiarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .glassChrome(cornerRadius: 10)
         }
         .padding(14)
         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .glassChrome(cornerRadius: 12)
     }
 
     private func triggerOptionRow(
@@ -286,13 +285,10 @@ struct PairingShortcutsAutomationGuideView: View {
             .padding(14)
         }
         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-        .background {
+        .glassChrome(cornerRadius: 12)
+        .overlay {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(.secondarySystemGroupedBackground))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .strokeBorder(tint.opacity(0.18), lineWidth: 1)
-                }
+                .strokeBorder(tint.opacity(0.18), lineWidth: 1)
         }
     }
 
@@ -399,8 +395,7 @@ struct PairingShortcutsAutomationGuideView: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(Color(.tertiarySystemGroupedBackground))
-        .clipShape(Capsule())
+        .glassChrome(cornerRadius: 12)
         .overlay {
             Capsule()
                 .strokeBorder(brandAccent.opacity(0.25), lineWidth: 1)

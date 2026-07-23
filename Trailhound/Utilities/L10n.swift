@@ -21,7 +21,6 @@ enum L10n {
     static var notificationsTitle: String { string("notifications.title") }
     static var notificationsEmptyTitle: String { string("notifications.empty.title") }
     static var notificationsEmptyMessage: String { string("notifications.empty.message") }
-    static var notificationsMarkAllRead: String { string("notifications.mark_all_read") }
     static var notificationsClearAll: String { string("notifications.clear_all") }
 
     static var pause: String { string("action.pause") }

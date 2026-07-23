@@ -112,6 +112,7 @@ struct TripListView: View {
                     }
                     .padding(.vertical, 4)
                 }
+                .glassListRow()
             }
 
             if let orphan = visibleOrphan {
@@ -140,9 +141,11 @@ struct TripListView: View {
                                     refreshOrphans()
                                 }
                             }
+                            .destructiveTint()
                         }
                     }
                 }
+                .glassListRow()
             }
 
             if recordingService.state.isActiveSession, endCredits == nil {
@@ -194,6 +197,7 @@ struct TripListView: View {
                     .accessibilityElement(children: .combine)
                     .accessibilityLabel("\(L10n.sectionThisWeek). \(weekSummaryText)")
                 }
+                .glassListRow()
             }
 
             Section {
@@ -214,23 +218,25 @@ struct TripListView: View {
 
             if completedTrips.isEmpty {
                 if !recordingService.state.isActiveSession, endCredits == nil, coldOpenTripID == nil {
-                    ContentUnavailableView(
-                        hasActiveFilters ? L10n.tripsEmptyFilteredTitle : L10n.tripsEmptyTitle,
+                    GlassEmptyState(
+                        title: hasActiveFilters ? L10n.tripsEmptyFilteredTitle : L10n.tripsEmptyTitle,
                         systemImage: "car",
-                        description: Text(hasActiveFilters
+                        message: hasActiveFilters
                             ? L10n.tripsEmptyFilteredMessage
-                            : L10n.tripsEmptyMessage)
+                            : L10n.tripsEmptyMessage,
+                        bounceTrigger: hasActiveFilters
                     )
-                    .symbolEffect(.bounce, value: hasActiveFilters)
+                    .glassListRow()
                     .transition(TrailhoundMotion.fadeScaleTransition(reduceMotion: reduceMotion))
                 }
             } else {
                 ForEach(groupedTrips, id: \.section) { group in
                     Section(group.section.title) {
-                        ForEach(group.trips) { trip in
+                        ForEach(Array(group.trips.enumerated()), id: \.element.id) { index, trip in
                             // Keep the new trip hidden until the blue bar finishes sliding onto it.
                             if endCredits?.tripID != trip.id {
                                 tripRow(for: trip)
+                                    .glassRow(position: GlassRowPosition.index(index, in: group.trips.count))
                             }
                         }
                     }
@@ -239,6 +245,7 @@ struct TripListView: View {
             }
         }
         .listSectionSpacing(12)
+        .glassListChrome()
         .onPreferenceChange(CreditsListLandingYKey.self) { listLandingMinY = $0 }
         .onPreferenceChange(CreditsCardAnchorKey.self) { newValue in
             if newValue.width > 0 {
@@ -450,6 +457,7 @@ struct TripListView: View {
             } label: {
                 Label(L10n.delete, systemImage: "trash")
             }
+            .destructiveTint()
         }
         .swipeActions(edge: .leading) {
             Button {

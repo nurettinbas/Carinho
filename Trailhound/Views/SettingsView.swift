@@ -29,26 +29,31 @@ struct SettingsView: View {
                 LocationPermissionBanner()
             }
             .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
 
             Section(L10n.settingsRecordingSection) {
                 Toggle(L10n.settingsRecordingSounds, isOn: $settings.recordingSoundsEnabled)
+                    .glassRow(position: .first)
                 Text(L10n.settingsSiriShortcutsHint)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                    .glassRow(position: .middle)
                 ShortcutsLink()
                     .shortcutsLinkStyle(.automaticOutline)
                     .accessibilityLabel(L10n.settingsSiriShortcutsLink)
+                    .glassRow(position: .middle)
                 Button {
                     showShortcutsAutomationGuide = true
                 } label: {
                     Label(L10n.settingsShortcutsAutomationGuide, systemImage: "bolt.horizontal.circle")
                 }
+                .glassRow(position: .last)
             }
 
             Section(L10n.settingsRecordingSensitivitySection) {
                 sensitivityGrid
-                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                    .listRowBackground(Color.clear)
+                    .padding(12)
+                    .glassListRow()
             }
 
             Section {
@@ -56,9 +61,10 @@ struct SettingsView: View {
                     Text(L10n.settingsFavoritePlacesEmpty)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                        .glassRow(position: favoritePlacesRowCount == 1 ? .only : .first)
                 }
 
-                ForEach(places) { place in
+                ForEach(Array(places.enumerated()), id: \.element.id) { index, place in
                     NavigationLink {
                         PlacePickerView(editingPlace: place)
                     } label: {
@@ -72,12 +78,21 @@ struct SettingsView: View {
                             }
                         }
                     }
+                    .glassRow(position: favoritePlacePosition(placeIndex: index))
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            deletePlace(place)
+                        } label: {
+                            Label(L10n.delete, systemImage: "trash")
+                        }
+                        .destructiveTint()
+                    }
                 }
-                .onDelete(perform: deletePlaces)
 
                 NavigationLink(L10n.settingsAddPlace) {
                     PlacePickerView()
                 }
+                .glassRow(position: .last)
             } header: {
                 Text(L10n.settingsFavoritePlaces)
             } footer: {
@@ -92,6 +107,7 @@ struct SettingsView: View {
                         UIApplication.shared.open(url)
                     }
                 }
+                .glassRow(position: .only)
             } header: {
                 Text(L10n.settingsLanguageSection)
             } footer: {
@@ -105,56 +121,73 @@ struct SettingsView: View {
                         .multilineTextAlignment(.trailing)
                         .focused($focusedField, equals: .fuelPrice)
                 }
+                .glassRow(position: .first)
                 Text(L10n.settingsFuelHint)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                    .glassRow(position: .last)
             }
 
             Section(L10n.settingsPrivacySection) {
                 Toggle(L10n.settingsAppLock, isOn: appLockEnabledBinding)
+                    .glassRow(position: .first)
                 Toggle(L10n.settingsConfirmExternalStart, isOn: $settings.confirmExternalRecordingStart)
+                    .glassRow(position: .middle)
                 LabeledContent(L10n.settingsPrivacyRadius) {
                     TextField(L10n.settingsPrivacyRadiusUnit, value: $settings.privacyRadiusMeters, format: .number)
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
                         .focused($focusedField, equals: .privacyRadius)
                 }
+                .glassRow(position: .middle)
                 Toggle(L10n.settingsBlurExport, isOn: $settings.blurExportCoordinates)
+                    .glassRow(position: .middle)
                 Picker(L10n.settingsAutoDelete, selection: $settings.autoDeleteDays) {
                     Text(L10n.settingsAutoDeleteNever).tag(0)
                     Text(L10n.settingsAutoDeleteDays(30)).tag(30)
                     Text(L10n.settingsAutoDeleteDays(90)).tag(90)
                     Text(L10n.settingsAutoDeleteDays(365)).tag(365)
                 }
+                .glassRow(position: .last)
             }
 
             Section(L10n.settingsPermissionsSection) {
                 LabeledContent(L10n.settingsLocationPermission) {
                     LocationPermissionBadge(state: locationService.authorizationState)
                 }
+                .glassRow(position: permissionsPositions.labeled)
+
                 if !locationService.canRecordInBackground {
                     Text(L10n.settingsBackgroundLocationHint)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
+                        .glassRow(position: permissionsPositions.hint)
                 }
+
                 Button(L10n.settingsRequestLocationPermission) { locationService.requestPermission() }
+                    .glassRow(position: permissionsPositions.request)
+
                 Button(L10n.settingsOpenSystemSettings) {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(url)
                     }
                 }
+                .glassRow(position: permissionsPositions.openSettings)
             }
-
 
             Section(L10n.settingsBackupSection) {
                 Button(L10n.settingsExportJSON) { export(format: .json) }
                     .disabled(isExporting)
+                    .glassRow(position: .first)
                 Button(L10n.settingsExportCSV) { export(format: .csv) }
                     .disabled(isExporting)
+                    .glassRow(position: .middle)
                 Button(L10n.settingsExportGPX) { export(format: .gpx) }
                     .disabled(isExporting)
+                    .glassRow(position: .middle)
                 Button(L10n.settingsExportKML) { export(format: .kml) }
                     .disabled(isExporting)
+                    .glassRow(position: .last)
             }
 
             Section(L10n.settingsAboutSection) {
@@ -167,15 +200,19 @@ struct SettingsView: View {
                             versionTapCount = 0
                         }
                     }
+                    .glassRow(position: aboutPositions.version)
                 if settings.developerModeEnabled {
                     Toggle(L10n.settingsDeveloperMode, isOn: $settings.developerModeEnabled)
+                        .glassRow(position: aboutPositions.developer)
                 }
                 Text(L10n.settingsAboutPrivacy)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                    .glassRow(position: aboutPositions.privacy)
             }
         }
         .navigationTitle(L10n.settingsTitle)
+        .glassListChrome()
         .dismissKeyboardOnTap(focus: $focusedField)
         .dismissKeyboardOnScroll()
         .keyboardDoneToolbar()
@@ -210,12 +247,34 @@ struct SettingsView: View {
                     }
                     .padding(.horizontal, 28)
                     .padding(.vertical, 24)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .glassCard(cornerRadius: 16, contentInset: 0)
                 }
                 .transition(.opacity)
             }
         }
         .animation(.easeInOut(duration: 0.2), value: isExporting)
+    }
+
+    private var favoritePlacesRowCount: Int {
+        (places.isEmpty ? 1 : 0) + places.count + 1
+    }
+
+    private var permissionsPositions: (labeled: GlassRowPosition, hint: GlassRowPosition, request: GlassRowPosition, openSettings: GlassRowPosition) {
+        if locationService.canRecordInBackground {
+            return (.first, .middle, .middle, .last)
+        }
+        return (.first, .middle, .middle, .last)
+    }
+
+    private var aboutPositions: (version: GlassRowPosition, developer: GlassRowPosition, privacy: GlassRowPosition) {
+        settings.developerModeEnabled
+            ? (.first, .middle, .last)
+            : (.first, .only, .last)
+    }
+
+    private func favoritePlacePosition(placeIndex: Int) -> GlassRowPosition {
+        let offset = places.isEmpty ? 1 : 0
+        return GlassRowPosition.index(placeIndex + offset, in: favoritePlacesRowCount)
     }
 
     private enum ExportFormat {
@@ -276,11 +335,8 @@ struct SettingsView: View {
         }
     }
 
-
-    private func deletePlaces(at offsets: IndexSet) {
-        for index in offsets {
-            modelContext.delete(places[index])
-        }
+    private func deletePlace(_ place: SavedPlace) {
+        modelContext.delete(place)
         try? modelContext.save()
     }
 
@@ -373,8 +429,7 @@ struct SettingsView: View {
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .glassChrome(cornerRadius: 12)
     }
 
     private func sensitivityStepButton(
@@ -385,7 +440,7 @@ struct SettingsView: View {
             Image(systemName: systemImage)
                 .font(.caption2.weight(.bold))
                 .frame(width: 26, height: 26)
-                .background(Color(.tertiarySystemGroupedBackground))
+                .background(Color.white.opacity(0.22))
                 .clipShape(Circle())
         }
         .buttonStyle(.plain)

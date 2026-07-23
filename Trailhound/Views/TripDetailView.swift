@@ -70,42 +70,46 @@ struct TripDetailView: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            let panelHeight = geometry.size.height * 0.52
-            ZStack(alignment: .bottom) {
-                ZStack(alignment: .topTrailing) {
-                    tripMapView(style: mapStyle, interactive: panelRisen)
-                        .onTapGesture {
-                            dismissNoteKeyboard()
+        ZStack {
+            AtmosphericBackground()
+
+            GeometryReader { geometry in
+                let panelHeight = geometry.size.height * 0.52
+                ZStack(alignment: .bottom) {
+                    ZStack(alignment: .topTrailing) {
+                        tripMapView(style: mapStyle, interactive: panelRisen)
+                            .onTapGesture {
+                                dismissNoteKeyboard()
+                            }
+
+                        if !networkMonitor.isConnected {
+                            Text(L10n.tripMapOfflineHint)
+                                .font(.caption2)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .glassChrome(cornerRadius: 14)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                                .padding(12)
                         }
 
-                    if !networkMonitor.isConnected {
-                        Text(L10n.tripMapOfflineHint)
-                            .font(.caption2)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(.ultraThinMaterial)
-                            .clipShape(Capsule())
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                        compactSpeedLegend
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                             .padding(12)
                     }
-
-                    compactSpeedLegend
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                        .padding(12)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.bottom, panelRisen ? panelHeight - 12 : 0)
-                .animation(reduceMotion ? nil : TrailhoundMotion.sheetRise, value: panelRisen)
-
-                detailPanel
-                    .frame(height: panelHeight)
-                    .offset(y: panelRisen ? 0 : panelHeight + 24)
-                    .opacity(panelRisen ? 1 : 0)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.bottom, panelRisen ? panelHeight : 0)
                     .animation(reduceMotion ? nil : TrailhoundMotion.sheetRise, value: panelRisen)
-                    .allowsHitTesting(panelRisen)
+
+                    detailPanel
+                        .frame(height: panelHeight)
+                        .offset(y: panelRisen ? 0 : panelHeight + 24)
+                        .opacity(panelRisen ? 1 : 0)
+                        .animation(reduceMotion ? nil : TrailhoundMotion.sheetRise, value: panelRisen)
+                        .allowsHitTesting(panelRisen)
+                }
             }
         }
+        .glassNavigationChrome()
         .dismissKeyboardOnTap(focus: $noteFocused)
         .navigationTitle(L10n.tripDetailTitle)
         .navigationBarTitleDisplayMode(.inline)
@@ -256,7 +260,7 @@ struct TripDetailView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 4)
 
-            ScrollView {
+            ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 14) {
                     tripHeader
 
@@ -346,31 +350,28 @@ struct TripDetailView: View {
                             .lineLimit(2...4)
                             .focused($noteFocused)
                             .submitLabel(.done)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
+                            .glassField(cornerRadius: 8)
                             .onSubmit { dismissNoteKeyboard() }
                     }
 
-                    HStack {
-                        Spacer()
-                        Button(L10n.tripEditSave) {
-                            saveEdits()
-                            dismissNoteKeyboard()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .buttonBorderShape(.roundedRectangle(radius: 8))
-                        .tint(TrailhoundBrandColors.brandBottom)
+                    Button(L10n.tripEditSave) {
+                        saveEdits()
+                        dismissNoteKeyboard()
                     }
+                    .buttonStyle(.borderedProminent)
+                    .buttonBorderShape(.roundedRectangle(radius: 8))
+                    .tint(TrailhoundBrandColors.brandBottom)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
                     .padding(.top, 4)
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 20)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, GlassTokens.listContentHorizontalInset)
+                .padding(.bottom, 88)
             }
+            .scrollBounceBehavior(.basedOnSize)
             .dismissKeyboardOnScroll()
-        }
-        .background {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.08), radius: 16, y: -4)
-                .ignoresSafeArea(edges: .bottom)
         }
     }
 
@@ -452,8 +453,7 @@ struct TripDetailView: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .glassChrome(cornerRadius: 10)
         .opacity(progress > 0.01 || reduceMotion ? 1 : 0.35)
         .scaleEffect(progress > 0.01 || reduceMotion ? 1 : 0.94)
     }
@@ -486,26 +486,42 @@ struct TripDetailView: View {
             }
         }
         .padding(12)
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .glassChrome(cornerRadius: 12)
         .opacity(progress > 0.01 || reduceMotion ? 1 : 0.35)
         .scaleEffect(progress > 0.01 || reduceMotion ? 1 : 0.98)
     }
 
     private func tripTimePicker(title: String, selection: Binding<Date>) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             Text(title)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
 
-            DatePicker(title, selection: selection)
+            DatePicker(title, selection: selection, displayedComponents: .date)
                 .labelsHidden()
                 .datePickerStyle(.compact)
-                .font(.subheadline)
+                .font(.caption)
+                .buttonStyle(.plain)
+                .tint(TrailhoundBrandColors.brandBottom)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .glassField(cornerRadius: 8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            DatePicker(title, selection: selection, displayedComponents: .hourAndMinute)
+                .labelsHidden()
+                .datePickerStyle(.compact)
+                .font(.caption)
+                .buttonStyle(.plain)
+                .tint(TrailhoundBrandColors.brandBottom)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .glassField(cornerRadius: 8)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
     }
 
     private func trimStepperCell(
@@ -549,8 +565,7 @@ struct TripDetailView: View {
             Image(systemName: systemImage)
                 .font(.caption2.weight(.bold))
                 .frame(width: 26, height: 26)
-                .background(Color(.tertiarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .glassField(cornerRadius: 6)
         }
         .buttonStyle(.plain)
     }
@@ -570,17 +585,23 @@ struct TripDetailView: View {
             Picker(title, selection: selection, content: content)
                 .labelsHidden()
                 .pickerStyle(.menu)
+                .buttonStyle(.plain)
                 .font(.subheadline)
+                .tint(TrailhoundBrandColors.brandBottom)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .glassField(cornerRadius: 8)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
     }
 
     private func detailMiniCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         content()
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(.secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 10)
+            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+            .glassChrome(cornerRadius: 12)
     }
 
     private func detailSplitSection<Left: View, Right: View>(
@@ -594,7 +615,9 @@ struct TripDetailView: View {
 
             HStack(alignment: .top, spacing: 10) {
                 detailMiniCard(content: left)
+                    .frame(minWidth: 0, maxWidth: .infinity)
                 detailMiniCard(content: right)
+                    .frame(minWidth: 0, maxWidth: .infinity)
             }
         }
     }
@@ -611,9 +634,8 @@ struct TripDetailView: View {
                 content()
             }
             .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(.secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+            .glassChrome(cornerRadius: 12)
         }
     }
 
@@ -626,8 +648,7 @@ struct TripDetailView: View {
                 .font(.subheadline)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
-                .background(Color(.tertiarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .glassField(cornerRadius: 8)
         }
     }
 
@@ -639,8 +660,7 @@ struct TripDetailView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(.ultraThinMaterial)
-        .clipShape(Capsule())
+        .glassChrome(cornerRadius: 14)
     }
 
     private func legendChip(color: Color, text: String) -> some View {
@@ -753,10 +773,10 @@ struct TripDetailView: View {
                         Text(L10n.mapStyleDark).tag(TripMapStyle.dark)
                     }
                     .pickerStyle(.segmented)
+                    .glassSegmentedStyle()
                     .frame(width: 180)
                     .padding(8)
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .glassChrome(cornerRadius: 10)
                 }
                 .padding()
             }
@@ -869,6 +889,13 @@ private struct TripStopEditRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             DatePicker(L10n.tripStartedAt, selection: $startedAt)
+                .labelsHidden()
+                .datePickerStyle(.compact)
+                .buttonStyle(.plain)
+                .tint(TrailhoundBrandColors.brandBottom)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .glassField(cornerRadius: 8)
                 .onChange(of: startedAt) { _, newValue in
                     stop.startedAt = newValue
                 }
@@ -878,6 +905,9 @@ private struct TripStopEditRow: View {
                 value: $durationMinutes,
                 in: 1...240
             )
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .glassField(cornerRadius: 8)
             .onChange(of: durationMinutes) { _, newValue in
                 stop.durationSeconds = TimeInterval(newValue * 60)
             }
