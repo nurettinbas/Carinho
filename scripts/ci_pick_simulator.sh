@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-preferred=("iPhone 16" "iPhone 16 Pro" "iPhone 17" "iPhone 15" "iPhone SE (3rd generation)")
+preferred=("iPhone 17" "iPhone 16" "iPhone 16 Pro" "iPhone 15" "iPhone SE (3rd generation)")
 uuid_re='[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}'
 
 pick_from_simctl() {
@@ -60,8 +60,12 @@ pick_from_xcodebuild() {
 }
 
 pick_fallback_name_os() {
-  # GitHub macos-15 ships iPhone 16 + iOS 18.5 with Xcode 16.4.
-  echo "platform=iOS Simulator,name=iPhone 16,OS=18.5"
+  if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    # GitHub macos-26 ships iPhone 17 + iOS 26.x with Xcode 26.
+    echo "platform=iOS Simulator,name=iPhone 17,OS=26.5"
+  else
+    echo "platform=iOS Simulator,name=iPhone 16,OS=18.5"
+  fi
 }
 
 if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
