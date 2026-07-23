@@ -36,6 +36,8 @@ struct TripListView: View {
     /// Armed before recording state flips so entrance anim can't lose the race on device.
     @State private var coldOpenArmed = false
     @State private var coldOpenTripID: UUID?
+    @State private var showNotificationsList = false
+    @State private var listScrollPosition: TripListScrollAnchor? = .top
 
     private var hasActiveFilters: Bool {
         selectedLabel != nil || selectedCategoryID != nil || !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -87,6 +89,7 @@ struct TripListView: View {
             Section {
                 LocationPermissionBanner()
             }
+            .id(TripListScrollAnchor.top)
             .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
@@ -244,6 +247,7 @@ struct TripListView: View {
                 .animation(reduceMotion ? nil : TrailhoundMotion.gentle, value: completedTrips.count)
             }
         }
+        .scrollPosition(id: $listScrollPosition, anchor: .top)
         .listSectionSpacing(12)
         .glassListChrome()
         .onPreferenceChange(CreditsListLandingYKey.self) { listLandingMinY = $0 }
@@ -262,6 +266,9 @@ struct TripListView: View {
                         DispatchQueue.main.async { dismiss() }
                     }
             }
+        }
+        .navigationDestination(isPresented: $showNotificationsList) {
+            NotificationsListView()
         }
         .navigationTitle("Trailhound")
         .task {
@@ -318,6 +325,10 @@ struct TripListView: View {
                         if recordingService.startManualRecording(),
                            let tripID = recordingService.activeTripID {
                             coldOpenTripID = tripID
+                            Task { @MainActor in
+                                await Task.yield()
+                                scrollTripListToTop()
+                            }
                         } else {
                             coldOpenArmed = false
                             coldOpenTripID = nil
@@ -344,8 +355,9 @@ struct TripListView: View {
                         }
                         .accessibilityLabel(L10n.actionMerge)
 
-                        NavigationLink {
-                            NotificationsListView()
+                        Button {
+                            notificationStore.markAllRead()
+                            showNotificationsList = true
                         } label: {
                             ZStack(alignment: .topTrailing) {
                                 Image(systemName: "bell")
@@ -567,6 +579,15 @@ struct TripListView: View {
         }
     }
 
+    private func scrollTripListToTop() {
+        let scroll = { listScrollPosition = .top }
+        if reduceMotion {
+            scroll()
+        } else {
+            withAnimation(TrailhoundMotion.gentle, scroll)
+        }
+    }
+
     private func startCreditsSlideIntoList() {
         guard endCredits != nil, !isCreditsSliding else { return }
 
@@ -678,6 +699,10 @@ private struct CreditsCardAnchorKey: PreferenceKey {
             value = next
         }
     }
+}
+
+private enum TripListScrollAnchor: String, Hashable {
+    case top
 }
 
 private struct CreditsListLandingYKey: PreferenceKey {

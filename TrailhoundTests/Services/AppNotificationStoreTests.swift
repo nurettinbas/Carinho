@@ -47,6 +47,16 @@ final class AppNotificationStoreTests: XCTestCase {
         XCTAssertEqual(AppNotificationArchive.load().count, 0)
     }
 
+    func testMarkAllReadClearsUnreadCount() {
+        store.record(kind: .tripStarted, title: "A", body: "1")
+        store.record(kind: .tripEnded, title: "B", body: "2")
+
+        store.markAllRead()
+
+        XCTAssertEqual(store.unreadCount, 0)
+        XCTAssertTrue(store.items.allSatisfy(\.isRead))
+    }
+
     func testArchiveRoundTrip() {
         let record = StoredAppNotification(
             kind: AppNotificationKind.pairingSuggestion.rawValue,

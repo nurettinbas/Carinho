@@ -15,8 +15,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
 
       - name: Show Xcode version
         run: xcodebuild -version
@@ -26,17 +28,10 @@ jobs:
 
       - name: Run tests
         run: |
-          chmod +x scripts/run_tests.sh
-          DEVICE_ID=$(xcrun simctl list devices available | awk -F '[()]' '/iPhone 16 \(/ {print $2; exit}')
-          if [ -z "$DEVICE_ID" ]; then
-            DEVICE_ID=$(xcrun simctl list devices available | awk -F '[()]' '/iPhone 17 \(/ {print $2; exit}')
-          fi
-          if [ -z "$DEVICE_ID" ]; then
-            echo "No suitable iPhone simulator found"
-            xcrun simctl list devices available
-            exit 1
-          fi
-          DESTINATION="platform=iOS Simulator,id=${DEVICE_ID}" ./scripts/run_tests.sh
+          chmod +x scripts/run_tests.sh scripts/ci_pick_simulator.sh
+          DESTINATION="$(./scripts/ci_pick_simulator.sh)"
+          echo "Using destination: ${DESTINATION}"
+          ./scripts/run_tests.sh
 
       - name: Upload test results on failure
         if: failure()
