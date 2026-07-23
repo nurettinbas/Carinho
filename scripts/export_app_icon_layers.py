@@ -13,7 +13,7 @@ except ImportError:
     raise
 
 ROOT = Path(__file__).resolve().parents[1]
-MASTER_ICON = ROOT / "Trailhound" / "Assets.xcassets" / "AppIcon.appiconset" / "AppIcon.png"
+MASTER_ICON = ROOT / "Trailhound" / "Assets.xcassets" / "Trailhound.appiconset" / "AppIcon.png"
 SYMBOL_OUT = ROOT / "Trailhound" / "Trailhound.icon" / "Assets" / "Symbol.png"
 
 
