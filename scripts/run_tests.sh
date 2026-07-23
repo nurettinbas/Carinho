@@ -18,6 +18,14 @@ if [[ "$INCLUDE_UI_TESTS" == "0" ]]; then
   )
 fi
 
+XCODEBUILD_SETTINGS=()
+if [[ "${CI:-}" == "true" ]]; then
+  XCODEBUILD_SETTINGS+=(
+    CODE_SIGNING_ALLOWED=NO
+    CODE_SIGNING_REQUIRED=NO
+  )
+fi
+
 set +e
 if ((${#TEST_ARGS[@]})); then
   xcodebuild test \
@@ -26,6 +34,7 @@ if ((${#TEST_ARGS[@]})); then
     -destination "$DESTINATION" \
     -resultBundlePath "$RESULT_BUNDLE" \
     -parallel-testing-enabled NO \
+    "${XCODEBUILD_SETTINGS[@]}" \
     "${TEST_ARGS[@]}"
 else
   xcodebuild test \
@@ -33,7 +42,8 @@ else
     -scheme Trailhound \
     -destination "$DESTINATION" \
     -resultBundlePath "$RESULT_BUNDLE" \
-    -parallel-testing-enabled NO
+    -parallel-testing-enabled NO \
+    "${XCODEBUILD_SETTINGS[@]}"
 fi
 STATUS=$?
 set -e

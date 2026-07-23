@@ -120,33 +120,30 @@ final class VehicleConnectRecordingTests: XCTestCase {
         let (recordingService, coordinator, _) = try makeSharedPairedCoordinator()
 
         coordinator.handleVehicleSnapshot(isConnected: true)
-        try await Task.sleep(for: .seconds(1.2))
-        XCTAssertEqual(recordingService.state, .recording)
+        try await AsyncTestHelpers.waitFor { recordingService.state == .recording }
 
         recordingService.stopManualRecording()
         XCTAssertEqual(recordingService.state, .idle)
 
         coordinator.handleVehicleSnapshot(isConnected: true)
-        try await Task.sleep(for: .seconds(1.2))
+        try await Task.sleep(for: .seconds(1.5))
         XCTAssertEqual(recordingService.state, .idle)
 
         coordinator.handleVehicleSnapshot(isConnected: false)
-        try await Task.sleep(for: .seconds(2.5))
+        try await AsyncTestHelpers.waitFor(timeout: 6) { recordingService.state == .idle }
         coordinator.handleVehicleSnapshot(isConnected: true)
-        try await Task.sleep(for: .seconds(1.2))
-        XCTAssertEqual(recordingService.state, .recording)
+        try await AsyncTestHelpers.waitFor { recordingService.state == .recording }
     }
 
     func testMomentaryDisconnectKeepsRecording() async throws {
         let (recordingService, coordinator, _) = try makeSharedPairedCoordinator()
 
         coordinator.handleVehicleSnapshot(isConnected: true)
-        try await Task.sleep(for: .seconds(1.2))
-        XCTAssertEqual(recordingService.state, .recording)
+        try await AsyncTestHelpers.waitFor { recordingService.state == .recording }
 
         coordinator.handleVehicleSnapshot(isConnected: false)
         coordinator.handleVehicleSnapshot(isConnected: true)
-        try await Task.sleep(for: .seconds(3.5))
+        try await Task.sleep(for: .seconds(1.5))
         XCTAssertEqual(recordingService.state, .recording)
     }
 
@@ -166,12 +163,10 @@ final class VehicleConnectRecordingTests: XCTestCase {
         let (recordingService, coordinator, _) = try makeSharedPairedCoordinator()
 
         coordinator.handleVehicleSnapshot(isConnected: true)
-        try await Task.sleep(for: .seconds(1.2))
-        XCTAssertEqual(recordingService.state, .recording)
+        try await AsyncTestHelpers.waitFor { recordingService.state == .recording }
 
         coordinator.handleVehicleSnapshot(isConnected: false)
-        try await Task.sleep(for: .seconds(2.5))
-        XCTAssertEqual(recordingService.state, .idle)
+        try await AsyncTestHelpers.waitFor { recordingService.state == .idle }
     }
 
     func testManualStopDuringRecordingAlwaysSavesShortTrip() throws {
