@@ -37,7 +37,8 @@ struct TripListView: View {
     @State private var coldOpenArmed = false
     @State private var coldOpenTripID: UUID?
     @State private var showNotificationsList = false
-    @State private var listScrollPosition: TripListScrollAnchor? = .top
+    @State private var scrollToTopToken = 0
+    @State private var scrollToTopRequest: TripListScrollToTopRequest?
 
     private var hasActiveFilters: Bool {
         selectedLabel != nil || selectedCategoryID != nil || !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -85,11 +86,22 @@ struct TripListView: View {
     }
 
     var body: some View {
+        ScrollViewReader { scrollProxy in
+            tripList(scrollProxy: scrollProxy)
+        }
+    }
+
+    @ViewBuilder
+    private func tripList(scrollProxy: ScrollViewProxy) -> some View {
         List {
             Section {
                 LocationPermissionBanner()
+                    .id(TripListScrollTarget.top)
+                    .background {
+                        TripListScrollToTopInstaller(request: scrollToTopRequest)
+                            .frame(width: 0, height: 0)
+                    }
             }
-            .id(TripListScrollAnchor.top)
             .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
@@ -151,16 +163,18 @@ struct TripListView: View {
                 .glassListRow()
             }
 
-            if recordingService.state.isActiveSession, endCredits == nil {
+            if recordingService.state.isActiveSession,
+               endCredits == nil,
+               let activeTripID = recordingService.activeTripID {
                 Section {
                     ActiveTripView(
                         morphNamespace: tripMorphNamespace,
-                        morphID: recordingService.activeTripID,
+                        morphID: activeTripID,
                         playEntranceReveal: coldOpenArmed,
                         onEntranceFinished: finishColdOpen,
                         onStop: beginEndCredits
                     )
-                    .id(recordingService.activeTripID)
+                    .id(activeTripID)
                     .transition(.opacity)
                     .background {
                         GeometryReader { geo in
@@ -247,7 +261,6 @@ struct TripListView: View {
                 .animation(reduceMotion ? nil : TrailhoundMotion.gentle, value: completedTrips.count)
             }
         }
-        .scrollPosition(id: $listScrollPosition, anchor: .top)
         .listSectionSpacing(12)
         .glassListChrome()
         .onPreferenceChange(CreditsListLandingYKey.self) { listLandingMinY = $0 }
@@ -295,6 +308,7 @@ struct TripListView: View {
             }
             if !wasActive, isActive, endCredits == nil {
                 beginColdOpenIfNeeded()
+                requestScrollToTop()
             }
             // Vehicle auto-stop (and other external stops) still get a light morph —
             // full credits play only for manual Stop.
@@ -305,6 +319,9 @@ struct TripListView: View {
                 morphingTripID = newest.id
                 clearMorphingTripSoon(delayMilliseconds: reduceMotion ? 50 : 700)
             }
+        }
+        .onChange(of: scrollToTopToken) { _, _ in
+            performScrollToTop(scrollProxy: scrollProxy)
         }
         .alert(L10n.tripsMergeTitle, isPresented: $showMergeConfirm) {
             Button(L10n.actionMerge) { performMerge() }
@@ -325,10 +342,7 @@ struct TripListView: View {
                         if recordingService.startManualRecording(),
                            let tripID = recordingService.activeTripID {
                             coldOpenTripID = tripID
-                            Task { @MainActor in
-                                await Task.yield()
-                                scrollTripListToTop()
-                            }
+                            requestScrollToTop()
                         } else {
                             coldOpenArmed = false
                             coldOpenTripID = nil
@@ -377,7 +391,6 @@ struct TripListView: View {
                 }
             }
         }
-        .animation(reduceMotion ? nil : TrailhoundMotion.gentle, value: recordingService.state.isActiveSession)
         .animation(reduceMotion ? nil : TrailhoundMotion.cardSpring, value: morphingTripID)
         .overlay {
             if let endCredits {
@@ -579,12 +592,25 @@ struct TripListView: View {
         }
     }
 
-    private func scrollTripListToTop() {
-        let scroll = { listScrollPosition = .top }
-        if reduceMotion {
-            scroll()
-        } else {
-            withAnimation(TrailhoundMotion.gentle, scroll)
+    private func requestScrollToTop() {
+        scrollToTopToken += 1
+        scrollToTopRequest = TripListScrollToTopRequest(id: UUID())
+    }
+
+    private func performScrollToTop(scrollProxy: ScrollViewProxy) {
+        let target = TripListScrollTarget.top
+        let delays: [UInt64] = [0, 80, 180, 350, 550, 750]
+        Task { @MainActor in
+            for (index, delay) in delays.enumerated() {
+                if delay > 0 {
+                    try? await Task.sleep(for: .milliseconds(delay))
+                }
+                var transaction = Transaction()
+                transaction.disablesAnimations = index < delays.count - 1 || reduceMotion
+                withTransaction(transaction) {
+                    scrollProxy.scrollTo(target, anchor: .top)
+                }
+            }
         }
     }
 
@@ -599,12 +625,12 @@ struct TripListView: View {
 
         isCreditsSliding = true
 
-        withAnimation(.spring(response: 0.55, dampingFraction: 0.86)) {
+        withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) {
             creditsSlideY = distance
         }
 
         Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(560))
+            try? await Task.sleep(for: .milliseconds(420))
             // Swap overlay → real row with no List insert morph / empty-cell fade.
             var transaction = Transaction()
             transaction.disablesAnimations = true
@@ -615,7 +641,7 @@ struct TripListView: View {
                 pinnedCreditsCardAnchor = CreditsCardAnchor()
             }
             TrailhoundHaptics.selection()
-            clearMorphingTripSoon(delayMilliseconds: 900)
+            clearMorphingTripSoon(delayMilliseconds: 650)
         }
     }
 
@@ -701,8 +727,94 @@ private struct CreditsCardAnchorKey: PreferenceKey {
     }
 }
 
-private enum TripListScrollAnchor: String, Hashable {
+private enum TripListScrollTarget: Hashable {
     case top
+}
+
+private struct TripListScrollToTopRequest: Equatable {
+    let id: UUID
+}
+
+/// UIKit fallback — iOS 17+ `List` is backed by `UICollectionView`, not `UITableView`.
+private struct TripListScrollToTopInstaller: UIViewRepresentable {
+    var request: TripListScrollToTopRequest?
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    final class Coordinator {
+        var handledRequestID: UUID?
+    }
+
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView(frame: .zero)
+        view.isUserInteractionEnabled = false
+        view.backgroundColor = .clear
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+        guard let request else { return }
+        guard context.coordinator.handledRequestID != request.id else { return }
+        context.coordinator.handledRequestID = request.id
+        scheduleScrollToTop(from: uiView)
+    }
+
+    private func scheduleScrollToTop(from view: UIView) {
+        let delays: [TimeInterval] = [0, 0.08, 0.18, 0.35, 0.55, 0.75]
+        for (index, delay) in delays.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                let animated = index == delays.count - 1
+                scrollLinkedListToTop(from: view, animated: animated)
+            }
+        }
+    }
+
+    private func scrollLinkedListToTop(from view: UIView, animated: Bool) {
+        let scrollView = view.enclosingListScrollView ?? view.window?.largestVerticalScrollView
+        scrollView?.forceScrollToTop(animated: animated)
+    }
+}
+
+private extension UIScrollView {
+    func forceScrollToTop(animated: Bool) {
+        if let tableView = self as? UITableView,
+           tableView.numberOfSections > 0,
+           tableView.numberOfRows(inSection: 0) > 0 {
+            tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: animated)
+        } else if let collectionView = self as? UICollectionView,
+                  collectionView.numberOfSections > 0,
+                  collectionView.numberOfItems(inSection: 0) > 0 {
+            collectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: animated)
+        }
+
+        let top = CGPoint(x: 0, y: -adjustedContentInset.top)
+        setContentOffset(top, animated: animated)
+    }
+}
+
+private extension UIView {
+    var enclosingListScrollView: UIScrollView? {
+        var current: UIView? = self
+        while let view = current {
+            if let collectionView = view as? UICollectionView { return collectionView }
+            if let tableView = view as? UITableView { return tableView }
+            current = view.superview
+        }
+        return nil
+    }
+
+    var allSubviewsRecursive: [UIView] {
+        subviews + subviews.flatMap(\.allSubviewsRecursive)
+    }
+}
+
+private extension UIWindow {
+    var largestVerticalScrollView: UIScrollView? {
+        allSubviewsRecursive
+            .compactMap { $0 as? UIScrollView }
+            .filter { $0.contentSize.height > $0.bounds.height }
+            .max(by: { $0.contentSize.height < $1.contentSize.height })
+    }
 }
 
 private struct CreditsListLandingYKey: PreferenceKey {

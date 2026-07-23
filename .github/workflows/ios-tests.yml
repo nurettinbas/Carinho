@@ -10,6 +10,8 @@ jobs:
   test:
     runs-on: macos-15
     timeout-minutes: 45
+    env:
+      CI: true
 
     steps:
       - name: Checkout
@@ -18,18 +20,27 @@ jobs:
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest-stable
+          xcode-version: '16.4'
 
       - name: Show Xcode version
         run: xcodebuild -version
 
-      - name: List simulators
-        run: xcrun simctl list devices available
+      - name: Show destinations
+        run: xcodebuild -showdestinations -project Trailhound.xcodeproj -scheme Trailhound | grep -i "iphone" | head -20 || true
+
+      - name: Boot simulator
+        run: |
+          chmod +x scripts/ci_pick_simulator.sh
+          DESTINATION="$(./scripts/ci_pick_simulator.sh)"
+          echo "DESTINATION=${DESTINATION}" >> "$GITHUB_ENV"
+          SIM_ID="${DESTINATION#*id=}"
+          echo "Booting simulator ${SIM_ID}"
+          xcrun simctl boot "$SIM_ID" 2>/dev/null || true
+          xcrun simctl bootstatus "$SIM_ID" -b
 
       - name: Run tests
         run: |
-          chmod +x scripts/run_tests.sh scripts/ci_pick_simulator.sh
-          DESTINATION="$(./scripts/ci_pick_simulator.sh)"
+          chmod +x scripts/run_tests.sh
           echo "Using destination: ${DESTINATION}"
           ./scripts/run_tests.sh
 

@@ -144,34 +144,34 @@ struct RecordingEndCreditsView: View {
         TrailhoundHaptics.recordingStopped()
 
         showBrakeLights = true
-        withAnimation(.easeOut(duration: 0.45)) {
+        withAnimation(.easeOut(duration: 0.32)) {
             brakeProgress = 1
         }
-        withAnimation(.easeInOut(duration: 0.16)) {
+        withAnimation(.easeInOut(duration: 0.12)) {
             carNoseDive = -2.5
         }
-        try? await Task.sleep(for: .milliseconds(140))
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.68)) {
+        try? await Task.sleep(for: .milliseconds(100))
+        withAnimation(.spring(response: 0.24, dampingFraction: 0.68)) {
             carNoseDive = 0.8
         }
-        try? await Task.sleep(for: .milliseconds(120))
-        withAnimation(.spring(response: 0.28, dampingFraction: 0.84)) {
+        try? await Task.sleep(for: .milliseconds(85))
+        withAnimation(.spring(response: 0.22, dampingFraction: 0.84)) {
             carNoseDive = 0
         }
-        try? await Task.sleep(for: .milliseconds(120))
+        try? await Task.sleep(for: .milliseconds(85))
 
         showStats = true
-        withAnimation(.easeOut(duration: 0.18)) {
+        withAnimation(.easeOut(duration: 0.14)) {
             stoppedBadgeOpacity = 1
             chromeOpacity = 0
             statsOpacity = 1
             sceneOpacity = 0.8
         }
-        try? await Task.sleep(for: .milliseconds(260))
+        try? await Task.sleep(for: .milliseconds(180))
 
-        let steps = 20
+        let steps = 16
         for step in 1...steps {
-            try? await Task.sleep(for: .milliseconds(18))
+            try? await Task.sleep(for: .milliseconds(14))
             guard !Task.isCancelled else {
                 finishOnce()
                 return
@@ -179,7 +179,7 @@ struct RecordingEndCreditsView: View {
             routeProgress = CGFloat(step) / CGFloat(steps)
         }
 
-        try? await Task.sleep(for: .milliseconds(280))
+        try? await Task.sleep(for: .milliseconds(180))
         // Keep the blue bar fully visible — parent slides it into the list.
         finishOnce()
     }

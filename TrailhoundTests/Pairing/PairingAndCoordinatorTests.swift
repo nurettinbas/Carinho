@@ -109,13 +109,10 @@ final class VehicleConnectionCoordinatorTests: XCTestCase {
         )
 
         coordinator.handleVehicleSnapshot(isConnected: true)
-        try await Task.sleep(for: .seconds(1.2))
-        XCTAssertEqual(recordingService.state, .recording)
+        try await AsyncTestHelpers.waitFor { recordingService.state == .recording }
 
         coordinator.handleVehicleSnapshot(isConnected: false)
-        try await Task.sleep(for: .seconds(2.0))
-
-        XCTAssertEqual(recordingService.state, .idle)
+        try await AsyncTestHelpers.waitFor { recordingService.state == .idle }
     }
 }
 
