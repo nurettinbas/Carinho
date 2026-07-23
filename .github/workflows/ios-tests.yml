@@ -28,20 +28,12 @@ jobs:
       - name: Show destinations
         run: xcodebuild -showdestinations -project Trailhound.xcodeproj -scheme Trailhound | grep -i "iphone" | head -20 || true
 
-      - name: Boot simulator
-        run: |
-          chmod +x scripts/ci_pick_simulator.sh
-          DESTINATION="$(./scripts/ci_pick_simulator.sh)"
-          echo "DESTINATION=${DESTINATION}" >> "$GITHUB_ENV"
-          SIM_ID="${DESTINATION#*id=}"
-          echo "Booting simulator ${SIM_ID}"
-          xcrun simctl boot "$SIM_ID" 2>/dev/null || true
-          xcrun simctl bootstatus "$SIM_ID" -b
-
       - name: Run tests
         run: |
-          chmod +x scripts/run_tests.sh
+          chmod +x scripts/ci_pick_simulator.sh scripts/run_tests.sh
+          DESTINATION="$(./scripts/ci_pick_simulator.sh)"
           echo "Using destination: ${DESTINATION}"
+          export DESTINATION
           ./scripts/run_tests.sh
 
       - name: Upload test results on failure

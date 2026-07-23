@@ -1,44 +1,69 @@
 #!/usr/bin/env bash
-# Prints a xcodebuild -destination value using destinations Xcode can actually use.
+# Prints a xcodebuild -destination value for an available iPhone simulator.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 preferred=("iPhone 16" "iPhone 16 Pro" "iPhone 17" "iPhone 15" "iPhone SE (3rd generation)")
+uuid_re='[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}'
 
-destinations_file="$(mktemp)"
-xcodebuild -showdestinations -project Trailhound.xcodeproj -scheme Trailhound 2>/dev/null \
-  | grep "platform:iOS Simulator" \
-  | grep -v "placeholder" \
-  | grep "name:iPhone" > "$destinations_file" || true
-
-if [[ ! -s "$destinations_file" ]]; then
-  echo "No iPhone simulator destinations reported by xcodebuild." >&2
-  xcodebuild -showdestinations -project Trailhound.xcodeproj -scheme Trailhound >&2 || true
-  rm -f "$destinations_file"
-  exit 1
-fi
-
-pick_line=""
-while IFS= read -r line; do
+pick_from_simctl() {
+  local devices
+  devices="$(xcrun simctl list devices available)"
+  local name id
   for name in "${preferred[@]}"; do
-    if [[ "$line" == *"name:${name}"* ]]; then
-      pick_line="$line"
-      break 2
+    id="$(printf '%s\n' "$devices" | grep -F "    ${name} (" | head -1 | grep -oE "$uuid_re" || true)"
+    if [[ -n "$id" ]]; then
+      echo "platform=iOS Simulator,id=${id}"
+      return 0
     fi
   done
-done < "$destinations_file"
+  return 1
+}
 
-if [[ -z "$pick_line" ]]; then
-  pick_line="$(head -1 "$destinations_file")"
-fi
-rm -f "$destinations_file"
+pick_from_xcodebuild() {
+  local destinations_file line pick_line id
+  destinations_file="$(mktemp)"
+  xcodebuild -showdestinations -project Trailhound.xcodeproj -scheme Trailhound 2>/dev/null \
+    | grep -E "platform: ?iOS Simulator" \
+    | grep -vi placeholder \
+    | grep -E "name: ?iPhone" > "$destinations_file" || true
 
-id=$(echo "$pick_line" | grep -oE 'id:[A-F0-9-]+' | head -1 | cut -d: -f2)
-if [[ -z "$id" ]]; then
-  echo "Could not parse simulator id from: $pick_line" >&2
-  exit 1
-fi
+  if [[ ! -s "$destinations_file" ]]; then
+    rm -f "$destinations_file"
+    return 1
+  fi
 
-echo "platform=iOS Simulator,id=${id}"
+  pick_line=""
+  local name
+  while IFS= read -r line; do
+    for name in "${preferred[@]}"; do
+      if [[ "$line" == *"name:${name}"* ]] || [[ "$line" == *"name: ${name}"* ]]; then
+        pick_line="$line"
+        break 2
+      fi
+    done
+  done < "$destinations_file"
+
+  if [[ -z "$pick_line" ]]; then
+    pick_line="$(head -1 "$destinations_file")"
+  fi
+  rm -f "$destinations_file"
+
+  id="$(echo "$pick_line" | grep -oE "id:${uuid_re}" | head -1 | cut -d: -f2)"
+  if [[ -z "$id" ]]; then
+    return 1
+  fi
+
+  echo "platform=iOS Simulator,id=${id}"
+}
+
+pick_fallback_name_os() {
+  # GitHub macos-15 ships iPhone 16 + iOS 18.5 with Xcode 16.4.
+  echo "platform=iOS Simulator,name=iPhone 16,OS=18.5"
+}
+
+if pick_from_simctl; then exit 0; fi
+if pick_from_xcodebuild; then exit 0; fi
+pick_fallback_name_os
