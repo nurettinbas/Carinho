@@ -31,38 +31,48 @@ struct ContentView: View {
                     TripListView()
                 }
                 .background(Color.clear)
-                .tabItem { Label(L10n.tabTrips, systemImage: "map.fill") }
+                .tabItem {
+                    Label(L10n.tabTrips, systemImage: "map.fill")
+                        .accessibilityIdentifier("tab.trips")
+                }
                 .badge(isRecordingSession ? "" : nil)
                 .tag(AppTab.trips)
-                .accessibilityIdentifier("tab.trips")
 
                 NavigationStack {
                     StatsView()
                 }
                 .background(Color.clear)
-                .tabItem { Label(L10n.tabStats, systemImage: "chart.bar") }
+                .tabItem {
+                    Label(L10n.tabStats, systemImage: "chart.bar")
+                        .accessibilityIdentifier("tab.stats")
+                }
                 .tag(AppTab.stats)
-                .accessibilityIdentifier("tab.stats")
 
                 PairingTabView()
-                    .tabItem { Label(L10n.tabPairing, systemImage: "link.circle") }
+                    .tabItem {
+                        Label(L10n.tabPairing, systemImage: "link.circle")
+                            .accessibilityIdentifier("tab.pairing")
+                    }
                     .tag(AppTab.pairing)
-                    .accessibilityIdentifier("tab.pairing")
 
                 NavigationStack {
                     SettingsView()
                 }
                 .background(Color.clear)
-                .tabItem { Label(L10n.tabSettings, systemImage: "gearshape") }
-                .tag(AppTab.settings)
-                .accessibilityIdentifier("tab.settings")
-
-                NavigationStack {
-                    DevLogView()
+                .tabItem {
+                    Label(L10n.tabSettings, systemImage: "gearshape")
+                        .accessibilityIdentifier("tab.settings")
                 }
-                .background(Color.clear)
-                .tabItem { Label(L10n.string("Dev Log"), systemImage: "ladybug") }
-                .tag(AppTab.devLog)
+                .tag(AppTab.settings)
+
+                if !UITestSupport.isEnabled {
+                    NavigationStack {
+                        DevLogView()
+                    }
+                    .background(Color.clear)
+                    .tabItem { Label(L10n.string("Dev Log"), systemImage: "ladybug") }
+                    .tag(AppTab.devLog)
+                }
             }
             .background(Color.clear)
         }

@@ -14,6 +14,9 @@ enum UITestSupport {
         settings.skipCarSetup()
         settings.appLockEnabled = false
         settings.developerModeEnabled = false
+        AppNotificationArchive.save([])
+        AppNotificationStore.shared.reload()
+        AppNotificationStore.shared.clearAll()
     }
 
     @MainActor

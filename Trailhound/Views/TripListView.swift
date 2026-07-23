@@ -625,12 +625,12 @@ struct TripListView: View {
 
         isCreditsSliding = true
 
-        withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) {
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) {
             creditsSlideY = distance
         }
 
         Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(420))
+            try? await Task.sleep(for: .milliseconds(315))
             // Swap overlay → real row with no List insert morph / empty-cell fade.
             var transaction = Transaction()
             transaction.disablesAnimations = true
@@ -641,7 +641,7 @@ struct TripListView: View {
                 pinnedCreditsCardAnchor = CreditsCardAnchor()
             }
             TrailhoundHaptics.selection()
-            clearMorphingTripSoon(delayMilliseconds: 650)
+            clearMorphingTripSoon(delayMilliseconds: 490)
         }
     }
 

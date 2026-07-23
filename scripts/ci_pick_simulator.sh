@@ -64,6 +64,13 @@ pick_fallback_name_os() {
   echo "platform=iOS Simulator,name=iPhone 16,OS=18.5"
 }
 
+if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+  if pick_from_xcodebuild; then exit 0; fi
+  if pick_from_simctl; then exit 0; fi
+  pick_fallback_name_os
+  exit 0
+fi
+
 if pick_from_simctl; then exit 0; fi
 if pick_from_xcodebuild; then exit 0; fi
 pick_fallback_name_os

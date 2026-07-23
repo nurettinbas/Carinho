@@ -12,94 +12,106 @@ final class TrailhoundUITests: XCTestCase {
         app.launch()
     }
 
+    private func tabButton(identifier: String, fallbackLabel: String) -> XCUIElement {
+        let byIdentifier = app.tabBars.buttons[identifier]
+        if byIdentifier.waitForExistence(timeout: 1) {
+            return byIdentifier
+        }
+        return app.tabBars.buttons[fallbackLabel]
+    }
+
     private var tripsTab: XCUIElement {
-        app.tabBars.buttons["Trips"]
+        tabButton(identifier: "tab.trips", fallbackLabel: "Trips")
     }
 
     private var statsTab: XCUIElement {
-        app.tabBars.buttons["Statistics"]
+        tabButton(identifier: "tab.stats", fallbackLabel: "Statistics")
     }
 
     private var settingsTab: XCUIElement {
-        app.tabBars.buttons["Settings"]
+        tabButton(identifier: "tab.settings", fallbackLabel: "Settings")
     }
 
     private var pairingTab: XCUIElement {
-        app.tabBars.buttons["Pairing"]
+        tabButton(identifier: "tab.pairing", fallbackLabel: "Pairing")
+    }
+
+    private var uiTimeout: TimeInterval {
+        ProcessInfo.processInfo.environment["CI"] == "true" ? 25 : 15
     }
 
     func testAppLaunchesToTripsTab() {
-        XCTAssertTrue(tripsTab.waitForExistence(timeout: 15))
+        XCTAssertTrue(tripsTab.waitForExistence(timeout: uiTimeout))
     }
 
     func testTabNavigationTripsStatsSettingsPairing() {
-        XCTAssertTrue(tripsTab.waitForExistence(timeout: 15))
+        XCTAssertTrue(tripsTab.waitForExistence(timeout: uiTimeout))
 
         statsTab.tap()
-        XCTAssertTrue(app.navigationBars.element.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars.element.waitForExistence(timeout: 10))
 
         settingsTab.tap()
-        XCTAssertTrue(app.switches["settings.recordingSounds"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.switches["settings.recordingSounds"].waitForExistence(timeout: 10))
 
         pairingTab.tap()
-        XCTAssertTrue(app.navigationBars.element.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars.element.waitForExistence(timeout: 10))
 
         tripsTab.tap()
         XCTAssertTrue(tripsTab.exists)
     }
 
     func testTripListOpensDetail() {
-        XCTAssertTrue(tripsTab.waitForExistence(timeout: 15))
+        XCTAssertTrue(tripsTab.waitForExistence(timeout: uiTimeout))
 
         let firstTrip = app.buttons["trips.row.first"]
-        XCTAssertTrue(firstTrip.waitForExistence(timeout: 15))
+        XCTAssertTrue(firstTrip.waitForExistence(timeout: uiTimeout))
         firstTrip.tap()
 
-        XCTAssertTrue(app.otherElements["tripDetail.screen"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.otherElements["tripDetail.screen"].waitForExistence(timeout: 15))
     }
 
     func testSettingsRecordingSoundsToggle() {
-        XCTAssertTrue(settingsTab.waitForExistence(timeout: 15))
+        XCTAssertTrue(settingsTab.waitForExistence(timeout: uiTimeout))
         settingsTab.tap()
         let toggle = app.switches["settings.recordingSounds"]
-        XCTAssertTrue(toggle.waitForExistence(timeout: 10))
+        XCTAssertTrue(toggle.waitForExistence(timeout: 15))
         XCTAssertTrue(toggle.isEnabled)
     }
 
     func testNotificationsListOpens() {
-        XCTAssertTrue(tripsTab.waitForExistence(timeout: 15))
+        XCTAssertTrue(tripsTab.waitForExistence(timeout: uiTimeout))
 
         let notifications = app.buttons["trips.notifications"]
-        XCTAssertTrue(notifications.waitForExistence(timeout: 10))
+        XCTAssertTrue(notifications.waitForExistence(timeout: 15))
         notifications.tap()
 
-        XCTAssertTrue(app.navigationBars.element.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars.element.waitForExistence(timeout: 15))
     }
 
     func testTripDetailSaveButtonExists() {
-        XCTAssertTrue(tripsTab.waitForExistence(timeout: 15))
-        XCTAssertTrue(app.buttons["trips.row.first"].waitForExistence(timeout: 15))
+        XCTAssertTrue(tripsTab.waitForExistence(timeout: uiTimeout))
+        XCTAssertTrue(app.buttons["trips.row.first"].waitForExistence(timeout: uiTimeout))
         app.buttons["trips.row.first"].tap()
 
-        XCTAssertTrue(app.buttons["tripDetail.save"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["tripDetail.save"].waitForExistence(timeout: 15))
     }
 
     func testTripDetailScrollRevealsSaveButton() {
-        XCTAssertTrue(tripsTab.waitForExistence(timeout: 15))
-        XCTAssertTrue(app.buttons["trips.row.first"].waitForExistence(timeout: 15))
+        XCTAssertTrue(tripsTab.waitForExistence(timeout: uiTimeout))
+        XCTAssertTrue(app.buttons["trips.row.first"].waitForExistence(timeout: uiTimeout))
         app.buttons["trips.row.first"].tap()
-        XCTAssertTrue(app.otherElements["tripDetail.screen"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.otherElements["tripDetail.screen"].waitForExistence(timeout: 15))
 
         let saveButton = app.buttons["tripDetail.save"]
         if !saveButton.isHittable {
             app.swipeUp()
         }
-        XCTAssertTrue(saveButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(saveButton.waitForExistence(timeout: 10))
     }
 
     func testStatsTabShowsContent() {
-        XCTAssertTrue(statsTab.waitForExistence(timeout: 15))
+        XCTAssertTrue(statsTab.waitForExistence(timeout: uiTimeout))
         statsTab.tap()
-        XCTAssertTrue(app.navigationBars.element.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars.element.waitForExistence(timeout: 15))
     }
 }
