@@ -1,0 +1,47 @@
+name: iOS Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: macos-15
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: List simulators
+        run: xcrun simctl list devices available
+
+      - name: Run tests
+        run: |
+          chmod +x scripts/run_tests.sh
+          DEVICE_ID=$(xcrun simctl list devices available | awk -F '[()]' '/iPhone 16 \(/ {print $2; exit}')
+          if [ -z "$DEVICE_ID" ]; then
+            DEVICE_ID=$(xcrun simctl list devices available | awk -F '[()]' '/iPhone 17 \(/ {print $2; exit}')
+          fi
+          if [ -z "$DEVICE_ID" ]; then
+            echo "No suitable iPhone simulator found"
+            xcrun simctl list devices available
+            exit 1
+          fi
+          DESTINATION="platform=iOS Simulator,id=${DEVICE_ID}" ./scripts/run_tests.sh
+
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcresult
+          path: build/TestResults.xcresult
+          if-no-files-found: ignore

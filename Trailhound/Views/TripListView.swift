@@ -360,6 +360,7 @@ struct TripListView: View {
                             }
                         }
                         .accessibilityLabel(L10n.notificationsTitle)
+                        .accessibilityIdentifier("trips.notifications")
                     }
                 }
             }
@@ -442,6 +443,7 @@ struct TripListView: View {
                     )
                     .contentShape(Rectangle())
                 }
+                .accessibilityIdentifier(completedTrips.first?.id == trip.id ? "trips.row.first" : "trips.row.\(trip.id.uuidString)")
                 .buttonStyle(.plain)
             }
         }

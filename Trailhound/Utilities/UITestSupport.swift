@@ -1,0 +1,35 @@
+import Foundation
+import SwiftData
+
+enum UITestSupport {
+    static var isEnabled: Bool {
+        ProcessInfo.processInfo.arguments.contains("-UITesting")
+    }
+
+    @MainActor
+    static func configureAppIfNeeded() {
+        guard isEnabled else { return }
+        let settings = AppSettings.shared
+        settings.completeOnboarding()
+        settings.skipCarSetup()
+        settings.appLockEnabled = false
+        settings.developerModeEnabled = false
+    }
+
+    @MainActor
+    static func seedSampleTripIfNeeded(container: ModelContainer) {
+        guard isEnabled else { return }
+        let context = container.mainContext
+        var descriptor = FetchDescriptor<Trip>()
+        descriptor.fetchLimit = 1
+        let existing = (try? context.fetch(descriptor)) ?? []
+        guard existing.isEmpty else { return }
+
+        let trip = PreviewData.sampleTrip
+        context.insert(trip)
+        for point in trip.points {
+            context.insert(point)
+        }
+        try? context.save()
+    }
+}

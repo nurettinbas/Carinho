@@ -1,5 +1,7 @@
 # Trailhound
 
+[![iOS Tests](https://github.com/nurettinbas/Trailhound/actions/workflows/ios-tests.yml/badge.svg)](https://github.com/nurettinbas/Trailhound/actions/workflows/ios-tests.yml)
+
 **Privacy-first trip recorder for iOS** — track drives with GPS, estimate fuel cost, and keep every mile on your device. No account, no cloud, no third-party SDKs.
 
 Trailhound is a native SwiftUI app built with SwiftData. It records routes locally, works offline, and starts automatically the moment your paired car connects over **Bluetooth** — and stops when it disconnects. No music playback required.
@@ -101,6 +103,29 @@ open Trailhound.xcodeproj
 2. **Features → Location → Freeway Drive**
 3. Stop after 1–2 minutes
 
+### Automated tests
+
+Run the full unit + UI smoke suite locally:
+
+```bash
+chmod +x scripts/run_tests.sh
+./scripts/run_tests.sh
+```
+
+Unit tests only (faster):
+
+```bash
+INCLUDE_UI_TESTS=0 ./scripts/run_tests.sh
+```
+
+Override the simulator destination if needed:
+
+```bash
+DESTINATION='platform=iOS Simulator,name=iPhone 17,OS=26.5' ./scripts/run_tests.sh
+```
+
+CI runs the same script on every push and pull request to `main` via GitHub Actions.
+
 ### Siri Shortcuts
 
 Requires **iOS 17+** and **Siri enabled**. After first launch:
@@ -129,7 +154,8 @@ Trailhound/
 ├── Utilities/        # L10n, PDF reports, migrations
 TrailhoundShared/        # App Group bridge (widget, Live Activity, deep links)
 TrailhoundWidget/        # WidgetKit + Live Activity extension
-TrailhoundTests/         # Unit tests
+TrailhoundTests/         # Unit + integration tests
+TrailhoundUITests/       # UI smoke tests (XCUITest)
 docs/                 # Battery optimization, TestFlight checklist
 ```
 

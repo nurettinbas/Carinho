@@ -111,6 +111,7 @@ struct TripDetailView: View {
         }
         .glassNavigationChrome()
         .dismissKeyboardOnTap(focus: $noteFocused)
+        .accessibilityIdentifier("tripDetail.screen")
         .navigationTitle(L10n.tripDetailTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -360,6 +361,7 @@ struct TripDetailView: View {
                         saveEdits()
                         dismissNoteKeyboard()
                     }
+                    .accessibilityIdentifier("tripDetail.save")
                     .buttonStyle(.borderedProminent)
                     .buttonBorderShape(.roundedRectangle(radius: 8))
                     .tint(TrailhoundBrandColors.brandBottom)

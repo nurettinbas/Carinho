@@ -7,6 +7,21 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0CEA5B4D12B24B77B1EC2B4A /* CoreUtilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9352D7E1196647B7837DB769 /* CoreUtilityTests.swift */; };
+		175EDBBDA7774BBEB3E158BB /* SchemaAndRoutesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAD9EEA55914D5C98B09031 /* SchemaAndRoutesTests.swift */; };
+		607C9034073D4AC1979105BE /* ExportServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD061B46A12E455098133AB4 /* ExportServiceTests.swift */; };
+		C9F721413D824CC880896F2C /* PairingAndCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CB3113C33FF4D2DA8CC725D /* PairingAndCoordinatorTests.swift */; };
+		91FFE3088C71403C9EFE54ED /* RecordingAndTripStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AFEE050769946A7893F42FC /* RecordingAndTripStoreTests.swift */; };
+		80A6F699A69848D0BF4B1DA5 /* VehicleConnectRecordingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C3CC897A8D463291AD0E6F /* VehicleConnectRecordingTests.swift */; };
+		221D8FD2CC8A470FA658CB3E /* AppNotificationStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BBD47E89164260A41A27C3 /* AppNotificationStoreTests.swift */; };
+		826F2FBDC86743D3935EEC56 /* PlaceMatchingServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54581B9BBE85461BA8A3BEF2 /* PlaceMatchingServiceTests.swift */; };
+		DDB44A98FAD14A3DB6762538 /* TripMergeServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9F1CB485FD4EA4B3F0A518 /* TripMergeServiceTests.swift */; };
+		516F2EC02367420DAEE52ECE /* SharedUtilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B48EC48061EF49B48F74CDB8 /* SharedUtilityTests.swift */; };
+		EB7E8A86B96D49C8872C71DC /* DeviceTestChecklist.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B994DBD80EC432FBE63A842 /* DeviceTestChecklist.swift */; };
+		B1192077B71D4B8FBF108B41 /* StatsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9E0CBBFC00443CA31BE661 /* StatsViewModelTests.swift */; };
+		E563A6E5BD5040C489030062 /* TripListViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75FFA1F03E484232B987650B /* TripListViewModelTests.swift */; };
+		E377B6EC358A45669CF0935C /* TripMapFitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559271D0AAEC4FE192F527B9 /* TripMapFitTests.swift */; };
+		14A1F5A32BA94A8289379224 /* TrailhoundUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50629FB718274B229C611BA1 /* TrailhoundUITests.swift */; };
 		0B85812565284933BEBC7212 /* GeocodingRetryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82C9C269375F4C05AFEA8817 /* GeocodingRetryService.swift */; };
 		1498DD740E004FB9AC44D2F3 /* TripStop.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0E09B4CEDD485E9B744E57 /* TripStop.swift */; };
 		3B1BCB066B68458F963D7027 /* PlacePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89C5F75B18D74EB4B35E48C0 /* PlacePickerView.swift */; };
@@ -38,6 +53,7 @@
 		A10000000000000000000018 /* DistanceCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* DistanceCalculator.swift */; };
 		A1TRAILHOUNDMOTION00000001 /* TrailhoundMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2TRAILHOUNDMOTION00000001 /* TrailhoundMotion.swift */; };
 		A1GLASSSTYLE000000000001 /* GlassStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2GLASSSTYLE000000000001 /* GlassStyle.swift */; };
+		A1UITESTSUPPORT00000001 /* UITestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2UITESTSUPPORT00000001 /* UITestSupport.swift */; };
 		A1TRAILHOUNDSOUNDS00000001 /* TrailhoundSounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2TRAILHOUNDSOUNDS00000001 /* TrailhoundSounds.swift */; };
 		A1TRIPSTARTCAF000000001 /* trip_start.caf in Resources */ = {isa = PBXBuildFile; fileRef = A2TRIPSTARTCAF000000001 /* trip_start.caf */; };
 		A1TRIPSTOPCAF0000000001 /* trip_stop.caf in Resources */ = {isa = PBXBuildFile; fileRef = A2TRIPSTOPCAF0000000001 /* trip_stop.caf */; };
@@ -51,7 +67,6 @@
 		A1VEHPAIRING00000001 /* VehiclePairingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2VEHPAIRING00000001 /* VehiclePairingService.swift */; };
 		A1INFOPLISTXC0000001 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A2INFOPLISTXC0000001 /* InfoPlist.xcstrings */; };
 		A10000000000000000000028 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000027 /* PrivacyInfo.xcprivacy */; };
-		A5667A7DE2024FB687E8DD43 /* TrailhoundTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86269EF985B34281B00F7FAC /* TrailhoundTests.swift */; };
 		B10000000000000000000001 /* TripNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* TripNotificationService.swift */; };
 		A1ONBOARDING00000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2ONBOARDING00000000001 /* OnboardingView.swift */; };
 		A1PERMBANNER00000000001 /* PermissionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2PERMBANNER00000000001 /* PermissionBanner.swift */; };
@@ -139,6 +154,13 @@
 			remoteGlobalIDString = A60000000000000000000001;
 			remoteInfo = Trailhound;
 		};
+		BA0000000000000000000003 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A90000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A60000000000000000000001;
+			remoteInfo = Trailhound;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -156,8 +178,24 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9352D7E1196647B7837DB769 /* CoreUtilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundTests/Core/CoreUtilityTests.swift; sourceTree = SOURCE_ROOT; };
+		6DAD9EEA55914D5C98B09031 /* SchemaAndRoutesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundTests/Data/SchemaAndRoutesTests.swift; sourceTree = SOURCE_ROOT; };
+		FD061B46A12E455098133AB4 /* ExportServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundTests/Export/ExportServiceTests.swift; sourceTree = SOURCE_ROOT; };
+		6CB3113C33FF4D2DA8CC725D /* PairingAndCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundTests/Pairing/PairingAndCoordinatorTests.swift; sourceTree = SOURCE_ROOT; };
+		0AFEE050769946A7893F42FC /* RecordingAndTripStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundTests/Recording/RecordingAndTripStoreTests.swift; sourceTree = SOURCE_ROOT; };
+		C1C3CC897A8D463291AD0E6F /* VehicleConnectRecordingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundTests/Recording/VehicleConnectRecordingTests.swift; sourceTree = SOURCE_ROOT; };
+		F2BBD47E89164260A41A27C3 /* AppNotificationStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundTests/Services/AppNotificationStoreTests.swift; sourceTree = SOURCE_ROOT; };
+		54581B9BBE85461BA8A3BEF2 /* PlaceMatchingServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundTests/Services/PlaceMatchingServiceTests.swift; sourceTree = SOURCE_ROOT; };
+		CA9F1CB485FD4EA4B3F0A518 /* TripMergeServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundTests/Services/TripMergeServiceTests.swift; sourceTree = SOURCE_ROOT; };
+		B48EC48061EF49B48F74CDB8 /* SharedUtilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundTests/Shared/SharedUtilityTests.swift; sourceTree = SOURCE_ROOT; };
+		1B994DBD80EC432FBE63A842 /* DeviceTestChecklist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundTests/Support/DeviceTestChecklist.swift; sourceTree = SOURCE_ROOT; };
+		FE9E0CBBFC00443CA31BE661 /* StatsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundTests/ViewModels/StatsViewModelTests.swift; sourceTree = SOURCE_ROOT; };
+		75FFA1F03E484232B987650B /* TripListViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundTests/ViewModels/TripListViewModelTests.swift; sourceTree = SOURCE_ROOT; };
+		559271D0AAEC4FE192F527B9 /* TripMapFitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundTests/ViewModels/TripMapFitTests.swift; sourceTree = SOURCE_ROOT; };
+		50629FB718274B229C611BA1 /* TrailhoundUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundUITests/TrailhoundUITests.swift; sourceTree = SOURCE_ROOT; };
 		1F8346A303B84C5089017287 /* AppLockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLockView.swift; sourceTree = "<group>"; };
 		3C4D5673496049A7A905249D /* TrailhoundTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrailhoundTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		UITESTPRD00000000000001 /* TrailhoundUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrailhoundUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4B6254BADAB2452485AC086C /* TripMergeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripMergeService.swift; sourceTree = "<group>"; };
 		5E100D096E5B474C8C3CC6EB /* FuelCostCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuelCostCalculator.swift; sourceTree = "<group>"; };
 		65E131E71820446C9E390421 /* TripEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripEnums.swift; sourceTree = "<group>"; };
@@ -166,7 +204,6 @@
 		7E7218250D954707A753EAFC /* RecordingLiveActivityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingLiveActivityService.swift; sourceTree = "<group>"; };
 		809405DA3B0A4D33AFE11517 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 		82C9C269375F4C05AFEA8817 /* GeocodingRetryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeocodingRetryService.swift; sourceTree = "<group>"; };
-		86269EF985B34281B00F7FAC /* TrailhoundTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundTests.swift; sourceTree = "<group>"; };
 		86CA401B8CE941218B625F2C /* AppLockService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLockService.swift; sourceTree = "<group>"; };
 		88030C70371F439DA73D2869 /* TripFilterChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripFilterChips.swift; sourceTree = "<group>"; };
 		89C5F75B18D74EB4B35E48C0 /* PlacePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacePickerView.swift; sourceTree = "<group>"; };
@@ -191,6 +228,7 @@
 		A20000000000000000000018 /* DistanceCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistanceCalculator.swift; sourceTree = "<group>"; };
 		A2TRAILHOUNDMOTION00000001 /* TrailhoundMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundMotion.swift; sourceTree = "<group>"; };
 		A2GLASSSTYLE000000000001 /* GlassStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassStyle.swift; sourceTree = "<group>"; };
+		A2UITESTSUPPORT00000001 /* UITestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestSupport.swift; sourceTree = "<group>"; };
 		A2TRAILHOUNDSOUNDS00000001 /* TrailhoundSounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailhoundSounds.swift; sourceTree = "<group>"; };
 		A2TRIPSTARTCAF000000001 /* trip_start.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = trip_start.caf; sourceTree = "<group>"; };
 		A2TRIPSTOPCAF0000000001 /* trip_stop.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = trip_stop.caf; sourceTree = "<group>"; };
@@ -293,6 +331,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		UITESTFRM00000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -303,6 +348,7 @@
 				B50000000000000000000001 /* TrailhoundShared */,
 				B50000000000000000000002 /* TrailhoundWidget */,
 				EAD0FC18DADB4E359AC65213 /* TrailhoundTests */,
+				UITESTGRP00000000000001 /* TrailhoundUITests */,
 				A50000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -335,6 +381,7 @@
 				A30000000000000000000001 /* Trailhound.app */,
 				B30000000000000000000001 /* TrailhoundWidgetExtension.appex */,
 				3C4D5673496049A7A905249D /* TrailhoundTests.xctest */,
+				UITESTPRD00000000000001 /* TrailhoundUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -473,6 +520,7 @@
 				A20000000000000000000018 /* DistanceCalculator.swift */,
 				A2TRAILHOUNDMOTION00000001 /* TrailhoundMotion.swift */,
 				A2GLASSSTYLE000000000001 /* GlassStyle.swift */,
+				A2UITESTSUPPORT00000001 /* UITestSupport.swift */,
 				A2TRAILHOUNDSOUNDS00000001 /* TrailhoundSounds.swift */,
 				A20000000000000000000020 /* AppSettings.swift */,
 				A20000000000000000000021 /* PreviewData.swift */,
@@ -530,9 +578,15 @@
 		EAD0FC18DADB4E359AC65213 /* TrailhoundTests */ = {
 			isa = PBXGroup;
 			children = (
-				86269EF985B34281B00F7FAC /* TrailhoundTests.swift */,
 			);
 			path = TrailhoundTests;
+			sourceTree = "<group>";
+		};
+		UITESTGRP00000000000001 /* TrailhoundUITests */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = TrailhoundUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -554,6 +608,23 @@
 			productName = TrailhoundTests;
 			productReference = 3C4D5673496049A7A905249D /* TrailhoundTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		UITESTTGT00000000000001 /* TrailhoundUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = UITESTCFG00000000000001 /* Build configuration list for PBXNativeTarget "TrailhoundUITests" */;
+			buildPhases = (
+				UITESTSRC00000000000001 /* Sources */,
+				UITESTFRM00000000000001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				UITESTDEP00000000000001 /* PBXTargetDependency */,
+			);
+			name = TrailhoundUITests;
+			productName = TrailhoundUITests;
+			productReference = UITESTPRD00000000000001 /* TrailhoundUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 		A60000000000000000000001 /* Trailhound */ = {
 			isa = PBXNativeTarget;
@@ -623,6 +694,7 @@
 				A60000000000000000000001 /* Trailhound */,
 				B60000000000000000000001 /* TrailhoundWidgetExtension */,
 				61A9B5A53A1E4338A2C7C79D /* TrailhoundTests */,
+				UITESTTGT00000000000001 /* TrailhoundUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -657,7 +729,28 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A5667A7DE2024FB687E8DD43 /* TrailhoundTests.swift in Sources */,
+				0CEA5B4D12B24B77B1EC2B4A /* CoreUtilityTests.swift in Sources */,
+				175EDBBDA7774BBEB3E158BB /* SchemaAndRoutesTests.swift in Sources */,
+				607C9034073D4AC1979105BE /* ExportServiceTests.swift in Sources */,
+				C9F721413D824CC880896F2C /* PairingAndCoordinatorTests.swift in Sources */,
+				91FFE3088C71403C9EFE54ED /* RecordingAndTripStoreTests.swift in Sources */,
+				80A6F699A69848D0BF4B1DA5 /* VehicleConnectRecordingTests.swift in Sources */,
+				221D8FD2CC8A470FA658CB3E /* AppNotificationStoreTests.swift in Sources */,
+				826F2FBDC86743D3935EEC56 /* PlaceMatchingServiceTests.swift in Sources */,
+				DDB44A98FAD14A3DB6762538 /* TripMergeServiceTests.swift in Sources */,
+				516F2EC02367420DAEE52ECE /* SharedUtilityTests.swift in Sources */,
+				EB7E8A86B96D49C8872C71DC /* DeviceTestChecklist.swift in Sources */,
+				B1192077B71D4B8FBF108B41 /* StatsViewModelTests.swift in Sources */,
+				E563A6E5BD5040C489030062 /* TripListViewModelTests.swift in Sources */,
+				E377B6EC358A45669CF0935C /* TripMapFitTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		UITESTSRC00000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				14A1F5A32BA94A8289379224 /* TrailhoundUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -686,6 +779,7 @@
 				A10000000000000000000018 /* DistanceCalculator.swift in Sources */,
 				A1TRAILHOUNDMOTION00000001 /* TrailhoundMotion.swift in Sources */,
 				A1GLASSSTYLE000000000001 /* GlassStyle.swift in Sources */,
+				A1UITESTSUPPORT00000001 /* UITestSupport.swift in Sources */,
 				A1TRAILHOUNDSOUNDS00000001 /* TrailhoundSounds.swift in Sources */,
 				A10000000000000000000020 /* AppSettings.swift in Sources */,
 				A10000000000000000000021 /* PreviewData.swift in Sources */,
@@ -782,6 +876,7 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+
 /* Begin PBXTargetDependency section */
 		B90000000000000000000001 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -792,6 +887,11 @@
 			isa = PBXTargetDependency;
 			target = A60000000000000000000001 /* Trailhound */;
 			targetProxy = BA0000000000000000000002 /* PBXContainerItemProxy */;
+		};
+		UITESTDEP00000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A60000000000000000000001 /* Trailhound */;
+			targetProxy = BA0000000000000000000003 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1071,6 +1171,40 @@
 			};
 			name = Release;
 		};
+		UITESTDBG00000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.trailhound.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = Trailhound;
+			};
+			name = Debug;
+		};
+		UITESTREL00000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.trailhound.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = Trailhound;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1106,6 +1240,15 @@
 			buildConfigurations = (
 				A640FDEB8DE8400A908BC667 /* Debug */,
 				FEBF097F62864160B81FDA6C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		UITESTCFG00000000000001 /* Build configuration list for PBXNativeTarget "TrailhoundUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				UITESTDBG00000000000001 /* Debug */,
+				UITESTREL00000000000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

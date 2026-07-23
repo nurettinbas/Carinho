@@ -34,6 +34,7 @@ struct ContentView: View {
                 .tabItem { Label(L10n.tabTrips, systemImage: "map.fill") }
                 .badge(isRecordingSession ? "" : nil)
                 .tag(AppTab.trips)
+                .accessibilityIdentifier("tab.trips")
 
                 NavigationStack {
                     StatsView()
@@ -41,10 +42,12 @@ struct ContentView: View {
                 .background(Color.clear)
                 .tabItem { Label(L10n.tabStats, systemImage: "chart.bar") }
                 .tag(AppTab.stats)
+                .accessibilityIdentifier("tab.stats")
 
                 PairingTabView()
                     .tabItem { Label(L10n.tabPairing, systemImage: "link.circle") }
                     .tag(AppTab.pairing)
+                    .accessibilityIdentifier("tab.pairing")
 
                 NavigationStack {
                     SettingsView()
@@ -52,6 +55,7 @@ struct ContentView: View {
                 .background(Color.clear)
                 .tabItem { Label(L10n.tabSettings, systemImage: "gearshape") }
                 .tag(AppTab.settings)
+                .accessibilityIdentifier("tab.settings")
 
                 NavigationStack {
                     DevLogView()

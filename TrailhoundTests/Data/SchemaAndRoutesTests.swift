@@ -1,0 +1,77 @@
+import SwiftData
+import XCTest
+@testable import Trailhound
+
+@MainActor
+final class FrequentRoutesServiceTests: XCTestCase {
+    func testDetectsRepeatedRoute() {
+        let tripA = Trip(
+            startedAt: Date(),
+            endedAt: Date(),
+            startPlaceName: "Ev",
+            endPlaceName: "Ofis"
+        )
+        let tripB = Trip(
+            startedAt: Date(),
+            endedAt: Date(),
+            startPlaceName: "Ev",
+            endPlaceName: "Ofis"
+        )
+        let routes = FrequentRoutesService.frequentRoutes(from: [tripA, tripB], places: [], privacyRadius: 500)
+        XCTAssertEqual(routes.first?.count, 2)
+        XCTAssertEqual(routes.first?.startDisplay, "Ev")
+        XCTAssertEqual(routes.first?.endDisplay, "Ofis")
+    }
+}
+
+@MainActor
+final class SchemaMigrationTests: XCTestCase {
+    func testV6TripSupportsNullableVehicleID() throws {
+        let container = try ModelContainer(
+            for: Schema(versionedSchema: TrailhoundSchemaV6.self),
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let trip = Trip(startedAt: Date(), endedAt: Date(), distanceMeters: 1200)
+        container.mainContext.insert(trip)
+        try container.mainContext.save()
+
+        let trips = try container.mainContext.fetch(FetchDescriptor<Trip>())
+        XCTAssertEqual(trips.count, 1)
+        XCTAssertNil(trips.first?.vehicleID)
+        XCTAssertNil(trips.first?.vehicle)
+    }
+
+    func testV6SupportsVehicleProfile() throws {
+        let container = try ModelContainer(
+            for: Schema(versionedSchema: TrailhoundSchemaV6.self),
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let vehicle = VehicleProfile(name: "Test", fuelType: .petrol, consumption: 7.5)
+        container.mainContext.insert(vehicle)
+        try container.mainContext.save()
+
+        let vehicles = try container.mainContext.fetch(FetchDescriptor<VehicleProfile>())
+        XCTAssertEqual(vehicles.count, 1)
+    }
+
+    func testVehicleProfilePersistsPairedRoute() throws {
+        let container = try ModelContainer(
+            for: Schema(versionedSchema: TrailhoundSchemaV7.self),
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let vehicle = VehicleProfile(
+            name: "Ford Puma",
+            consumption: 6.5,
+            autoStartEnabled: true,
+            pairedRouteUID: "puma-bt-uid",
+            pairedRouteName: "Ford Puma"
+        )
+        container.mainContext.insert(vehicle)
+        try container.mainContext.save()
+
+        let fetched = try container.mainContext.fetch(FetchDescriptor<VehicleProfile>()).first
+        XCTAssertTrue(fetched?.autoStartEnabled == true)
+        XCTAssertEqual(fetched?.pairedRouteUID, "puma-bt-uid")
+        XCTAssertEqual(fetched?.pairedRouteName, "Ford Puma")
+    }
+}

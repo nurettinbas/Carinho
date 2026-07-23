@@ -33,6 +33,7 @@ struct SettingsView: View {
 
             Section(L10n.settingsRecordingSection) {
                 Toggle(L10n.settingsRecordingSounds, isOn: $settings.recordingSoundsEnabled)
+                    .accessibilityIdentifier("settings.recordingSounds")
                     .glassRow(position: .first)
                 Text(L10n.settingsSiriShortcutsHint)
                     .font(.footnote)

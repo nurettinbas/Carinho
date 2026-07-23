@@ -34,6 +34,20 @@
                ReferencedContainer = "container:Trailhound.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "UITESTTGT00000000000001"
+               BuildableName = "TrailhoundUITests.xctest"
+               BlueprintName = "TrailhoundUITests"
+               ReferencedContainer = "container:Trailhound.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -49,6 +63,16 @@
                BlueprintIdentifier = "61A9B5A53A1E4338A2C7C79D"
                BuildableName = "TrailhoundTests.xctest"
                BlueprintName = "TrailhoundTests"
+               ReferencedContainer = "container:Trailhound.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "UITESTTGT00000000000001"
+               BuildableName = "TrailhoundUITests.xctest"
+               BlueprintName = "TrailhoundUITests"
                ReferencedContainer = "container:Trailhound.xcodeproj">
             </BuildableReference>
          </TestableReference>
