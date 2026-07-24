@@ -2579,6 +2579,40 @@
         }
       }
     },
+    "onboarding.features.auto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recording starts automatically when your car's Bluetooth connects."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aracının Bluetooth'una bağlanınca kayıt kendiliğinden başlar."
+          }
+        }
+      }
+    },
+    "onboarding.features.routes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every drive on the map with distance, duration, and summaries in one place."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Her sürüş haritada; mesafe, süre ve özetler tek yerde."
+          }
+        }
+      }
+    },
     "onboarding.location.enable_always" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2732,6 +2766,57 @@
         }
       }
     },
+    "onboarding.shortcuts.link" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open setup guide"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kurulum rehberini aç"
+          }
+        }
+      }
+    },
+    "onboarding.shortcuts.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For the most reliable auto-start, use Shortcuts automations when your car connects or disconnects."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En güvenilir otomatik kayıt için araca bağlanınca veya ayrılınca Kısayollar otomasyonlarını kullan."
+          }
+        }
+      }
+    },
+    "onboarding.shortcuts.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto record with Shortcuts"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kısayollar ile otomatik kayıt"
+          }
+        }
+      }
+    },
     "onboarding.step_a11y" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2823,13 +2908,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Track your drives automatically when you connect to your car. Permissions are only requested when you need a feature — location when recording, notifications when a trip ends, and so on."
+            "value" : "Your trips record themselves when you get in the car."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aracına bağlandığında yolculuklarını otomatik kaydet. İzinler yalnızca gerektiğinde istenir — kayıt için konum, yolculuk bitince bildirim gibi."
+            "value" : "Araca bindiğinde yolculuğun kendiliğinden kayda geçsin."
           }
         }
       }

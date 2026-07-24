@@ -1,27 +1,40 @@
 import SwiftUI
 
+private enum OnboardingStep: Int, CaseIterable {
+    case welcome
+    case location
+    case shortcuts
+    case vehicle
+
+    static var count: Int { allCases.count }
+}
+
 struct OnboardingView: View {
+    @Environment(LocationService.self) private var locationService
     @Bindable private var settings = AppSettings.shared
     @Bindable private var tabSelection = TabSelection.shared
 
-    @State private var page = 0
+    @State private var page = OnboardingStep.welcome.rawValue
+    @State private var showShortcutsAutomationGuide = false
 
-    private let pageCount = 2
+    private var pageCount: Int { OnboardingStep.count }
 
     var body: some View {
         ZStack {
             AtmosphericBackground()
 
             VStack(spacing: 0) {
-                Group {
-                    switch page {
-                    case 0:
-                        welcomePage
-                    default:
-                        vehicleSetupPage
-                    }
+                TabView(selection: $page) {
+                    welcomePage
+                        .tag(OnboardingStep.welcome.rawValue)
+                    locationPage
+                        .tag(OnboardingStep.location.rawValue)
+                    shortcutsPage
+                        .tag(OnboardingStep.shortcuts.rawValue)
+                    vehiclePage
+                        .tag(OnboardingStep.vehicle.rawValue)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(TrailhoundMotion.gentle, value: page)
 
                 pageIndicator
@@ -32,48 +45,77 @@ struct OnboardingView: View {
                     .padding(.bottom, 32)
             }
         }
+        .sheet(isPresented: $showShortcutsAutomationGuide) {
+            PairingShortcutsAutomationGuideView()
+        }
     }
+
+    // MARK: - Pages
 
     private var welcomePage: some View {
-        VStack(spacing: 24) {
-            Spacer()
-
-            Image(systemName: "car.side.fill")
-                .font(.system(size: 56))
-                .foregroundStyle(TrailhoundBrandColors.brandBottom)
-                .symbolRenderingMode(.hierarchical)
-
-            VStack(spacing: 12) {
-                Text(L10n.string("onboarding.welcome.title"))
-                    .font(.title2.bold())
-                    .multilineTextAlignment(.center)
-                Text(L10n.string("onboarding.welcome.message"))
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
+        onboardingHeroPage(
+            icon: "car.side.fill",
+            title: L10n.string("onboarding.welcome.title"),
+            message: L10n.string("onboarding.welcome.message")
+        ) {
+            VStack(alignment: .leading, spacing: 14) {
+                onboardingFeatureRow(
+                    icon: "antenna.radiowaves.left.and.right",
+                    text: L10n.string("onboarding.features.auto")
+                )
+                onboardingFeatureRow(
+                    icon: "point.topleft.down.curvedto.point.bottomright.up",
+                    text: L10n.string("onboarding.features.routes")
+                )
             }
-            .padding(.horizontal, 8)
-
-            Spacer()
-            Spacer()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 4)
         }
-        .padding(.horizontal, 28)
     }
 
-    private var vehicleSetupPage: some View {
-        VStack(spacing: 0) {
-            Spacer()
+    private var locationPage: some View {
+        onboardingHeroPage(
+            icon: "location.fill",
+            title: L10n.string("onboarding.location.title"),
+            message: L10n.string("onboarding.location.message")
+        ) {
+            VStack(spacing: 12) {
+                LocationPermissionBadge(state: locationService.authorizationState)
 
-            VStack(alignment: .leading, spacing: 16) {
-                Text(L10n.string("onboarding.vehicle.title"))
-                    .font(.title2.bold())
+                locationPermissionActions
+            }
+        }
+    }
 
-                Text(L10n.string("onboarding.vehicle.message"))
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+    private var shortcutsPage: some View {
+        onboardingHeroPage(
+            icon: "bolt.horizontal.circle.fill",
+            title: L10n.string("onboarding.shortcuts.title"),
+            message: L10n.string("onboarding.shortcuts.message")
+        ) {
+            Button {
+                showShortcutsAutomationGuide = true
+                TrailhoundHaptics.selection()
+            } label: {
+                HStack(spacing: 6) {
+                    Text(L10n.string("onboarding.shortcuts.link"))
+                    Image(systemName: "arrow.up.right")
+                        .font(.caption.weight(.semibold))
+                }
+                .font(.body.weight(.semibold))
+            }
+            .foregroundStyle(TrailhoundBrandColors.brandBottom)
+            .padding(.top, 4)
+        }
+    }
 
+    private var vehiclePage: some View {
+        onboardingHeroPage(
+            icon: "link.circle",
+            title: L10n.string("onboarding.vehicle.title"),
+            message: L10n.string("onboarding.vehicle.message")
+        ) {
+            VStack(spacing: 12) {
                 Button(action: defineVehicleAndFinish) {
                     Text(L10n.string("onboarding.vehicle.define"))
                         .font(.body.weight(.semibold))
@@ -90,13 +132,83 @@ struct OnboardingView: View {
                 }
                 .foregroundStyle(.secondary)
             }
-            .padding(20)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .glassCard(contentInset: 0)
-            .padding(.horizontal, 24)
+            .padding(.top, 4)
+        }
+    }
+
+    // MARK: - Building blocks
+
+    private func onboardingHeroPage<Extra: View>(
+        icon: String,
+        title: String,
+        message: String? = nil,
+        @ViewBuilder extra: () -> Extra = { EmptyView() }
+    ) -> some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            Image(systemName: icon)
+                .font(.system(size: 56))
+                .foregroundStyle(TrailhoundBrandColors.brandBottom)
+                .symbolRenderingMode(.hierarchical)
+
+            VStack(spacing: 12) {
+                Text(title)
+                    .font(.title2.bold())
+                    .multilineTextAlignment(.center)
+
+                if let message {
+                    Text(message)
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .padding(.horizontal, 8)
+
+            extra()
 
             Spacer()
             Spacer()
+        }
+        .padding(.horizontal, 28)
+    }
+
+    private func onboardingFeatureRow(icon: String, text: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(TrailhoundBrandColors.brandBottom)
+                .frame(width: 28, alignment: .center)
+
+            Text(text)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    @ViewBuilder
+    private var locationPermissionActions: some View {
+        switch locationService.authorizationState {
+        case .authorizedAlways:
+            Text(L10n.string("onboarding.permission.granted"))
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+        case .denied, .restricted:
+            Button(L10n.locationBannerSettings) {
+                openAppSettings()
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(TrailhoundBrandColors.brandBottom)
+        case .notDetermined, .authorizedWhenInUse:
+            Button(L10n.string("onboarding.location.enable_always")) {
+                locationService.requestPermission()
+                TrailhoundHaptics.selection()
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(TrailhoundBrandColors.brandBottom)
         }
     }
 
@@ -116,14 +228,16 @@ struct OnboardingView: View {
         HStack {
             if page > 0 {
                 Button(L10n.string("onboarding.back")) {
-                    page -= 1
+                    withAnimation(TrailhoundMotion.gentle) {
+                        page -= 1
+                    }
                 }
                 .foregroundStyle(.secondary)
             }
 
             Spacer()
 
-            if page < pageCount - 1 {
+            if page < OnboardingStep.vehicle.rawValue {
                 Button(L10n.string("onboarding.next")) {
                     withAnimation(TrailhoundMotion.gentle) {
                         page += 1
@@ -131,13 +245,15 @@ struct OnboardingView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(TrailhoundBrandColors.brandBottom)
-            } else {
-                Button(L10n.string("onboarding.finish")) {
-                    skipVehicleSetup()
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(TrailhoundBrandColors.brandBottom)
             }
+        }
+    }
+
+    // MARK: - Actions
+
+    private func openAppSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(url)
         }
     }
 
@@ -158,4 +274,5 @@ struct OnboardingView: View {
 
 #Preview {
     OnboardingView()
+        .environment(LocationService())
 }

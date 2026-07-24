@@ -29,7 +29,7 @@ struct TripRowView: View {
 
                 HStack(spacing: 6) {
                     HStack(spacing: 3) {
-                        Image(systemName: "clock")
+                        Image(systemName: "stopwatch")
                             .font(.system(size: 9, weight: .semibold))
                         Text(TripListViewModel.durationText(for: trip))
                             .font(.caption)
